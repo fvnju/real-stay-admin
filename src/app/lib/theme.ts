@@ -57,7 +57,7 @@ export const theme = createTheme({
     },
     secondary: {
       main: "#262626",
-      light: "#ffcf33",
+      light: "#262626",
       dark: "#0F0F0F",
       lighter: "#FFF4E5",
       darker: "#663C00",
@@ -212,7 +212,7 @@ export const theme = createTheme({
             },
           },
           "& .MuiInputLabel-root": {
-            transform: "translate(0px, -24px) scale(0.75)", // optional: reposition label
+            transform: "translate(0px, -24px) scale(0.9)", // optional: reposition label
             color: theme.palette.primary.main,
             "&.Mui-focused": {
               color: theme.palette.primary.main,

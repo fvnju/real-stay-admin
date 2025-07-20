@@ -1,7 +1,5 @@
-import { ThemeProvider } from "@mui/material";
 import "./globals.css";
-import { theme } from "./lib/theme";
-import { MuiThemeProvider } from "./components/theme-provider";
+import { MuiThemeProvider } from "./providers/theme-provider";
 
 export default function RootLayout({
   children,

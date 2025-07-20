@@ -1,5 +1,7 @@
 "use client";
 
+import { Icon } from "@iconify/react";
+import { LoadingButton } from "@mui/lab";
 import {
   IconButton,
   InputAdornment,
@@ -8,17 +10,17 @@ import {
   Typography,
 } from "@mui/material";
 import Card from "@mui/material/Card";
-import { LoadingButton } from "@mui/lab";
-import Link from "next/link";
-import Image from "next/image";
-import { useState } from "react";
-import { Icon } from "@iconify/react";
-import { theme } from "../lib/theme";
-import { getFormikTextFieldProps } from "../utils/formik-helpers";
 import { useFormik } from "formik";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import * as Yup from "yup";
+import { theme } from "../../lib/theme";
+import { getFormikTextFieldProps } from "../../utils/formik-helpers";
 
 export default function SignInPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const handleToggle = () => setShowPassword((prev) => !prev);
 
@@ -35,9 +37,9 @@ export default function SignInPage() {
   });
 
   return (
-    <div className="flex min-h-screen items-center justify-center ">
+    <div className="flex min-h-screen items-center justify-center  ">
       <form>
-        <Card className="flex flex-col gap-4 p-8 w-[400px]">
+        <Card className="flex flex-col gap-4 p-8 md:w-[400px] w-[300px]">
           <Image
             src="/edge-tech-logo.svg"
             alt="logo"
@@ -48,7 +50,6 @@ export default function SignInPage() {
           <Typography
             className="font-bold"
             color="primary.light"
-            // variant="h5"
             align="center"
           >
             Real Stay Admin
@@ -94,8 +95,16 @@ export default function SignInPage() {
               ),
             }}
           />
-          <LoadingButton variant="contained">Sign In</LoadingButton>
-          <Link href={""} className="text-[#FFFFFFB2] text-xs text-center">
+          <LoadingButton
+            variant="contained"
+            onClick={() => router.push("/dashboard")}
+          >
+            Sign In
+          </LoadingButton>
+          <Link
+            href={"/forgot-password"}
+            className="text-[#FFFFFFB2] text-xs text-center hover:text-white hover:underline"
+          >
             {" "}
             forgot password
           </Link>
