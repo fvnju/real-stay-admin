@@ -77,15 +77,15 @@ export default function ProtectedLayout({
         </Stack>
       </Toolbar>
       <List sx={{ mt: 1 }}>
-        {menuItems.map((m) => (
-          <Stack>
+        {menuItems.map((m, i) => (
+          <Stack key={i}>
             <Typography
               sx={{ color: theme?.palette?.primary?.main, pl: 2, mt: 3 }}
               variant="caption"
             >
               {m?.heading}
             </Typography>
-            {m?.menus?.map((menu) => (
+            {m?.menus?.map((menu, i) => (
               <ListItemButton
                 component="a"
                 href={menu.path}
