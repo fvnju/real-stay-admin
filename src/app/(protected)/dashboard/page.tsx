@@ -5,15 +5,20 @@ import { theme } from "@/app/lib/theme";
 import { Card, Grid2, Stack, Typography } from "@mui/material";
 import { useState } from "react";
 import { UserTable } from "./components/UserTable";
+import { Icon } from "@iconify/react/dist/iconify.js";
 
 export default function DashboardPage() {
   const data = [
-    { title: "Total users", value: "12k" },
-    { title: "Active users", value: "10.8k" },
-    { title: "Inactive users", value: "1.2k" },
-    { title: "Total Listings", value: "12k" },
-    { title: "Approved users", value: "10.8k" },
-    { title: "Flagged users", value: "1.2k" },
+    { title: "Total users", value: "12k", icon: "hugeicons:user-multiple" },
+    { title: "Active users", value: "10.8k", icon: "hugeicons:user-check-02" },
+    { title: "Inactive users", value: "1.2k", icon: "hugeicons:user-block-02" },
+    { title: "Total Listings", value: "12k", icon: "hugeicons:house-01" },
+    {
+      title: "Approved users",
+      value: "10.8k",
+      icon: "hugeicons:house-01",
+    },
+    { title: "Flagged users", value: "1.2k", icon: "hugeicons:house-01" },
   ];
 
   const [isFetching, setIsFetching] = useState(false);
@@ -36,9 +41,28 @@ export default function DashboardPage() {
                 borderColor: theme?.palette?.secondary?.light,
               }}
             >
-              <Typography className="text-white" variant="body2" mb={0.8}>
-                {d?.title}
-              </Typography>
+              <Stack
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: 1,
+                  alignItems: "center",mb:1.5
+                }}
+              >
+                <Typography
+                  className="text-white w-fit"
+                  variant="body2"
+                
+                >
+                  {d?.title}{" "}
+                </Typography>
+                <Icon
+                  icon={d?.icon}
+                  height="15"
+                  color={theme.palette.primary.light}
+                />
+              </Stack>
+
               <Typography className="text-white" variant="h4" sx={{}}>
                 {d?.value}
               </Typography>
@@ -54,7 +78,7 @@ export default function DashboardPage() {
           borderColor: theme?.palette?.secondary?.light,
         }}
       >
-        <Typography sx={{}} className="text-white font-semibold text-2xl mb-2">
+        <Typography sx={{mb:2}} className="text-white font-semibold text-2xl mb-2">
           Recent activity
         </Typography>{" "}
         <UserTable />

@@ -16,7 +16,7 @@ import { User } from "@/app/endpoints/auth/auth-types";
 import { useState } from "react";
 
 export const UserTable = () => {
-  const tableHeaders = ["ID", "User", "AC"];
+  const tableHeaders = ["ID", "User", "Status"];
   const [isFetching, setIsFetching] = useState(false);
 
   const Usersdummy: User[] = [];
@@ -51,8 +51,9 @@ export const UserTable = () => {
           )}
           {!isFetching && !Usersdummy?.length && (
             <EmptyTableRows
+            
               noOfColumns={tableHeaders.length}
-              text="No collections to display..."
+              text="No user to display..."
             />
           )}
         </TableBody>

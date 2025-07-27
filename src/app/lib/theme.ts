@@ -273,30 +273,29 @@ export const theme = createTheme({
     },
     MuiTableHead: {
       styleOverrides: {
-        root: {
-          backgroundColor: "#E7E7E7",
-          fontWeight: "bold",
-          color: "#000000DE",
-        },
+        root: ({ theme }) => ({
+          color: theme.palette.primary.lighter,
+        }),
       },
     },
     MuiTableCell: {
       styleOverrides: {
-        root: {
+        root: ({ theme }) => ({
           fontSize: ".75rem",
-          borderBottom: "1px solid #e0e0e0",
-        },
+          color: theme.palette.primary.light,
+          borderBottom: `1px solid ${theme.palette.secondary.main}`,
+        }),
       },
     },
     MuiTableRow: {
       styleOverrides: {
-        root: {
+        root: ({ theme }) => ({
           transition: "background-color 0.3s",
           "&:hover td": {
-            backgroundColor: "#f5f5f5",
+            backgroundColor: theme.palette.primary.dark,
             cursor: "pointer",
           },
-        },
+        }),
       },
     },
     MuiSwitch: {
