@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-const url = process.env.NEXT_PUBLIC_SITE_URL;
+const url = process.env.NEXT_PUBLIC_BASE_URL;
 export const metadata = {
   title: "Real Stay | real estate simplified",
   description:

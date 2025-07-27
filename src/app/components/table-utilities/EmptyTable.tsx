@@ -1,0 +1,40 @@
+import { Icon } from '@iconify/react/dist/iconify.js';
+import { Box, Button, TableCell, TableRow, Typography } from '@mui/material';
+import React, { FC } from 'react';
+
+export const EmptyTableRows: FC<{
+    showActionButton?: boolean;
+    action?: () => void;
+    actionLabel?: string;
+    text?: string;
+    noOfColumns: number;
+}> = ({ showActionButton, action, text = 'No data to display..', noOfColumns, actionLabel }) => {
+    return (
+        <TableRow>
+            <TableCell colSpan={noOfColumns}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minWidth: '100%',
+                        flexDirection: 'column',
+                        gap: '0.5rem',
+                        minHeight:'400px'
+                    }}
+                >
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            marginBottom: '1rem',
+                            fontSize: '15px',
+                        }}
+                    >
+                        {text || 'No Data Found'}
+                    </Typography>
+                    {(showActionButton || action) && <Button startIcon={<Icon icon="si:add-duotone"  />} variant='contained' onClick={action}>{actionLabel}</Button>}
+                </Box>
+            </TableCell>
+        </TableRow>
+    );
+};

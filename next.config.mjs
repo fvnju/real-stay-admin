@@ -1,8 +1,8 @@
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    appDir: true, // optional; usually enabled by default
-  },
+  // experimental: {
+  //   appDir: true, // optional; usually enabled by default
+  // },
 
 };
 

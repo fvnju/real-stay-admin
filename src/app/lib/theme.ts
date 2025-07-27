@@ -347,6 +347,28 @@ export const theme = createTheme({
         },
       },
     },
+    MuiPagination: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.primary.light,
+        }),
+      },
+    },
+    MuiPaginationItem: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.primary.light,
+        }),
+      },
+    },
+    MuiTablePagination: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.primary.light,
+        }),
+      },
+    },
+
     MuiCard: {
       defaultProps: {
         elevation: 1,
