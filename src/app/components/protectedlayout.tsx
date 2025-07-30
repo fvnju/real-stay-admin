@@ -3,10 +3,16 @@
 import { Icon } from "@iconify/react/dist/iconify.js";
 import {
   AppBar,
+  Avatar,
+  Backdrop,
   Box,
+  Button,
+  ButtonBase,
+  CircularProgress,
   CssBaseline,
   Drawer,
   IconButton,
+  LinearProgress,
   List,
   ListItemButton,
   ListItemIcon,
@@ -17,10 +23,15 @@ import {
 } from "@mui/material";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { menuItems } from "../lib/menu";
 import { theme } from "../lib/theme";
 import { useUserSession } from "../lib/useUserSession";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../store/store";
+import { userApi } from "../endpoints/user/user-api-slice";
+import { updateAuth } from "../store/modules/auth/slices/auth-slice";
+import { toast } from "react-toastify";
 
 const drawerWidth = 300;
 
@@ -32,22 +43,71 @@ export default function ProtectedLayout({
   const isAuthenticated = useUserSession();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const [userQuery, { isLoading: userLoading }] = userApi.useLazyGetUserQuery();
+  const dispatch = useDispatch();
 
-  //   useEffect(() => {
-  //     if (isAuthenticated === false) {
-  //       router.replace("/sign-in");
-  //     }
-  //   }, [isAuthenticated, router]);
+  useEffect(() => {
+    if (isAuthenticated === false) {
+      console.log("User is not authenticated, redirecting to sign-in page");
+      router.replace("/sign-in");
+    }
 
-  //   if (isAuthenticated === null)
-  //     return (
-  //       <Backdrop
-  //         open
-  //         sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
-  //       >
-  //         <CircularProgress color="inherit" />
-  //       </Backdrop>
-  //     );
+    if (isAuthenticated) {
+      console.log(typeof window);
+      console.log(user);
+      if (typeof window !== "undefined" && !user) {
+        console.log("User is authenticated, fetching user data");
+        const userID = localStorage.getItem("user_id");
+        userQuery({ path: { id: userID || "" } })
+          .unwrap()
+          .then((response) => {
+            dispatch(
+              updateAuth({
+                token: localStorage.getItem("token"),
+                user: response?.data?.user || null,
+              })
+            );
+          })
+          .catch((error) => {
+            toast.error("Failed to fetch user data");
+          });
+      }
+    }
+  }, [isAuthenticated, router, user]);
+
+  if (isAuthenticated === null || userLoading)
+    return (
+      <Backdrop
+        open
+        color="info"
+        sx={{
+          // color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: theme?.palette?.primary?.dark,
+        }}
+      >
+        <Stack
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            flexDirection: "column",
+          }}
+        >
+          <Image
+            src="/edge-tech-logo.svg"
+            alt="logo"
+            width={40}
+            height={40}
+            className="mx-auto mb-8"
+          />
+
+          <Box sx={{ width: "200px" }}>
+            <LinearProgress />
+          </Box>
+        </Stack>
+      </Backdrop>
+    );
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -113,6 +173,7 @@ export default function ProtectedLayout({
     </div>
   );
 
+  console.log(user);
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
@@ -190,6 +251,7 @@ export default function ProtectedLayout({
         <Drawer
           variant="permanent"
           sx={{
+            position: "relative",
             display: { xs: "none", sm: "block" },
             "& .MuiDrawer-paper": {
               width: drawerWidth,
@@ -201,6 +263,68 @@ export default function ProtectedLayout({
           open
         >
           {drawer}
+          {userLoading && <CircularProgress sx={{ m: 2 }} />}
+          <Stack className="p-2 absolute bottom-0 w-full gap-3">
+            <Typography
+              color="primary.light"
+              className="flex items-center opacity-50 font-bold"
+              variant="body2"
+            >
+              {" "}
+              <Image src="/splash.svg" width={25} height={25} alt="logo" />
+              Realstay super-admin
+            </Typography>
+
+            <ButtonBase
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+
+                alignItems: "center",
+                justifyContent: "space-between",
+                borderRadius: 1,
+                padding: 1,
+                width: "100%",
+              }}
+            >
+              <Stack
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "flex-start",
+                  justifyContent: "flex-start",
+                  width: "100%",
+                }}
+              >
+                <Avatar
+                  src={user?.image_url}
+                  alt={user?.first_name?.[0] || ""}
+                  sx={{ bgcolor: "primary.main" }}
+                />
+                <Stack
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    ml: 1,
+                  }}
+                >
+                  <Typography variant="body2" color="primary.light">
+                    {`${user?.first_name} ${user?.last_name}`}
+                  </Typography>
+                  <Typography variant="caption" color="primary.light">
+                    {user?.email}
+                  </Typography>
+                </Stack>
+              </Stack>{" "}
+              <Icon
+                color={theme.palette.primary.light}
+                icon="mingcute:arrows-right-line"
+                width="18"
+                height="18"
+              />
+            </ButtonBase>
+          </Stack>
         </Drawer>
       </Box>
 

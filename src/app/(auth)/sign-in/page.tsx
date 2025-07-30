@@ -14,16 +14,30 @@ import { useFormik } from "formik";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as Yup from "yup";
 import { theme } from "../../lib/theme";
 import { getFormikTextFieldProps } from "../../utils/formik-helpers";
+import { authApi } from "@/app/endpoints/auth/auth-api-slice";
+import { toast } from "react-toastify";
+import { useUserSession } from "@/app/lib/useUserSession";
+import { useDispatch } from "react-redux";
+import { updateAuth } from "@/app/store/modules/auth/slices/auth-slice";
 
 export default function SignInPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const handleToggle = () => setShowPassword((prev) => !prev);
 
+  const isAuthenticated = useUserSession();
+  const [loginMutation, { isLoading }] = authApi.useLoginMutation();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/dashboard");
+    }
+  }, [isAuthenticated, router]);
   const formik = useFormik({
     initialValues: { email: "", password: "" },
     enableReinitialize: true,
@@ -32,7 +46,24 @@ export default function SignInPage() {
       password: Yup.string().required("password is required"),
     }),
     onSubmit: (data) => {
-      console.log("Form submitted with data:", data);
+      loginMutation({ data })
+        .unwrap()
+        .then((response) => {
+          console.log("Login response:", response);
+          toast.success("Login successful");
+          router.push("/dashboard");
+          localStorage.setItem("user_id", response?.data?.user?.id || "");
+          localStorage.setItem("token", response?.data?.access_token || "");
+          dispatch(
+            updateAuth({
+              token: response?.data?.access_token,
+              user: response?.data?.user,
+            })
+          );
+        })
+        .catch((error) => {
+          toast.error(error?.data?.defaultUserMessage || "Login failed");
+        });
     },
   });
 
@@ -59,6 +90,8 @@ export default function SignInPage() {
             label="Email"
             className="mb-2"
             placeholder="enter email"
+            value={formik.values.email}
+            {...getFormikTextFieldProps(formik, "email")}
           />{" "}
           <TextField
             variant="outlined"
@@ -66,7 +99,8 @@ export default function SignInPage() {
             type={showPassword ? "text" : "password"}
             placeholder="enter password"
             className="placeholder:text-white"
-            {...getFormikTextFieldProps(formik, "credit_limit")}
+            value={formik.values.password}
+            {...getFormikTextFieldProps(formik, "password")}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -96,8 +130,9 @@ export default function SignInPage() {
             }}
           />
           <LoadingButton
+            loading={isLoading}
             variant="contained"
-            onClick={() => router.push("/dashboard")}
+            onClick={() => formik.handleSubmit()}
           >
             Sign In
           </LoadingButton>

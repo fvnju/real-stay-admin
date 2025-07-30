@@ -238,6 +238,20 @@ export const theme = createTheme({
         },
       },
     },
+    MuiLoadingButton: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          "&:hover": {
+            backgroundColor: theme.palette.primary.light,
+          },
+
+          // Optional: Loader color styling
+          "& .MuiCircularProgress-root": {
+            color: theme.palette.common.white,
+          },
+        }),
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: ({ theme }) => ({

@@ -1,6 +1,8 @@
 import { AxiosInstance } from "./httpConfig";
 
 export const setupInterceptors = () => {
+
+  console.log("setting up interceptors...")
   // Request interceptor
   AxiosInstance.interceptors.request.use(
     async (config) => {

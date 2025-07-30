@@ -1,23 +1,18 @@
-import "./globals.css";
-import { MuiThemeProvider } from "./providers/theme-provider";
-import { Provider } from "react-redux";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { setupInterceptors } from "./store/httpInterceptor";
-import store from "./store/store";
+import "./globals.css";
+import { AxiosInterceptorLoader } from "./providers/interceptor";
 import { ReduxProvider } from "./providers/redux-provider";
+import { MuiThemeProvider } from "./providers/theme-provider";
 
 // Setup dayjs plugins
 dayjs.extend(relativeTime);
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
-// Setup Axios interceptors
-setupInterceptors();
 
 export default function RootLayout({
   children,
@@ -46,6 +41,7 @@ export default function RootLayout({
       <body className="bg-[#0F0F0F]">
         <ReduxProvider>
           <MuiThemeProvider>
+            <AxiosInterceptorLoader />
             {children}
             <ToastContainer position="top-right" autoClose={3000} />
           </MuiThemeProvider>
