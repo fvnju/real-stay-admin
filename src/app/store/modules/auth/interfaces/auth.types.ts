@@ -1,8 +1,9 @@
-import { User } from "@/app/endpoints/auth/auth-types";
+import { User } from "@/app/endpoints/user/user-types";
 
 export interface Auth {
-  user: User;
+  user: User | null;
   token: string | null;
   isLoggedIn?: boolean;
   activeOrgId?: string | null;
+  
 }

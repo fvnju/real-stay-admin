@@ -11,9 +11,10 @@ import {
 import { CopyText } from "@/app/components/copyText";
 import { EmptyTableRows } from "@/app/components/table-utilities/EmptyTable";
 import { TableRowSkeletonLoader } from "@/app/components/table-utilities/TableRowSkeletonLoader";
-import { User } from "@/app/endpoints/auth/auth-types";
+
 
 import { useState } from "react";
+import { User } from "@/app/endpoints/user/user-types";
 
 export const UserTable = () => {
   const tableHeaders = ["ID", "User", "Status"];
