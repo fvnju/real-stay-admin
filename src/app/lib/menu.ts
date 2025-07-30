@@ -1,7 +1,9 @@
 export type MenuItem = {
   label: string;
   icon: string;
-  path: string;
+  path?: string;
+  color?: string;
+  func?: () => void;
 };
 
 export const menuItems: { heading: string; menus: MenuItem[] }[] = [
@@ -46,5 +48,24 @@ export const menuItems: { heading: string; menus: MenuItem[] }[] = [
         path: "/roles-and-permissions",
       },
     ],
+  },
+];
+export const userItems: MenuItem[] = [
+  {
+    label: "Account",
+    icon: "iconoir:user",
+    path: "/users",
+  },
+  {
+    label: "Log out",
+    icon: "akar-icons:door",
+    color:"error.light",
+    func: () => {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("user_id");
+        localStorage.removeItem("token");
+        window.location.href = "/";
+      }
+    },
   },
 ];

@@ -24,7 +24,7 @@ import {
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { menuItems } from "../lib/menu";
+import { menuItems, userItems } from "../lib/menu";
 import { theme } from "../lib/theme";
 import { useUserSession } from "../lib/useUserSession";
 import { useDispatch, useSelector } from "react-redux";
@@ -150,7 +150,7 @@ export default function ProtectedLayout({
                 component="a"
                 href={menu.path}
                 key={menu.label}
-                onClick={() => router.push(menu.path)}
+                onClick={() => router.push(menu?.path || "/")}
                 sx={{ px: 2, py: 1 }}
               >
                 <ListItemIcon
@@ -173,7 +173,6 @@ export default function ProtectedLayout({
     </div>
   );
 
-  console.log(user);
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
@@ -247,23 +246,6 @@ export default function ProtectedLayout({
           }}
         >
           {drawer}
-        </Drawer>
-        <Drawer
-          variant="permanent"
-          sx={{
-            position: "relative",
-            display: { xs: "none", sm: "block" },
-            "& .MuiDrawer-paper": {
-              width: drawerWidth,
-              boxSizing: "border-box",
-              borderRight: `1px solid ${theme?.palette?.secondary?.light}`,
-              backgroundColor: theme?.palette?.primary?.dark,
-            },
-          }}
-          open
-        >
-          {drawer}
-          {userLoading && <CircularProgress sx={{ m: 2 }} />}
           <Stack className="p-2 absolute bottom-0 w-full gap-3">
             <Typography
               color="primary.light"
@@ -279,7 +261,6 @@ export default function ProtectedLayout({
               sx={{
                 display: "flex",
                 flexDirection: "row",
-
                 alignItems: "center",
                 justifyContent: "space-between",
                 borderRadius: 1,
@@ -324,6 +305,144 @@ export default function ProtectedLayout({
                 height="18"
               />
             </ButtonBase>
+            <List sx={{ mt: 0.4, width: "100%" }}>
+              {userItems?.map((menu, i) => (
+                <ListItemButton
+                  key={i}
+                  component="button"
+                  onClick={() => menu.func?.()}
+                  sx={{
+                    px: 2,
+                    py: 1,
+                    width: "100%",
+                    color: menu.color || "inherit",
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 32,
+                      color: menu.color || theme?.palette?.primary?.light,
+                    }}
+                  >
+                    <Icon icon={menu.icon} width="18" height="18" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={menu.label}
+                    primaryTypographyProps={{
+                      fontSize: "0.875rem",
+                      color: menu.color || theme?.palette?.primary?.light,
+                    }}
+                  />
+                </ListItemButton>
+              ))}
+            </List>
+          </Stack>
+        </Drawer>
+        <Drawer
+          variant="permanent"
+          sx={{
+            position: "relative",
+            display: { xs: "none", sm: "block" },
+            "& .MuiDrawer-paper": {
+              width: drawerWidth,
+              boxSizing: "border-box",
+              borderRight: `1px solid ${theme?.palette?.secondary?.light}`,
+              backgroundColor: theme?.palette?.primary?.dark,
+            },
+          }}
+          open
+        >
+          {drawer}
+          <Stack className="p-2 absolute bottom-0 w-full gap-3">
+            <Typography
+              color="primary.light"
+              className="flex items-center opacity-50 font-bold"
+              variant="body2"
+            >
+              {" "}
+              <Image src="/splash.svg" width={25} height={25} alt="logo" />
+              Realstay super-admin
+            </Typography>
+
+            <ButtonBase
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                borderRadius: 1,
+                padding: 1,
+                width: "100%",
+              }}
+            >
+              <Stack
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "flex-start",
+                  justifyContent: "flex-start",
+                  width: "100%",
+                }}
+              >
+                <Avatar
+                  src={user?.image_url}
+                  alt={user?.first_name?.[0] || ""}
+                  sx={{ bgcolor: "primary.main" }}
+                />
+                <Stack
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    ml: 1,
+                  }}
+                >
+                  <Typography variant="body2" color="primary.light">
+                    {`${user?.first_name} ${user?.last_name}`}
+                  </Typography>
+                  <Typography variant="caption" color="primary.light">
+                    {user?.email}
+                  </Typography>
+                </Stack>
+              </Stack>{" "}
+              <Icon
+                color={theme.palette.primary.light}
+                icon="mingcute:arrows-right-line"
+                width="18"
+                height="18"
+              />
+            </ButtonBase>
+            <List sx={{ mt: 0.4, width: "100%" }}>
+              {userItems?.map((menu, i) => (
+                <ListItemButton
+                  key={i}
+                  component="button"
+                  onClick={() => menu.func?.()}
+                  sx={{
+                    px: 2,
+                    py: 1,
+                    width: "100%",
+                    color: menu.color || "inherit",
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 32,
+                      color: menu.color || theme?.palette?.primary?.light,
+                    }}
+                  >
+                    <Icon icon={menu.icon} width="18" height="18" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={menu.label}
+                    primaryTypographyProps={{
+                      fontSize: "0.875rem",
+                      color: menu.color || theme?.palette?.primary?.light,
+                    }}
+                  />
+                </ListItemButton>
+              ))}
+            </List>
           </Stack>
         </Drawer>
       </Box>
