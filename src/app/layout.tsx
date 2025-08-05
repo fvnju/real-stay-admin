@@ -5,47 +5,39 @@ import utc from "dayjs/plugin/utc";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
-import { AxiosInterceptorLoader } from "./providers/interceptor";
-import { ReduxProvider } from "./providers/redux-provider";
-import { MuiThemeProvider } from "./providers/theme-provider";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
+import { ViewTransitions } from "next-view-transitions";
+import dynamic from "next/dynamic";
 
 // Setup dayjs plugins
 dayjs.extend(relativeTime);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Realstay admin",
+  description: "Admin panel to manage realstay",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const ViewTransitionPA = dynamic(() => import("@/utils/ViewTransitionsA"), {
+    ssr: false,
+  });
   return (
-    <html lang="en">
-      <head>
-        {/* Font Links */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Playwrite+US+Trad:wght@100..400&display=swap"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="bg-[#0F0F0F]">
-        <ReduxProvider>
-          <MuiThemeProvider>
-            <AxiosInterceptorLoader />
-            {children}
-            <ToastContainer position="top-right" autoClose={3000} />
-          </MuiThemeProvider>
-        </ReduxProvider>
+        <ViewTransitionPA />
+        <ViewTransitions>
+          {children}
+          <ToastContainer position="top-right" autoClose={3000} />
+        </ViewTransitions>
       </body>
     </html>
   );
