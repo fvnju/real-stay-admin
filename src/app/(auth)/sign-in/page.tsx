@@ -127,7 +127,7 @@ function Form({
           Email
         </label>
         <input
-          className="mt-1 rounded-[0.625rem] text-sm px-4 h-10 w-full border border-[#262626] bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-2"
+          className="mt-1 rounded-[0.625rem] leading-none text-base sm:text-sm px-4 h-10 w-full border border-[#262626] bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-2"
           type="email"
           name="email"
           id="email"
@@ -141,7 +141,7 @@ function Form({
           Password
         </label>
         <input
-          className="mt-1 rounded-[0.625rem] text-sm px-4 h-10 w-full border border-[#262626] bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-2"
+          className="mt-1 rounded-[0.625rem] leading-none text-base sm:text-sm px-4 h-10 w-full border border-[#262626] bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-2"
           type="password"
           name="password"
           id="password"

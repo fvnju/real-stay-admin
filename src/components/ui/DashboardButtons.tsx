@@ -327,7 +327,7 @@ export const MobileDashboardButtons = ({
         val.path !== pathname && (
           <button
             key={`mobile-${val}`}
-            onTouchStart={() => {
+            onClick={() => {
               setOpen(false);
               setTimeout(() => router.push(val.path), 100);
             }}
