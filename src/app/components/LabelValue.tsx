@@ -12,7 +12,7 @@ export const LabelAndValue: FC<{
   onClick?: MouseEventHandler<HTMLSpanElement>;
   canCopy?: boolean;
   color?: string;
-}> = ({ label, value, isFetching, valueSx, onClick, canCopy, color = theme.palette?.secondary?.lighter }) => {
+}> = ({ label, value, isFetching, valueSx, onClick, canCopy, color = theme.vars.palette.secondary.lighter }) => {
   return (
     <Fragment>
       <Typography variant="body2" color="secondary.lighter">

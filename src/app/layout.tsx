@@ -2,15 +2,13 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import { ViewTransitions } from "next-view-transitions";
-import dynamic from "next/dynamic";
 import { ReduxProvider } from "./providers/redux-provider";
-import { MuiThemeProvider } from "./providers/theme-provider";
+import { AppThemeProvider } from "./providers/theme-provider";
 import { MuiDateProvider } from "./providers/mui-date-provider";
 
 // Setup dayjs plugins
@@ -18,11 +16,16 @@ dayjs.extend(relativeTime);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-import type { Metadata } from "next";
+/** Inter, the font of the mobile app. */
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "Realstay admin",
-  description: "Admin panel to manage realstay",
+  title: "RealStay admin",
+  description: "Admin panel to manage RealStay",
 };
 
 export default function RootLayout({
@@ -30,26 +33,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const ViewTransitionPA = dynamic(() => import("@/utils/ViewTransitionsA"), {
-    ssr: false,
-  });
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
-      <body className="bg-[#0F0F0F]">
-        <ViewTransitionPA />
+    // next-themes sets the `light` or `dark` class before React loads.
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <body>
         <ReduxProvider>
-          <MuiThemeProvider>
+          <AppThemeProvider>
             <MuiDateProvider>
-              <ViewTransitions>
-                {children}
-                <ToastContainer
-                  position="top-right"
-                  autoClose={3000}
-                  theme="dark"
-                />
-              </ViewTransitions>
+              <ViewTransitions>{children}</ViewTransitions>
             </MuiDateProvider>
-          </MuiThemeProvider>
+          </AppThemeProvider>
         </ReduxProvider>
       </body>
     </html>

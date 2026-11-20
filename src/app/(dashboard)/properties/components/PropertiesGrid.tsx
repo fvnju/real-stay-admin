@@ -100,7 +100,7 @@ const PropertiesGrid: FC<{
                     >
                       <Stack
                         sx={{
-                          color: theme?.palette?.secondary?.main,
+                          color: theme.vars.palette.secondary.main,
                           backgroundColor: theme?.palette?.success?.dark,
                           p: 1,
                           position: "absolute",

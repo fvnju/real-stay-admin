@@ -1,5 +1,7 @@
 "use client";
 
+import { useParams } from "next/navigation";
+
 import { LabelAndValue } from "@/app/components/LabelValue";
 import { PageHeading } from "@/app/components/pageHeading";
 import StatusPill from "@/app/components/statusPill";
@@ -10,7 +12,7 @@ import {
   trucateString,
 } from "@/app/utils/string-helper";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { LoadingButton } from "@mui/lab";
+import { Button as LoadingButton } from "@mui/material";
 import {
   alpha,
   Avatar,
@@ -36,13 +38,9 @@ import { kycApi } from "@/app/endpoints/kyc/kyc-api-slice";
 import { reviewsApi } from "@/app/endpoints/reviews/reviews-api-slice";
 import { NoData } from "@/app/components/table-utilities/EmptyTable";
 
-interface UserDetailsPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function UserDetailsPage({ params }: UserDetailsPageProps) {
+export default function UserDetailsPage() {
+  // Next 15 gives `params` to a page as a Promise; a client page reads them here.
+  const params = useParams<{ id: string }>();
   const { data, isFetching, refetch } = userApi.useGetUserQuery({
     path: { id: params.id },
   });
@@ -195,7 +193,7 @@ export default function UserDetailsPage({ params }: UserDetailsPageProps) {
                           <Icon
                             icon="lsicon:more-filled"
                             fontSize={20}
-                            color={theme.palette.secondary.light}
+                            color={theme.vars.palette.secondary.light}
                           />
                         </IconButton>
                       </Tooltip>
@@ -379,10 +377,7 @@ export default function UserDetailsPage({ params }: UserDetailsPageProps) {
                         key={i}
                         sx={{
                           my: 1,
-                          backgroundColor: alpha(
-                            theme.palette.primary.dark,
-                            0.1
-                          ),
+                          backgroundColor: "var(--surface-secondary)",
                           // p: 2,
                           borderRadius: 2,
                         }}
@@ -443,7 +438,7 @@ export default function UserDetailsPage({ params }: UserDetailsPageProps) {
                           sx={{
                             mt: 1,
                             "& .MuiRating-label": {
-                              borderColor: theme?.palette.secondary.light,
+                              borderColor: theme.vars.palette.secondary.light,
                             },
                           }}
                           defaultValue={review?.rating_score}

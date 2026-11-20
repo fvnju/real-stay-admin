@@ -5,7 +5,7 @@ import { theme } from "../lib/theme";
 const StatusPill: FC<{ data?: string }> = ({ data }) => {
   const status = {
     "": theme.palette.warning.light,
-    pending: theme.palette.secondary.light,
+    pending: theme.palette.text.secondary,
     active: theme.palette.success.light,
     success: theme.palette.success.light,
     failed: theme.palette.error.light,

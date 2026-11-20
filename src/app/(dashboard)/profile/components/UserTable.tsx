@@ -25,7 +25,7 @@ import { StatusBadge } from "@/app/components/table-utilities/TableStatusPill";
 import { User } from "@/app/endpoints/user/user-types";
 import { theme } from "@/app/lib/theme";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { LoadingButton } from "@mui/lab";
+import { Button as LoadingButton } from "@mui/material";
 import dayjs from "dayjs";
 import Link from "next/link";
 import { FC, useState } from "react";
@@ -188,7 +188,7 @@ export const UserTable: FC<{
                         <Icon
                           icon="lsicon:more-filled"
                           fontSize={20}
-                          color={theme.palette.secondary.light}
+                          color={theme.vars.palette.secondary.light}
                         />
                       </IconButton>
                     </Tooltip>

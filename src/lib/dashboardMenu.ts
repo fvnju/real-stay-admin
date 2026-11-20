@@ -1,54 +1,33 @@
+import type { IconName } from "@/components/icon";
+
 export type MenuItem = {
   label: string;
-  icon: string;
+  /** An icon of the mobile app (`src/components/icon`). */
+  icon: IconName;
   path: string;
 };
 
 export const menuItems = [
+  { label: "Dashboard", icon: "grid", path: "/dashboard" },
+  { label: "Users", icon: "people", path: "/users" },
+  { label: "Properties", icon: "home", path: "/properties" },
+  { label: "Bookings", icon: "calendar", path: "/bookings" },
   {
-    label: "Dashboard",
-    icon: "hugeicons:dashboard-square-01",
-    path: "/dashboard",
-  },
-  {
-    label: "Users",
-    icon: "hugeicons:user-multiple-02",
-    path: "/users",
-  },
-  {
-    label: "Properties",
-    icon: "lucide-lab:house-roof",
-    path: "/properties",
-  },
-  {
-    label: "Bookings",
-    icon: "hugeicons:calendar-03",
-    path: "/bookings",
-  },
-  {
-    label: "Notifications and Email",
-    icon: "solar:notification-unread-lines-linear",
+    label: "Notifications",
+    icon: "notifications-outline",
     path: "/notifications",
   },
-  {
-    label: "Transaction Monitoring",
-    icon: "mage:dashboard-bar-notification",
-    path: "/transactions",
-  },
+  { label: "Transactions", icon: "receipt", path: "/transactions" },
 ] as const satisfies readonly MenuItem[];
 
 export const adminMenuItems = [
-  {
-    label: "Admin User Mgt.",
-    icon: "hugeicons:settings-03",
-    path: "/admin-management",
-  },
-  { label: "Audit logs", icon: "hugeicons:task-01", path: "/audit-logs" },
+  { label: "Admins", icon: "shield-checkmark", path: "/admin-management" },
+  { label: "Audit logs", icon: "document-text", path: "/audit-logs" },
 ] as const satisfies readonly MenuItem[];
 
 export const profileMenuItem = {
-  label: "My Profile",
-  icon: "iconoir:user",
+  label: "My profile",
+  icon: "person-outline",
   path: "/profile",
 } as const satisfies MenuItem;
 

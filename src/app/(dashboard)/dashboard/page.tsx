@@ -118,7 +118,7 @@ export default function DashboardPage() {
 
   return (
     <Stack>
-      <Typography sx={{}} className="text-white font-semibold text-2xl mb-2">
+      <Typography sx={{}} className="text-foreground font-semibold text-2xl mb-2">
         Dashboard
       </Typography>
       <Grid2 container spacing={1.5} sx={{ mt: 2 }}>
@@ -138,17 +138,17 @@ export default function DashboardPage() {
                   mb: 1.5,
                 }}
               >
-                <Typography className="text-white w-fit" variant="body2">
+                <Typography className="text-foreground w-fit" variant="body2">
                   {isFetching ? <Skeleton variant="text" /> : d?.title}{" "}
                 </Typography>
                 <Icon
                   icon={d?.icon}
                   height="15"
-                  color={theme.palette.secondary.light}
+                  color={theme.vars.palette.secondary.light}
                 />
               </Stack>
 
-              <Typography className="text-white" variant="h4" sx={{}}>
+              <Typography className="text-foreground" variant="h4" sx={{}}>
                 {isFetching ? (
                   <Skeleton
                     variant="text"
@@ -180,17 +180,17 @@ export default function DashboardPage() {
                   mb: 1.5,
                 }}
               >
-                <Typography className="text-white w-fit" variant="body2">
+                <Typography className="text-foreground w-fit" variant="body2">
                   {isFetchingAnalytics ? <Skeleton variant="text" /> : d?.title}{" "}
                 </Typography>
                 <Icon
                   icon={d?.icon}
                   height="15"
-                  color={theme.palette.secondary.light}
+                  color={theme.vars.palette.secondary.light}
                 />
               </Stack>
 
-              <Typography className="text-white" variant="h4" sx={{}}>
+              <Typography className="text-foreground" variant="h4" sx={{}}>
                 {isFetchingAnalytics ? (
                   <Skeleton
                     variant="text"
@@ -213,7 +213,7 @@ export default function DashboardPage() {
           p: 2,
         }}
       >
-        <Typography className="text-white font-semibold text-lg mb-2">
+        <Typography className="text-foreground font-semibold text-lg mb-2">
           Listing Analytics
         </Typography>
 

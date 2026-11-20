@@ -34,7 +34,7 @@ export const EmptyTableRows: FC<{
             icon="hugeicons:file-not-found"
             width="100"
             height="100"
-            color={theme?.palette?.secondary?.dark}
+            color={theme.vars.palette.secondary.dark}
           />
           <Typography
             variant="h6"
@@ -71,7 +71,7 @@ export const NoData: FC<{
   action,
   text = "No data to display..",
   actionLabel,
-  color = theme?.palette?.secondary?.lighter,
+  color = theme.vars.palette.secondary.lighter,
 }) => {
   return (
     <Box
@@ -89,7 +89,7 @@ export const NoData: FC<{
         icon="hugeicons:file-not-found"
         width="100"
         height="100"
-        color={theme?.palette?.secondary?.dark}
+        color={theme.vars.palette.secondary.dark}
       />
       <Typography
         variant="h6"

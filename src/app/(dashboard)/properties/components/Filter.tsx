@@ -78,7 +78,7 @@ export function FilterDrawer<T extends Record<string, unknown>>({
             <InputLabel
               id="demo-simple-select-label"
               shrink
-              sx={{ color: theme.palette.secondary.main }}
+              sx={{ color: theme.vars.palette.secondary.main }}
             >
               {field.label}
             </InputLabel>
@@ -92,13 +92,13 @@ export function FilterDrawer<T extends Record<string, unknown>>({
                 handleUpdate(field.key, e.target.value as T[keyof T])
               }
               sx={{
-                color: theme.palette.secondary.main,
-                ".MuiSelect-icon": { color: theme.palette.secondary.main },
+                color: theme.vars.palette.secondary.main,
+                ".MuiSelect-icon": { color: theme.vars.palette.secondary.main },
                 "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: theme.palette.secondary.main,
+                  borderColor: theme.vars.palette.secondary.main,
                 },
                 "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: theme.palette.secondary.main,
+                  borderColor: theme.vars.palette.secondary.main,
                 },
               }}
             >
@@ -118,7 +118,7 @@ export function FilterDrawer<T extends Record<string, unknown>>({
             <Typography
               variant="caption"
               gutterBottom
-              sx={{ color: theme.palette.secondary.main }}
+              sx={{ color: theme.vars.palette.secondary.main }}
             >
               {field.label}
             </Typography>
@@ -135,11 +135,11 @@ export function FilterDrawer<T extends Record<string, unknown>>({
                   control={
                     <Radio
                       size="small"
-                      sx={{ color: theme.palette.secondary.main }}
+                      sx={{ color: theme.vars.palette.secondary.main }}
                     />
                   }
                   label={opt.label}
-                  sx={{ color: theme.palette.secondary.main }}
+                  sx={{ color: theme.vars.palette.secondary.main }}
                 />
               ))}
             </RadioGroup>
@@ -157,13 +157,13 @@ export function FilterDrawer<T extends Record<string, unknown>>({
                 size: "small",
                 fullWidth: true,
                 sx: {
-                  input: { color: theme.palette.secondary.main },
-                  label: { color: theme.palette.secondary.main },
+                  input: { color: theme.vars.palette.secondary.main },
+                  label: { color: theme.vars.palette.secondary.main },
                   "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: theme.palette.secondary.main,
+                    borderColor: theme.vars.palette.secondary.main,
                   },
                   "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: theme.palette.secondary.main,
+                    borderColor: theme.vars.palette.secondary.main,
                   },
                 },
                 InputLabelProps: { shrink: true },
@@ -193,8 +193,8 @@ export function FilterDrawer<T extends Record<string, unknown>>({
       sx={{
         "& .MuiDrawer-paper": {
           width,
-          backgroundColor: theme.palette.primary.dark,
-          // borderLeft: `1px solid ${theme.palette.secondary.main}`,
+          backgroundColor: theme.vars.palette.primary.dark,
+          // borderLeft: `1px solid ${theme.vars.palette.secondary.main}`,
         },
       }}
     >
@@ -203,19 +203,19 @@ export function FilterDrawer<T extends Record<string, unknown>>({
           <Box
             sx={{
               p: 2,
-              backgroundColor: theme.palette.secondary.dark,
+              backgroundColor: theme.vars.palette.secondary.dark,
             }}
           >
             <Typography
               variant="subtitle1"
               fontWeight={600}
-              sx={{ color: theme.palette.secondary.main }}
+              sx={{ color: theme.vars.palette.secondary.main }}
             >
               {title}
             </Typography>
           </Box>
 
-          <Divider sx={{ borderColor: theme.palette.primary.light, mt: 2 }} />
+          <Divider sx={{ borderColor: theme.vars.palette.primary.light, mt: 2 }} />
 
           <Stack sx={{ p: 2, mt: 4 }} spacing={3}>
             {fields.map((field) => (
@@ -247,7 +247,7 @@ export function FilterDrawer<T extends Record<string, unknown>>({
               onClose();
             }}
             sx={{
-              color: theme.palette.secondary.main,
+              color: theme.vars.palette.secondary.main,
             }}
           >
             Clear & Close

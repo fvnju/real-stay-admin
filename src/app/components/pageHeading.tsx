@@ -36,7 +36,7 @@ export const PageHeading: FC<{
         </Stack>
       )}
 
-      <Typography color={theme.palette.secondary.light} variant="h5">
+      <Typography color={theme.vars.palette.secondary.light} variant="h5">
         {}
 
         {isfetching ? (
@@ -55,7 +55,7 @@ export const PageHeading: FC<{
       </Typography>
       <Typography
         sx={{}}
-        color={theme.palette.secondary.lighter}
+        color={theme.vars.palette.secondary.lighter}
         variant="body2"
       >
         {isfetching ? (

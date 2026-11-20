@@ -1,5 +1,5 @@
 import { colors, createTheme, PaletteColorOptions } from "@mui/material";
-import type {} from "@mui/lab/themeAugmentation";
+import type {} from "@mui/material/themeCssVarsAugmentation";
 
 // MUI module augmentation for custom breakpoints and palette
 declare module "@mui/material/styles" {
@@ -41,53 +41,92 @@ declare module "@mui/material/styles" {
 
 const { palette } = createTheme();
 
+/**
+ * The colors of the HeroUI theme of the mobile app (heroui-native and
+ * @heroui/styles, `--background`, `--surface`, ...) in hex, because MUI
+ * needs real colors to make its shades.
+ */
+const LIGHT = {
+  background: "#f5f5f5",
+  surface: "#ffffff",
+  surfaceSecondary: "#efeff0",
+  default: "#ebebec",
+  foreground: "#18181b",
+  muted: "#71717a",
+  border: "#dedee0",
+  accent: "#0485f7",
+  success: "#17c964",
+  warning: "#f5a524",
+  danger: "#ff383c",
+};
+
+const DARK: typeof LIGHT = {
+  background: "#060607",
+  surface: "#18181b",
+  surfaceSecondary: "#232325",
+  default: "#27272a",
+  foreground: "#fcfcfc",
+  muted: "#9f9fa9",
+  border: "#28282c",
+  accent: "#0485f7",
+  success: "#17c964",
+  warning: "#f7b750",
+  danger: "#db3b3e",
+};
+
+/**
+ * The old dark theme used `primary` for surfaces and `secondary` for text.
+ * The pages still use these names, so they keep these meanings.
+ */
+function schemePalette(c: typeof LIGHT) {
+  const greys = palette.augmentColor({
+    color: {
+      main: c.muted,
+      light: c.foreground,
+      dark: c.muted,
+      contrastText: c.surface,
+    },
+  });
+  return {
+    primary: {
+      main: c.surface,
+      light: c.border,
+      dark: c.background,
+      contrastText: c.foreground,
+    },
+    secondary: {
+      main: c.foreground,
+      light: c.foreground,
+      lighter: c.muted,
+      dark: c.muted,
+      contrastText: c.surface,
+    },
+    error: { main: c.danger, light: c.danger, dark: c.danger, pale: c.danger },
+    success: { main: c.success, light: c.success, dark: c.success },
+    warning: { main: c.warning, light: c.warning, dark: c.warning },
+    info: { main: c.accent, light: c.accent, dark: c.accent },
+    background: { default: c.background, paper: c.surface },
+    text: { primary: c.foreground, secondary: c.muted, disabled: c.muted },
+    divider: c.border,
+    common: { black: "#000000", white: "#ffffff" },
+    ochre: greys,
+    neutrals: greys,
+  };
+}
+
 export const theme = createTheme({
   typography: {
-    fontFamily: '"Public Sans", sans-serif',
+    fontFamily: "var(--font-inter), sans-serif",
     fontSize: 14,
   },
 
-  palette: {
-    primary: {
-      main: "#181818", // strong dark gray (main brand color)
-      light: "#262626", // softer dark for hover/surfaces
-      dark: "#151515", // deepest tone
-      contrastText: "#FFFFFF", // ensure readability on darks
-    },
-    secondary: {
-      main: "#FFF4E5", // warm light background
-      light: "#FFFFFF", // pure white for surfaces
-      lighter: "#FFFFFF99", // extra light for highlights
-      dark: "#4A4A4A", // neutral charcoal for hover/active
-      contrastText: "#000000", // strong contrast on light tones
-    },
-
-    error: {
-      main: "#DC2626",
-      light: "#F87171",
-      dark: "#991B1B",
-      pale: "#EE160E",
-    },
-    common: {
-      black: "#000000",
-      white: "#ffffff",
-    },
-    ochre: palette.augmentColor({
-      color: {
-        main: "#979797",
-        light: "#ffffff",
-        dark: "#666666",
-        contrastText: "#ffffff",
-      },
-    }),
-    neutrals: palette.augmentColor({
-      color: {
-        main: "#979797",
-        light: "#ffffff",
-        dark: "#666666",
-        contrastText: "#ffffff",
-      },
-    }),
+  // The colors follow the `light` or `dark` class on <html> (next-themes),
+  // the same as HeroUI. Use `theme.vars.palette` in styles: it is a CSS
+  // variable, so it changes with the mode. `theme.palette` is the light value.
+  cssVariables: { colorSchemeSelector: "class" },
+  colorSchemes: {
+    light: { palette: schemePalette(LIGHT) },
+    dark: { palette: schemePalette(DARK) },
   },
 
   breakpoints: {
@@ -149,7 +188,7 @@ export const theme = createTheme({
     MuiTypography: {
       styleOverrides: {
         root: {
-          fontFamily: '"Public Sans", sans-serif,"Geist"',
+          fontFamily: "var(--font-inter), sans-serif",
           // fontSize: "0.875rem",
         },
       },
@@ -159,16 +198,16 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           fontSize: ".75rem",
-          color: "#979797",
+          color: "var(--mui-palette-text-secondary)",
           "&.Mui-focused": {
-            color: "#979797",
+            color: "var(--mui-palette-text-secondary)",
           },
           "&.Mui-error": {
-            color: "#DC2626",
+            color: "var(--mui-palette-error-main)",
           },
         },
         asterisk: {
-          color: "#DC2626",
+          color: "var(--mui-palette-error-main)",
         },
       },
     },
@@ -186,46 +225,46 @@ export const theme = createTheme({
           "& .MuiInputBase-input": {
             top: 0,
             fontSize: ".75rem",
-            color: theme.palette.secondary.main, // input text color
-            // WebkitTextFillColor: theme.palette.secondary.main,
+            color: theme.vars.palette.secondary.main, // input text color
+            // WebkitTextFillColor: theme.vars.palette.secondary.main,
             borderRadius: "8px",
             marginLeft: "0.5rem",
             "&::placeholder": {
-              color: theme.palette.secondary.main, // placeholder color
-              // WebkitTextFillColor: theme.palette.secondary.main,
+              color: theme.vars.palette.secondary.main, // placeholder color
+              // WebkitTextFillColor: theme.vars.palette.secondary.main,
               opacity: 1,
             },
             "&.Mui-disabled": {
-              color: theme.palette.secondary.main,
+              color: theme.vars.palette.secondary.main,
             },
           },
           "& .MuiOutlinedInput-root": {
             borderRadius: "8px",
             "&.Mui-focused .MuiInputBase-input": {
-              color: theme.palette.secondary.main,
+              color: theme.vars.palette.secondary.main,
             },
 
             "&.Mui-disabled .MuiInputBase-input": {
-              color: theme.palette.secondary.main,
+              color: theme.vars.palette.secondary.main,
               opacity: 0.7,
             },
             "& fieldset": {
               top: 0,
-              borderColor: theme.palette.secondary.main,
+              borderColor: theme.vars.palette.secondary.main,
               legend: {
                 display: "none",
               },
             },
             "&:hover fieldset": {
-              borderColor: theme.palette.secondary.main,
+              borderColor: theme.vars.palette.secondary.main,
             },
             "&.Mui-focused fieldset": {
-              borderColor: theme.palette.secondary.main,
+              borderColor: theme.vars.palette.secondary.main,
             },
             "&.Mui-disabled fieldset": {
-              borderColor: theme.palette.secondary.main,
+              borderColor: theme.vars.palette.secondary.main,
               opacity: 0.5,
-              color: theme.palette.secondary.main,
+              color: theme.vars.palette.secondary.main,
               "&:hover": {
                 cursor: "not-allowed",
               },
@@ -233,12 +272,12 @@ export const theme = createTheme({
           },
           "& .MuiInputLabel-root": {
             transform: "translate(0px, -28px) scale(0.9)", // optional: reposition label
-            color: theme.palette.secondary.main,
+            color: theme.vars.palette.secondary.main,
             "&.Mui-focused": {
-              color: theme.palette.secondary.main,
+              color: theme.vars.palette.secondary.main,
             },
             "&.Mui-disabled": {
-              color: theme.palette.secondary.main,
+              color: theme.vars.palette.secondary.main,
             },
           },
         }),
@@ -248,10 +287,10 @@ export const theme = createTheme({
     MuiInputAdornment: {
       styleOverrides: {
         root: ({ theme }) => ({
-          color: theme.palette.secondary.main, // icon color
+          color: theme.vars.palette.secondary.main, // icon color
           cursor: "pointer", // pointer on hover
           "&:hover": {
-            color: theme.palette.primary.main, // optional hover color
+            color: theme.vars.palette.primary.main, // optional hover color
           },
         }),
       },
@@ -261,7 +300,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           fontSize: "1rem", // adjust size
-          // color: theme.palette.secondary.lighter, // default color
+          // color: theme.vars.palette.secondary.lighter, // default color
         }),
       },
     },
@@ -270,16 +309,16 @@ export const theme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           fontSize: ".75rem",
-          color: theme.palette.secondary.main,
+          color: theme.vars.palette.secondary.main,
           padding: "12px 14px",
           minHeight: "45px",
           display: "flex",
           alignItems: "center",
-          borderColor: theme.palette.secondary.main,
+          borderColor: theme.vars.palette.secondary.main,
 
           "& .MuiPickersSectionList-section": {
-            color: theme.palette.secondary.main,
-            borderColor: theme.palette.secondary.main,
+            color: theme.vars.palette.secondary.main,
+            borderColor: theme.vars.palette.secondary.main,
           },
 
           "& .MuiPickersSectionList-sectionContent": {
@@ -287,16 +326,16 @@ export const theme = createTheme({
           },
 
           "& .MuiPickersSectionList-sectionSeparator": {
-            color: theme.palette.secondary.main,
+            color: theme.vars.palette.secondary.main,
             opacity: 0.6,
           },
 
           "&.Mui-disabled": {
-            color: theme.palette.secondary.main,
+            color: theme.vars.palette.secondary.main,
             opacity: 0.5,
           },
           "& .MuiSvgIcon-root": {
-            color: theme.palette.secondary.main,
+            color: theme.vars.palette.secondary.main,
             // opacity: 0.5,
           },
         }),
@@ -308,17 +347,17 @@ export const theme = createTheme({
         root: ({ theme }) => ({
           borderRadius: "8px",
           alignItems: "center",
-          borderColor: theme.palette.secondary.main,
+          borderColor: theme.vars.palette.secondary.main,
           input: {
             "&.Mui-disabled": {
               // backgroundColor: '#f0f0f0',
-              WebkitTextFillColor: theme.palette.secondary.main,
-              color: theme.palette.secondary.main,
+              WebkitTextFillColor: theme.vars.palette.secondary.main,
+              color: theme.vars.palette.secondary.main,
             },
           },
           notchedOutline: {
             "&.Mui-disabled": {
-              borderColor: theme.palette.secondary.main,
+              borderColor: theme.vars.palette.secondary.main,
             },
           },
           root: {
@@ -327,21 +366,21 @@ export const theme = createTheme({
             },
           },
           "& fieldset": {
-            color: theme.palette.secondary.main,
-            borderColor: theme.palette.secondary.main,
+            color: theme.vars.palette.secondary.main,
+            borderColor: theme.vars.palette.secondary.main,
             legend: { display: "none" },
           },
 
           "&:hover fieldset": {
-            borderColor: theme.palette.secondary.main,
+            borderColor: theme.vars.palette.secondary.main,
           },
 
           "&.Mui-focused fieldset": {
-            borderColor: theme.palette.secondary.main,
+            borderColor: theme.vars.palette.secondary.main,
           },
 
           "&.Mui-disabled fieldset": {
-            color: theme.palette.secondary.contrastText,
+            color: theme.vars.palette.secondary.contrastText,
             // opacity: 0.5,
           },
         }),
@@ -358,17 +397,6 @@ export const theme = createTheme({
       },
     },
 
-    MuiLoadingButton: {
-      styleOverrides: {
-        root: ({ theme }) => ({
-          // Optional: Loader color styling
-          "& .MuiCircularProgress-root": {
-            color: theme.palette.common.white,
-          },
-        }),
-      },
-    },
-
     MuiButton: {
       styleOverrides: {
         root: () => ({
@@ -380,48 +408,48 @@ export const theme = createTheme({
           transition: "background-color 0.3s ease",
 
           // "&:hover": {
-          //   backgroundColor: theme.palette.primary.light,
+          //   backgroundColor: theme.vars.palette.primary.light,
           // },
         }),
         containedPrimary: ({ theme }) => ({
           "&:hover": {
-            backgroundColor: theme.palette.common.white,
-            color: theme.palette.primary.main,
-            border: `1px solid ${theme.palette.primary.main}`,
+            backgroundColor: theme.vars.palette.secondary.light,
+            color: theme.vars.palette.primary.main,
+            border: `1px solid ${theme.vars.palette.primary.main}`,
           },
         }),
         containedSecondary: ({ theme }) => ({
           "&:hover": {
-            backgroundColor: theme.palette.primary.dark,
-            color: theme.palette.secondary.main,
+            backgroundColor: theme.vars.palette.primary.dark,
+            color: theme.vars.palette.secondary.main,
           },
         }),
         containedError: ({ theme }) => ({
           "&:hover": {
-            backgroundColor: theme.palette.common.white,
-            color: theme.palette.error.main,
-            border: `1px solid ${theme.palette.error.main}`,
+            backgroundColor: theme.vars.palette.secondary.light,
+            color: theme.vars.palette.error.main,
+            border: `1px solid ${theme.vars.palette.error.main}`,
           },
         }),
         containedSuccess: ({ theme }) => ({
           "&:hover": {
-            backgroundColor: theme.palette.common.white,
-            color: theme.palette.success.main,
-            border: `1px solid ${theme.palette.success.main}`,
+            backgroundColor: theme.vars.palette.secondary.light,
+            color: theme.vars.palette.success.main,
+            border: `1px solid ${theme.vars.palette.success.main}`,
           },
         }),
         containedInfo: ({ theme }) => ({
           "&:hover": {
-            backgroundColor: theme.palette.common.white,
-            color: theme.palette.info.main,
-            border: `1px solid ${theme.palette.info.main}`,
+            backgroundColor: theme.vars.palette.secondary.light,
+            color: theme.vars.palette.info.main,
+            border: `1px solid ${theme.vars.palette.info.main}`,
           },
         }),
         containedWarning: ({ theme }) => ({
           "&:hover": {
-            backgroundColor: theme.palette.common.white,
-            color: theme.palette.warning.main,
-            border: `1px solid ${theme.palette.warning.main}`,
+            backgroundColor: theme.vars.palette.secondary.light,
+            color: theme.vars.palette.warning.main,
+            border: `1px solid ${theme.vars.palette.warning.main}`,
           },
         }),
       },
@@ -432,8 +460,8 @@ export const theme = createTheme({
         indicator: { display: "none" },
         root: ({ theme }) => ({
           minHeight: "unset",
-          color: theme.palette.common.white, // makes tab indicator and text white
-          backgroundColor: theme.palette.primary.dark,
+          color: theme.vars.palette.secondary.light, // makes tab indicator and text white
+          backgroundColor: theme.vars.palette.primary.dark,
           pt: 3,
           width: "fit-content",
           borderRadius: "10px",
@@ -450,11 +478,11 @@ export const theme = createTheme({
           // margin: "0.5rem",
           padding: "6px 12px",
           borderRadius: "10px",
-          color: theme.palette.common.white, // normal state text color
+          color: theme.vars.palette.secondary.light, // normal state text color
           "&.Mui-selected": {
-            backgroundColor: "#FFFFFF1A",
+            backgroundColor: theme.vars.palette.primary.light,
             border: "none",
-            color: theme.palette.common.white,
+            color: theme.vars.palette.secondary.light,
           },
           transition: "0.8s ease all",
         }),
@@ -464,7 +492,7 @@ export const theme = createTheme({
     MuiDivider: {
       styleOverrides: {
         root: ({ theme }) => ({
-          borderColor: theme.palette.primary.light,
+          borderColor: theme.vars.palette.primary.light,
         }),
       },
     },
@@ -472,7 +500,7 @@ export const theme = createTheme({
     MuiTableHead: {
       styleOverrides: {
         root: ({ theme }) => ({
-          color: theme.palette.secondary.light,
+          color: theme.vars.palette.secondary.light,
           // fontSize: theme.typography.body1,
         }),
       },
@@ -482,8 +510,8 @@ export const theme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           fontSize: ".75rem",
-          color: theme.palette.secondary.light,
-          borderBottom: `1px solid ${theme.palette.primary.light}`,
+          color: theme.vars.palette.secondary.light,
+          borderBottom: `1px solid ${theme.vars.palette.primary.light}`,
         }),
       },
     },
@@ -493,7 +521,7 @@ export const theme = createTheme({
         root: ({ theme }) => ({
           transition: "background-color 0.3s",
           "&:hover td": {
-            backgroundColor: theme.palette.primary.light,
+            backgroundColor: theme.vars.palette.primary.light,
             cursor: "pointer",
           },
         }),
@@ -553,7 +581,7 @@ export const theme = createTheme({
     MuiPagination: {
       styleOverrides: {
         root: ({ theme }) => ({
-          color: theme.palette.secondary.light,
+          color: theme.vars.palette.secondary.light,
         }),
       },
     },
@@ -561,7 +589,7 @@ export const theme = createTheme({
     MuiPaginationItem: {
       styleOverrides: {
         root: ({ theme }) => ({
-          color: theme.palette.secondary.light,
+          color: theme.vars.palette.secondary.light,
         }),
       },
     },
@@ -569,7 +597,7 @@ export const theme = createTheme({
     MuiTablePagination: {
       styleOverrides: {
         root: ({ theme }) => ({
-          color: theme.palette.secondary.light,
+          color: theme.vars.palette.secondary.light,
         }),
       },
     },
@@ -581,9 +609,9 @@ export const theme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           borderRadius: "8px",
-          backgroundColor: theme.palette.primary.main,
-          // borderColor: theme?.palette?.primary?.light,
-          border: `1px solid ${theme?.palette?.primary?.light}`,
+          backgroundColor: theme.vars.palette.primary.main,
+          // borderColor: theme.vars.palette.primary.light,
+          border: `1px solid ${theme.vars.palette.primary.light}`,
         }),
       },
     },
@@ -594,8 +622,8 @@ export const theme = createTheme({
           borderRadius: "8px",
           boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
           // padding: "4px 0",
-          backgroundColor: theme.palette.secondary.main,
-          // mt: 4,
+          backgroundColor: theme.vars.palette.primary.main,
+          color: theme.vars.palette.secondary.main,
         }),
       },
     },

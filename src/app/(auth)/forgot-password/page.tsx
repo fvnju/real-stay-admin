@@ -1,71 +1,73 @@
 "use client";
 
-import NonprotectedFooter from "@/app/components/nonprotectedFooter";
-import { Icon } from "@iconify/react";
-import { LoadingButton } from "@mui/lab";
-import { TextField, Typography } from "@mui/material";
-import Card from "@mui/material/Card";
-import { useFormik } from "formik";
-import Image from "next/image";
+import {
+  Button,
+  FieldError,
+  Form,
+  Input,
+  Label,
+  TextField,
+} from "@heroui/react";
 import Link from "next/link";
 import { useState } from "react";
-import * as Yup from "yup";
+import { toast } from "react-toastify";
+import { string } from "yup";
+import { AuthCard } from "../components/auth-card";
 
-export default function SignInPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const handleToggle = () => setShowPassword((prev) => !prev);
-
-  const formik = useFormik({
-    initialValues: { email: "", password: "" },
-    enableReinitialize: true,
-    validationSchema: Yup.object({
-      email: Yup.string().required("email is required"),
-      password: Yup.string().required("password is required"),
-    }),
-    onSubmit: (data) => {
-      console.log("Form submitted with data:", data);
-    },
-  });
+/**
+ * The panel cannot reset a password yet: this page does not call the
+ * backend. It tells the admin what to do instead.
+ */
+export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string>();
 
   return (
-    <div className="flex min-h-screen items-center justify-center ">
-      <form>
-        <Card className="flex flex-col gap-4 p-8 w-[400px]">
-          <Image
-            src="/edge-tech-logo.svg"
-            alt="logo"
-            width={40}
-            height={40}
-            className="mx-auto mb-8"
-          />
-          <Typography
-            className="font-bold"
-            color="secondary.light"
-            align="center"
-          >
-            Reset password
-          </Typography>
-          <TextField
-            variant="outlined"
-            label="Email"
-            className="mb-2"
-            placeholder="enter email"
-          />{" "}
-          <LoadingButton variant="contained" color="secondary">
-            Reset password
-          </LoadingButton>
-          <Link
-            href={"/sign-in"}
-            className="text-[#FFFFFFB2] text-xs text-center hover:text-white hover:underline flex items-center justify-center gap-1"
-          >
-            {" "}
-            <Typography variant="caption">take me to sign in</Typography>{" "}
-            <Icon icon="ep:right" width="18" height="18" />
-          </Link>
-        </Card>
-      </form>
+    <AuthCard
+      title="Reset your password"
+      description="Enter the email of your admin account."
+      footer={
+        <Link href="/sign-in" className="text-foreground hover:underline">
+          Back to sign in
+        </Link>
+      }
+    >
+      <Form
+        className="flex flex-col gap-5"
+        validationBehavior="aria"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!string().email().required().isValidSync(email)) {
+            setError(email ? "Enter a valid email." : "Enter your email.");
+            return;
+          }
+          toast.info(
+            "Password reset is not available in the panel yet. Ask another admin to send you a new invite.",
+          );
+        }}
+      >
+        <TextField
+          name="email"
+          type="email"
+          value={email}
+          onChange={(v) => {
+            setEmail(v);
+            setError(undefined);
+          }}
+          isInvalid={!!error}
+          variant="secondary"
+          fullWidth
+          autoFocus
+        >
+          <Label>Email</Label>
+          <Input autoComplete="username" placeholder="name@company.com" />
+          <FieldError>{error}</FieldError>
+        </TextField>
 
-      <NonprotectedFooter />
-    </div>
+        <Button type="submit" variant="primary" fullWidth>
+          Reset password
+        </Button>
+      </Form>
+    </AuthCard>
   );
 }

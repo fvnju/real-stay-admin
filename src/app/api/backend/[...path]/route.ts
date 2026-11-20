@@ -25,7 +25,7 @@ const FORWARDED_RESPONSE_HEADERS = ["content-type", "content-disposition"];
 
 async function handle(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
   // A cross-site page must not be able to change data with the cookies of
   // the admin. SameSite=Lax already blocks most of it; also check Origin.
@@ -36,7 +36,7 @@ async function handle(
     }
   }
 
-  const path = params.path.map(encodeURIComponent).join("/");
+  const path = (await params).path.map(encodeURIComponent).join("/");
   const target = `${BASE_URL}/${path}${request.nextUrl.search}`;
 
   const body =

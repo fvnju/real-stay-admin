@@ -121,17 +121,17 @@ export default function DashboardPage() {
                   mb: 1.5,
                 }}
               >
-                <Typography className="text-white w-fit" variant="body2">
+                <Typography className="text-foreground w-fit" variant="body2">
                   {isFetchingAnalytics ? <Skeleton variant="text" /> : d?.title}{" "}
                 </Typography>
                 <Icon
                   icon={d?.icon}
                   height="15"
-                  color={theme.palette.secondary.light}
+                  color={theme.vars.palette.secondary.light}
                 />
               </Stack>
 
-              <Typography className="text-white" variant="h4" sx={{}}>
+              <Typography className="text-foreground" variant="h4" sx={{}}>
                 {isFetchingAnalytics ? (
                   <Skeleton
                     variant="text"
@@ -178,7 +178,7 @@ export default function DashboardPage() {
                   icon="hugeicons:search-01"
                   width="18"
                   height="18"
-                  color={theme?.palette?.secondary?.light}
+                  color={theme.vars.palette.secondary.light}
                 />
               ),
             }}
@@ -193,8 +193,8 @@ export default function DashboardPage() {
             sx={{
               // borderRadius: 0,
               "&:hover": {
-                bgcolor: theme?.palette?.secondary?.main,
-                color: theme?.palette?.secondary?.contrastText,
+                bgcolor: theme.vars.palette.secondary.main,
+                color: theme.vars.palette.secondary.contrastText,
               },
             }}
             size="small"
@@ -250,7 +250,7 @@ export default function DashboardPage() {
       >
         <Typography
           sx={{ mb: 2 }}
-          className="text-white font-semibold text-2xl mb-2"
+          className="text-foreground font-semibold text-2xl mb-2"
         >
           Bookings
         </Typography>{" "}

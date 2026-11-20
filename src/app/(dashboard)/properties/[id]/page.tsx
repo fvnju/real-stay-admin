@@ -30,23 +30,19 @@ import {
   Typography,
 } from "@mui/material";
 import dayjs from "dayjs";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import {
   UserActionEnum,
   UserStatusEnum,
 } from "../../users/interfaces/users.types";
-import { LoadingButton } from "@mui/lab";
+import { Button as LoadingButton } from "@mui/material";
 import { capitalizeFirstLetter } from "@/app/utils/string-helper";
 
-interface DashboardPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function DashboardPage({ params }: DashboardPageProps) {
+export default function DashboardPage() {
+  // Next 15 gives `params` to a page as a Promise; a client page reads them here.
+  const params = useParams<{ id: string }>();
   const tabs = [
     { label: "Details", value: "" },
     { label: "Transactions", value: "transactions" },
@@ -214,7 +210,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
                           <Icon
                             icon="lsicon:more-filled"
                             fontSize={20}
-                            color={theme.palette.secondary.light}
+                            color={theme.vars.palette.secondary.light}
                           />
                         </IconButton>
                       </Tooltip>
@@ -444,10 +440,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
                         key={i}
                         sx={{
                           my: 1,
-                          backgroundColor: alpha(
-                            theme.palette.primary.dark,
-                            0.1
-                          ),
+                          backgroundColor: "var(--surface-secondary)",
                           // p: 2,
                           borderRadius: 2,
                         }}
@@ -511,7 +504,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
                           sx={{
                             mt: 1,
                             "& .MuiRating-label": {
-                              borderColor: theme?.palette.secondary.light,
+                              borderColor: theme.vars.palette.secondary.light,
                             },
                           }}
                           defaultValue={review?.rating_score}

@@ -179,17 +179,17 @@ export default function DashboardPage() {
                   mb: 1.5,
                 }}
               >
-                <Typography className="text-white w-fit" variant="body2">
+                <Typography className="text-foreground w-fit" variant="body2">
                   {isFetching ? <Skeleton variant="text" /> : d?.title}{" "}
                 </Typography>
                 <Icon
                   icon={d?.icon}
                   height="15"
-                  color={theme.palette.secondary.light}
+                  color={theme.vars.palette.secondary.light}
                 />
               </Stack>
 
-              <Typography className="text-white" variant="h4" sx={{}}>
+              <Typography className="text-foreground" variant="h4" sx={{}}>
                 {isFetching ? (
                   <Skeleton
                     animation={"pulse"}
@@ -251,7 +251,7 @@ export default function DashboardPage() {
                   icon="hugeicons:search-01"
                   width="18"
                   height="18"
-                  color={theme?.palette?.secondary?.main}
+                  color={theme.vars.palette.secondary.main}
                 />
               ),
             }}

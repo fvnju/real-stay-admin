@@ -4,7 +4,7 @@ export default function Page() {
       <h3 className="font-semibold text-xl leading-none">
         Notifications and Email
       </h3>
-      <p className="text-sm text-white/60">This page is not built yet.</p>
+      <p className="text-sm text-muted">This page is not built yet.</p>
     </div>
   );
 }

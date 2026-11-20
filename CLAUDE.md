@@ -1,6 +1,6 @@
 # real-stay-admin
 
-The admin panel of RealStay, for RealStay staff (Next.js 14 App Router, MUI, Redux Toolkit Query, Tailwind).
+The admin panel of RealStay, for RealStay staff (Next.js 15 App Router, React 19, HeroUI v3, Tailwind v4, Redux Toolkit Query; the older pages still use MUI).
 
 GitHub: https://github.com/fvnju/real-stay-admin (`origin`). It is a fork of https://github.com/chijiooke/real-stay-admin (`upstream`). Deployed at https://real-stay-admin.vercel.app.
 
@@ -34,9 +34,19 @@ Upstream keeps the access token and the refresh token in `localStorage`, so an X
 - The endpoints are RTK Query slices in `src/app/endpoints/*/*-api-slice.ts`. Their `url` is the backend path without a base URL (`url: "/users"`). The axios base URL is `/api/backend`.
 - Env: `NEXT_PUBLIC_BASE_URL` is the backend URL (`.env.example`).
 
+## UI, theme, and icons
+
+- New UI uses HeroUI v3 (`@heroui/react`, `@heroui/styles`), the web version of `heroui-native` in the mobile app. The theme is the HeroUI default theme, the same as the app: the same colors (`bg-background`, `bg-surface`, `text-muted`, `bg-accent`, ...), radius, and font (Inter, `src/app/layout.tsx`). `src/app/globals.css` has the Tailwind v4 setup and the old breakpoints (`sm` 900, `md` 1150, `lg` 1458).
+- A HeroUI component runs only in a client component (`"use client"`).
+- Light and dark mode: `next-themes` sets the `light` or `dark` class on `<html>` (`src/app/providers/theme-provider.tsx`). `ThemeSwitcher` (`src/components/theme-switcher.tsx`) is in the header and on the sign-in pages. Do not add a color that is right in one mode only (`text-white`, `bg-[#181818]`); use the HeroUI colors.
+- MUI follows the same class (`cssVariables: { colorSchemeSelector: "class" }` in `src/app/lib/theme.ts`). In MUI code use `theme.vars.palette.*` (a CSS variable that changes with the mode), not `theme.palette.*` (the light value). The old names keep their meanings: `primary` is a surface, `secondary` is text. Do not give `theme.vars.palette.*` to `alpha()`: it needs a real color.
+- Icons: `Icon` (`src/components/icon`) draws the icons of the mobile app, with the same names (`name="people"`, `"calendar-outline"`). `glyphs.ts` is a copy of realstay-prod `components/icon/glyphs.ts`; copy it again after a change there. Icons that the app does not have are in `admin-glyphs.ts`, made by `node tools/make-icons.mjs` from MingCute. Some MUI pages still use `@iconify/react`.
+- Done with HeroUI: the sign-in, invite, and forgot-password pages (`src/app/(auth)/components/`), and the dashboard frame (`src/components/dashboard/`: sidebar, header, account menu, mobile drawer, Cmd+K palette). The pages in `src/app/(dashboard)/` still use MUI.
+- The forgot-password page does not call the backend yet (`POST /auth/forgot-password` exists there).
+
 ## Pages
 
-`src/app/(dashboard)/`: `dashboard` (analytics and charts), `users`, `properties` (approve or reject a listing), `bookings`, `transactions`, `admin-management` (invite an admin), `audit-logs`, `profile`, and `notifications` (not built). The menu is `src/lib/dashboardMenu.ts`. The command palette (Cmd+K) is `src/ui/components/command-dashboard.tsx`. The upstream pages were ported on 2026-11-20 from upstream `0d76bbc`.
+`src/app/(dashboard)/`: `dashboard` (analytics and charts), `users`, `properties` (approve or reject a listing), `bookings`, `transactions`, `admin-management` (invite an admin), `audit-logs`, `profile`, and `notifications` (not built). The menu is `src/lib/dashboardMenu.ts`. The command palette (Cmd+K) is `src/ui/components/command-dashboard.tsx`. In Next 15, `params` of a page is a Promise: a client page reads it with `useParams()`. The upstream pages were ported on 2026-11-20 from upstream `0d76bbc`.
 
 ## Checks
 

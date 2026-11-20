@@ -1,5 +1,7 @@
 "use client";
 
+import { useParams } from "next/navigation";
+
 import ImageViewer from "@/app/components/imageview";
 import { LabelAndValue } from "@/app/components/LabelValue";
 import { PageHeading } from "@/app/components/pageHeading";
@@ -19,13 +21,9 @@ import {
 import dayjs from "dayjs";
 import { useState } from "react";
 
-interface UserDetailsPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function UserDetailsPage({ params }: UserDetailsPageProps) {
+export default function UserDetailsPage() {
+  // Next 15 gives `params` to a page as a Promise; a client page reads them here.
+  const params = useParams<{ id: string }>();
   const { data, isFetching } = userApi.useGetUserQuery({
     path: { id: params.id },
   });

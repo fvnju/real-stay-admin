@@ -126,7 +126,7 @@ export default function DashboardPage() {
                   icon="hugeicons:search-01"
                   width="18"
                   height="18"
-                  color={theme?.palette?.secondary?.light}
+                  color={theme.vars.palette.secondary.light}
                 />
               ),
             }}

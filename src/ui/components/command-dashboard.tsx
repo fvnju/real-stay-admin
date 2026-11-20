@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Icon } from "@/components/icon";
 import {
   CommandDialog,
   CommandEmpty,
@@ -11,8 +12,6 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { useCommandPalette } from "./cmdk";
-import { useRouter } from "next/navigation";
 import {
   adminMenuItems,
   logout,
@@ -21,52 +20,56 @@ import {
   type MenuItem,
 } from "@/lib/dashboardMenu";
 
-const DashboardCommandPalette = () => {
+/** The command palette: Cmd+K (Ctrl+K) or the Search button of the header. */
+const DashboardCommandPalette = ({
+  isOpen,
+  onOpenChange,
+}: {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+}) => {
   const router = useRouter();
-  const { isOpen, open, close } = useCommandPalette();
-
-  const handleCommand = (callback: () => void) => {
-    callback();
-    close();
-  };
 
   useEffect(() => {
-    const button = document.getElementById("cmdk");
-    button?.addEventListener("click", open);
-    return () => button?.removeEventListener("click", open);
-  }, [open]);
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        onOpenChange(!isOpen);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isOpen, onOpenChange]);
+
+  const run = (callback: () => void) => {
+    onOpenChange(false);
+    callback();
+  };
 
   const navItem = (item: MenuItem) => (
     <CommandItem
       key={item.path}
-      onSelect={() => handleCommand(() => router.push(item.path))}
+      onSelect={() => run(() => router.push(item.path))}
     >
-      <Icon icon={item.icon} className="w-4 h-4" />
+      <Icon name={item.icon} size={18} className="text-muted" />
       <span>{item.label}</span>
     </CommandItem>
   );
 
   return (
-    <CommandDialog open={isOpen} onOpenChange={close}>
-      <CommandInput placeholder="Type a command or search..." />
+    <CommandDialog open={isOpen} onOpenChange={onOpenChange}>
+      <CommandInput placeholder="Search pages and actions" />
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
-
+        <CommandEmpty>Nothing matches your search.</CommandEmpty>
         <CommandGroup heading="General">{menuItems.map(navItem)}</CommandGroup>
-
         <CommandSeparator />
-
-        <CommandGroup heading="Admin Utility">
-          {adminMenuItems.map(navItem)}
-        </CommandGroup>
-
+        <CommandGroup heading="Admin">{adminMenuItems.map(navItem)}</CommandGroup>
         <CommandSeparator />
-
         <CommandGroup heading="Account">
           {navItem(profileMenuItem)}
-          <CommandItem onSelect={() => handleCommand(() => void logout())}>
-            <Icon icon="hugeicons:logout-01" className="w-4 h-4" />
-            <span>Sign Out</span>
+          <CommandItem onSelect={() => run(() => void logout())}>
+            <Icon name="exit-outline" size={18} className="text-danger" />
+            <span className="text-danger">Log out</span>
           </CommandItem>
         </CommandGroup>
       </CommandList>

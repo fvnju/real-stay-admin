@@ -14,7 +14,7 @@ import {
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { getFormikTextFieldProps } from "@/app/utils/formik-helpers";
-import { LoadingButton } from "@mui/lab";
+import { Button as LoadingButton } from "@mui/material";
 import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
 
 export interface InviteAdminFormValues {
