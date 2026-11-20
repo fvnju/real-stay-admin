@@ -9,17 +9,20 @@ import {
   Stack,
   Box,
   Divider,
+  MenuItem,
 } from "@mui/material";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { getFormikTextFieldProps } from "@/app/utils/formik-helpers";
 import { LoadingButton } from "@mui/lab";
+import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
 
 export interface InviteAdminFormValues {
   email: string;
   first_name: string;
   last_name: string;
   phone_number: string;
+  role_id: string;
 }
 
 interface InviteAdminModalProps {
@@ -37,6 +40,7 @@ const validationSchema = Yup.object({
     .min(11, "Minimum 10 digits")
     .max(15, "Maximum 15 digits")
     .required("Phone number is required"),
+  role_id: Yup.string().required("Role is required"),
 });
 
 export const InviteAdminModal: React.FC<InviteAdminModalProps> = ({
@@ -45,12 +49,18 @@ export const InviteAdminModal: React.FC<InviteAdminModalProps> = ({
   onSubmit,
   isLoading,
 }) => {
+  // The backend refuses an invite without a role.
+  const { data: rolesData, isFetching: rolesLoading } =
+    rbacApi.useGetRolesQuery({ params: { limit: 100 } }, { skip: !open });
+  const roles = rolesData?.data?.roles ?? [];
+
   const formik = useFormik<InviteAdminFormValues>({
     initialValues: {
       email: "",
       first_name: "",
       last_name: "",
       phone_number: "",
+      role_id: "",
     },
     validationSchema,
     onSubmit: (values) => {
@@ -124,6 +134,28 @@ export const InviteAdminModal: React.FC<InviteAdminModalProps> = ({
                   value={formik.values.phone_number}
                   {...getFormikTextFieldProps(formik, "phone_number")}
                 />
+
+                <TextField
+                  select
+                  variant="outlined"
+                  label="Role"
+                  size="medium"
+                  color="secondary"
+                  value={formik.values.role_id}
+                  {...getFormikTextFieldProps(formik, "role_id")}
+                  helperText={
+                    (formik.touched.role_id && formik.errors.role_id) ||
+                    (!rolesLoading && roles.length === 0
+                      ? "No roles found. Make a role first (POST /rbac)."
+                      : undefined)
+                  }
+                >
+                  {roles.map((role) => (
+                    <MenuItem key={role._id} value={role._id}>
+                      {role.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
 
                 <Stack direction="row" spacing={1} pt={1}>
                   <LoadingButton

@@ -21,4 +21,6 @@ export interface InviteAdminUserPayload {
   first_name: string;
   last_name: string;
   phone_number: string;
+  /** The `_id` of a role from `GET /rbac`. The backend refuses an invite without it. */
+  role_id: string;
 }
