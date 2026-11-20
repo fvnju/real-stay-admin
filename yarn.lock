@@ -1001,6 +1001,41 @@
     "@swc/counter" "^0.1.3"
     tslib "^2.4.0"
 
+"@tsrs/darwin-arm64@0.22.0-ts7.1.0-beta":
+  version "0.22.0-ts7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@tsrs/darwin-arm64/-/darwin-arm64-0.22.0-ts7.1.0-beta.tgz#47e40ff0448ccedd6d7c3c9e57dfd9d14d2637e7"
+  integrity sha512-mY0dMEtFxig4h5At3nByjZe8E4DTDPqqz73kkxQ6gqW5K9ym+u/VHQhtnpTF6ZOTkYyjP3bTaj5T8HcyoGVddA==
+
+"@tsrs/darwin-x64@0.22.0-ts7.1.0-beta":
+  version "0.22.0-ts7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@tsrs/darwin-x64/-/darwin-x64-0.22.0-ts7.1.0-beta.tgz#98ad02c1ac4d941536a1f0b7cd43a2cd6b584dfe"
+  integrity sha512-dvsSnyU8rpI3OqTIH2xxjt9ThvZC52BsL6/LS69eWg7Ieq2oni1PnLels5gGTFqvHFoRbezi5Y0KY7PQ1OmK5w==
+
+"@tsrs/linux-arm64-gnu@0.22.0-ts7.1.0-beta":
+  version "0.22.0-ts7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@tsrs/linux-arm64-gnu/-/linux-arm64-gnu-0.22.0-ts7.1.0-beta.tgz#13d91eb9135e5667e2d665023a83e73e34780edb"
+  integrity sha512-igg42LxSN/DHFqafvDqZW2JNBMH8WIwc1JE/IY4QUDOXNhZnUfDgEu9xo1QYwbgryeo5llmhRwM4CI/BQUWF1Q==
+
+"@tsrs/linux-arm64-musl@0.22.0-ts7.1.0-beta":
+  version "0.22.0-ts7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@tsrs/linux-arm64-musl/-/linux-arm64-musl-0.22.0-ts7.1.0-beta.tgz#099e3040adf7fa56d1806017a557eb0ad06b6650"
+  integrity sha512-f0zCqMkxPof7QVwjdgA8Fb0n6BtX5MOdILH/xfS+He6gRLCoECky0ejbsgLWCpB06GMlsL1gCbDr0/tmc91APg==
+
+"@tsrs/linux-x64-gnu@0.22.0-ts7.1.0-beta":
+  version "0.22.0-ts7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@tsrs/linux-x64-gnu/-/linux-x64-gnu-0.22.0-ts7.1.0-beta.tgz#6c0c1f0626f406eb0aa58ac54a137b343e5770a1"
+  integrity sha512-/e511w7xXmxBf14paz8eMLUbmlIc33Sy1E00y1FqmnUK04FTotWl+80mNvIVX5NrlOOJgrh+B125t1CHWu/8vQ==
+
+"@tsrs/linux-x64-musl@0.22.0-ts7.1.0-beta":
+  version "0.22.0-ts7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@tsrs/linux-x64-musl/-/linux-x64-musl-0.22.0-ts7.1.0-beta.tgz#4663316d6f7e444e24224bdf498e818b85e24548"
+  integrity sha512-B3aDOdS5+h77HcFep+KtOI+XmLm2G+FQPQC3KPSDjS/IG0tY9GPSc14mYnLwgO++dXluukO/oufk3J4Lo0CFjg==
+
+"@tsrs/win32-x64@0.22.0-ts7.1.0-beta":
+  version "0.22.0-ts7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@tsrs/win32-x64/-/win32-x64-0.22.0-ts7.1.0-beta.tgz#196342b9f3db3ba73c25bf03e597f9db3f5a3f61"
+  integrity sha512-cZ69w+wOECbU6YF5UWi15TK73eX1pgoMEHKSmUF4K8PbS7DPIh/nWMsdb3rM8Ee1SUZ9ONCx+S6myh64SRi3Bg==
+
 "@tybys/wasm-util@^0.10.0":
   version "0.10.0"
   resolved "https://registry.yarnpkg.com/@tybys/wasm-util/-/wasm-util-0.10.0.tgz#2fd3cd754b94b378734ce17058d0507c45c88369"
@@ -4206,6 +4241,19 @@ tslib@^2.0.0, tslib@^2.1.0, tslib@^2.4.0:
   version "2.8.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.8.1.tgz#612efe4ed235d567e8aba5f2a5fab70280ade83f"
   integrity sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==
+
+tsrs@^0.22.0-ts7.1.0-beta:
+  version "0.22.0-ts7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/tsrs/-/tsrs-0.22.0-ts7.1.0-beta.tgz#14e1a013332b737dcdb196f6c2ddb33fa55216c9"
+  integrity sha512-DEnEqQZRM3sHCV7MnQKVeTh61U2SX+0WksVlWp4eVayy0NffQ2oiCOjgH/Eye3sMPYkGwpM3tht3HtVI9NdURg==
+  optionalDependencies:
+    "@tsrs/darwin-arm64" "0.22.0-ts7.1.0-beta"
+    "@tsrs/darwin-x64" "0.22.0-ts7.1.0-beta"
+    "@tsrs/linux-arm64-gnu" "0.22.0-ts7.1.0-beta"
+    "@tsrs/linux-arm64-musl" "0.22.0-ts7.1.0-beta"
+    "@tsrs/linux-x64-gnu" "0.22.0-ts7.1.0-beta"
+    "@tsrs/linux-x64-musl" "0.22.0-ts7.1.0-beta"
+    "@tsrs/win32-x64" "0.22.0-ts7.1.0-beta"
 
 type-check@^0.4.0, type-check@~0.4.0:
   version "0.4.0"

@@ -40,6 +40,7 @@ Upstream keeps the access token and the refresh token in `localStorage`, so an X
 
 ## Checks
 
-- `npx tsc --noEmit` (0 errors on 2026-11-20).
+- `yarn typecheck`: [tsrs](https://github.com/oxc-project/tsrs) (TypeScript 7 in Rust), the same checker as the backend and the app. It takes about 0.5 s. 0 errors on 2026-11-20. tsrs only checks types; `next build` still builds the app with the `typescript` package.
+- TypeScript 7 checks side-effect imports, so `src/types/css.d.ts` declares `*.css`.
 - `npx next build` (it also runs ESLint).
-- Use Yarn 1 (`npx yarn@1.22.22 install`). The lockfile is a Yarn 1 lockfile. Yarn 4 changes its format.
+- Yarn 1: `package.json` has `"packageManager": "yarn@1.22.22"`, so `yarn` in this repo is Yarn 1. The lockfile is a Yarn 1 lockfile. Do not use Yarn 4 here: it changes the format of the lockfile.
