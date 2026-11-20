@@ -31,8 +31,15 @@ export function UserAvatar({
   const src = avatarUrl(user, px);
   return (
     <Avatar
-      className={`shrink-0 ${className ?? ""}`}
-      style={{ width: px, height: px, fontSize: Math.max(12, px / 3) }}
+      className={`shrink-0 rounded-full ${className ?? ""}`}
+      // HeroUI gives an avatar a fixed radius (24 px), which is a circle only
+      // up to 48 px. An avatar is always a circle.
+      style={{
+        width: px,
+        height: px,
+        fontSize: Math.max(12, px / 3),
+        ["--avatar-radius" as string]: "9999px",
+      }}
     >
       {src ? <Avatar.Image src={src} alt="" /> : null}
       <Avatar.Fallback>{initialsOf(fullName(user))}</Avatar.Fallback>
