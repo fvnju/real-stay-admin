@@ -33,6 +33,11 @@ const STATUS_COLORS: Record<string, ChipColor> = {
   wallet_outflow: "danger",
 };
 
+/** The color of a status, "default" when the status is not known. */
+export function statusColor(status: string): ChipColor {
+  return STATUS_COLORS[status.toLowerCase()] ?? "default";
+}
+
 /** "WALLET_INFLOW" -> "Wallet inflow". */
 export function statusLabel(status: string) {
   const text = status.replace(/[_-]+/g, " ").toLowerCase().trim();

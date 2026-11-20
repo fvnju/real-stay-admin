@@ -6,7 +6,7 @@ export { PageHeader } from "./page-header";
 export { RowActions, type RowAction } from "./row-actions";
 export { SearchInput } from "./search-input";
 export { StatCards, type Stat } from "./stat-cards";
-export { StatusChip, statusLabel } from "./status-chip";
+export { StatusChip, statusColor, statusLabel } from "./status-chip";
 export { TablePagination } from "./table-pagination";
 export { UserCell } from "./user-cell";
 export { SegmentTabs, type Segment } from "./segment-tabs";

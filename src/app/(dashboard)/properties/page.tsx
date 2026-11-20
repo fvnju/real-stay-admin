@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, ToggleButton, ToggleButtonGroup } from "@heroui/react";
+import { Card } from "@heroui/react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import {
@@ -11,6 +11,7 @@ import {
   TablePagination,
 } from "@/components/admin";
 import { Icon } from "@/components/icon";
+import { SegmentedControl } from "@/components/segmented-control";
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
 import { listingsApi } from "@/app/endpoints/properties/properties-api-slice";
 import { GetErrorMessage } from "@/app/utils/error-handler";
@@ -90,24 +91,17 @@ export default function PropertiesPage() {
                 setPage(1);
               }}
             />
-            <ToggleButtonGroup
-              aria-label="View"
-              selectionMode="single"
-              disallowEmptySelection
-              size="sm"
-              selectedKeys={[view]}
-              onSelectionChange={(keys) => {
-                const [next] = keys;
+            <SegmentedControl
+              label="View"
+              value={view}
+              onChange={(next) => {
                 if (next === "grid" || next === "list") setView(next);
               }}
-            >
-              <ToggleButton id="grid" isIconOnly aria-label="Grid">
-                <Icon name="grid" size={16} />
-              </ToggleButton>
-              <ToggleButton id="list" isIconOnly aria-label="List">
-                <Icon name="options-outline" size={16} />
-              </ToggleButton>
-            </ToggleButtonGroup>
+              options={[
+                { value: "grid", label: "Grid", content: <Icon name="grid" size={16} /> },
+                { value: "list", label: "List", content: <Icon name="options-outline" size={16} /> },
+              ]}
+            />
           </div>
         </div>
 
