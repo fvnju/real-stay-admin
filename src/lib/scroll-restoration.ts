@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useLayoutEffect, useRef } from "react";
 
 /**
@@ -26,6 +27,22 @@ if (typeof window !== "undefined") {
   });
 }
 const POP_WINDOW_MS = 2000;
+const cameBackNow = () => Date.now() - poppedAt < POP_WINDOW_MS;
+
+/**
+ * Open each new page at the top of `<main>`. `<main>` stays on the screen
+ * between pages, so it keeps the position of the last page, and Next.js then
+ * scrolls the page to its top element without the padding of `<main>`. Use it
+ * in the shell: its layout effect runs after the effects of Next.js and of the
+ * page. A back move keeps the position that useScrollRestoration gives.
+ */
+export function useScrollToTopOnNewPage() {
+  const pathname = usePathname();
+  useLayoutEffect(() => {
+    if (cameBackNow()) return;
+    document.getElementById(SCROLL_ROOT_ID)?.scrollTo({ top: 0 });
+  }, [pathname]);
+}
 
 /**
  * Keep the scroll position of this page, and restore it after a back move.
@@ -35,7 +52,7 @@ const POP_WINDOW_MS = 2000;
 export function useScrollRestoration(ready: boolean) {
   const cameBack = useRef<boolean | null>(null);
   if (cameBack.current === null) {
-    cameBack.current = typeof window !== "undefined" && Date.now() - poppedAt < POP_WINDOW_MS;
+    cameBack.current = typeof window !== "undefined" && cameBackNow();
   }
 
   // A layout effect: its cleanup runs before the next page changes the

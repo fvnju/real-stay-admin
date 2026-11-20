@@ -12,7 +12,7 @@ import { AccountMenu } from "./account-menu";
 import { AttentionBell } from "./attention-center";
 import { useGoShortcuts } from "./instant-nav";
 import { NavList } from "./nav-list";
-import { SCROLL_ROOT_ID } from "@/lib/scroll-restoration";
+import { SCROLL_ROOT_ID, useScrollToTopOnNewPage } from "@/lib/scroll-restoration";
 
 /** The cookie that keeps the sidebar small between visits. */
 const SIDEBAR_COOKIE = "sidebar_shrink";
@@ -57,6 +57,7 @@ export function DashboardShell({
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [isMac, setIsMac] = useState(true);
   useGoShortcuts();
+  useScrollToTopOnNewPage();
 
   useEffect(() => {
     setIsMac(/Mac|iPhone|iPad/.test(navigator.platform));
