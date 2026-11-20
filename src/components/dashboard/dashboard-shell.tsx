@@ -12,6 +12,7 @@ import { AccountMenu } from "./account-menu";
 import { AttentionBell } from "./attention-center";
 import { useGoShortcuts } from "./instant-nav";
 import { NavList } from "./nav-list";
+import { SCROLL_ROOT_ID } from "@/lib/scroll-restoration";
 
 /** The cookie that keeps the sidebar small between visits. */
 const SIDEBAR_COOKIE = "sidebar_shrink";
@@ -139,7 +140,7 @@ export function DashboardShell({
           </div>
         </header>
 
-        <main className="flex flex-1 flex-col overflow-y-auto overflow-x-clip p-4 sm:p-6">
+        <main id={SCROLL_ROOT_ID} className="flex flex-1 flex-col overflow-y-auto overflow-x-clip p-4 sm:p-6">
           {children}
         </main>
       </div>

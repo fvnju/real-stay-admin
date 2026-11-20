@@ -8,12 +8,15 @@ export function SearchInput({
   placeholder,
   onSearch,
   className,
+  defaultValue = "",
 }: {
   placeholder: string;
   onSearch: (value: string) => void;
   className?: string;
+  /** The first text of the field, for example a search kept in the URL. */
+  defaultValue?: string;
 }) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(defaultValue);
   const onSearchRef = useRef(onSearch);
   onSearchRef.current = onSearch;
   const first = useRef(true);

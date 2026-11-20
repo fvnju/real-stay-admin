@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@heroui/react";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import {
   PageHeader,
@@ -20,6 +20,7 @@ import PropertiesGrid from "./components/PropertiesGrid";
 import { PropertiesTable } from "./components/PropertiesTable";
 import type { ManageListing } from "./components/listing-actions";
 import { LISTINGS_PAGE_SIZE, listingsArgs, waitsForData } from "@/lib/page-queries";
+import { useScrollRestoration } from "@/lib/scroll-restoration";
 
 const STATUSES = [
   { label: "All", value: "" },
@@ -27,12 +28,63 @@ const STATUSES = [
   { label: "Inactive", value: "inactive" },
 ];
 
+type View = "grid" | "list";
+
+type ListState = {
+  page: number;
+  pageSize: number;
+  status: string;
+  search: string;
+  view: View;
+};
+
+const DEFAULTS: ListState = {
+  page: 1,
+  pageSize: LISTINGS_PAGE_SIZE,
+  status: "",
+  search: "",
+  view: "grid",
+};
+
+const positiveInt = (v: string | null, fallback: number) => {
+  const n = Number(v);
+  return Number.isInteger(n) && n > 0 ? n : fallback;
+};
+
+const readState = (q: URLSearchParams): ListState => ({
+  page: positiveInt(q.get("page"), DEFAULTS.page),
+  pageSize: positiveInt(q.get("size"), DEFAULTS.pageSize),
+  status: q.get("status") ?? DEFAULTS.status,
+  search: q.get("q") ?? DEFAULTS.search,
+  view: q.get("view") === "list" ? "list" : "grid",
+});
+
+/** The query of the list; a default value is not in the URL. */
+const toQuery = (s: ListState) => {
+  const q = new URLSearchParams();
+  if (s.page !== DEFAULTS.page) q.set("page", String(s.page));
+  if (s.pageSize !== DEFAULTS.pageSize) q.set("size", String(s.pageSize));
+  if (s.status) q.set("status", s.status);
+  if (s.search) q.set("q", s.search);
+  if (s.view !== DEFAULTS.view) q.set("view", s.view);
+  const text = q.toString();
+  return text ? `?${text}` : "";
+};
+
 export default function PropertiesPage() {
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(LISTINGS_PAGE_SIZE);
-  const [status, setStatus] = useState("");
-  const [search, setSearch] = useState("");
-  const [view, setView] = useState<"grid" | "list">("grid");
+  // The filters, the page and the view are in the URL, so Back from a listing
+  // opens the list as the admin left it (useScrollRestoration does the scroll).
+  const state = readState(useSearchParams());
+  const { page, pageSize, status, search, view } = state;
+  const update = (change: Partial<ListState>) => {
+    // Read the URL, not `state`: two changes in one event (the pagination sets
+    // the size, then the page) must both stay.
+    const current = readState(new URLSearchParams(window.location.search));
+    // Next.js syncs `useSearchParams` with `replaceState`, without a server request.
+    window.history.replaceState(null, "", `${window.location.pathname}${toQuery({ ...current, ...change })}`);
+  };
+  const setPage = (p: number) => update({ page: p });
+  const setPageSize = (size: number) => update({ pageSize: size, page: 1 });
 
   const analyticsQuery = analyticApi.useAnalyticsQuery({});
   const { data: analytics } = analyticsQuery;
@@ -58,6 +110,7 @@ export default function PropertiesPage() {
 
   const listings = data?.data?.listings || [];
   const loading = isFetching || isLoading;
+  useScrollRestoration(!isFetching);
 
   return (
     <div className="flex flex-col gap-6">
@@ -78,25 +131,22 @@ export default function PropertiesPage() {
             label="Status"
             segments={STATUSES}
             value={status}
-            onChange={(v) => {
-              setStatus(v);
-              setPage(1);
-            }}
+            onChange={(v) => update({ status: v, page: 1 })}
           />
           <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
             <SearchInput
               placeholder="Search title, area, host"
               className="w-full sm:w-72"
+              defaultValue={search}
               onSearch={(v) => {
-                setSearch(v);
-                setPage(1);
+                if (v !== search) update({ search: v, page: 1 });
               }}
             />
             <SegmentedControl
               label="View"
               value={view}
               onChange={(next) => {
-                if (next === "grid" || next === "list") setView(next);
+                if (next === "grid" || next === "list") update({ view: next });
               }}
               options={[
                 { value: "grid", label: "Grid", content: <Icon name="grid" size={16} /> },
