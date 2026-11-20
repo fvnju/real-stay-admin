@@ -1,14 +1,14 @@
 "use client";
 
-import { Avatar, Card, Skeleton } from "@heroui/react";
+import { Card, Skeleton } from "@heroui/react";
 import { useParams } from "next/navigation";
 import {
   DetailSection,
   formatDate,
   fullName,
-  initialsOf,
   PageHeader,
   StatusChip,
+  UserAvatar,
 } from "@/components/admin";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
 
@@ -30,10 +30,7 @@ export default function AdminDetailsPage() {
         {loading ? (
           <Skeleton className="size-16 rounded-full" />
         ) : (
-          <Avatar className="size-16 text-lg">
-            {user?.image_url ? <Avatar.Image src={user.image_url} alt="" /> : null}
-            <Avatar.Fallback>{initialsOf(name)}</Avatar.Fallback>
-          </Avatar>
+          <UserAvatar user={user} size="lg" />
         )}
         <div className="min-w-0">
           <p className="truncate text-lg font-semibold">{loading ? "" : name}</p>

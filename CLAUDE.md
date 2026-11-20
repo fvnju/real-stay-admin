@@ -45,6 +45,12 @@ Upstream keeps the access token and the refresh token in `localStorage`, so an X
 - A HeroUI dialog or drawer that opens from state (no trigger inside it): put `isOpen` on `Modal.Backdrop` / `Drawer.Backdrop`, without the `Modal` / `Drawer` root, which expects a trigger.
 - The frame of the dashboard is `src/components/dashboard/` (sidebar, header, account menu, mobile drawer, Cmd+K palette). The sign-in pages use `src/app/(auth)/components/`.
 
+## Profile photo
+
+- `UserAvatar` (`src/components/admin`) draws every avatar with the rule of the mobile app (`src/lib/avatar-url.ts`, a copy of realstay-prod `src/features/profile/avatar-url.ts`; change them together): the photo from Cloudinary at the size of the avatar, cropped to the face; else the DiceBear "line-face" of the user id; else the initials.
+- "My profile" (`src/components/profile/profile-photo.tsx`) changes or removes the photo of the signed-in admin, as the app does: the admin crops a square (react-easy-crop), the browser makes a JPEG of at most 1200 px (`crop-image.ts`), then `setProfilePhoto` (`user-api-slice.ts`) sends `POST /utility/file-upload` and `PATCH /users/:id` with `image_url` (`null` removes it). The small file stays under the request limit of Vercel (about 4.5 MB).
+- `getUser` has the tag `User`; `setProfilePhoto` invalidates it, so the profile and the account menu load the new photo.
+
 ## Password reset
 
 `/forgot-password` has three steps: the email, the 5-digit code, and the new password. The page calls `POST /api/auth/password-reset` with `step` `request`, `verify` or `change`. The route sends only the fields of the step to the backend (`/auth/forgot-password`, `/auth/forgot-password/verify`, `PATCH /auth/change-password`), with no cookies, and checks the `Origin`. The new password must pass the backend rule; `src/lib/password-rules.ts` has a copy (change both together). The backend lets one email ask for a code every 30 seconds.

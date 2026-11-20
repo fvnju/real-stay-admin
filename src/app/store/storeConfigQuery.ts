@@ -7,7 +7,7 @@ import axiosBaseQuery from './axiosBaseQuery';
 
 export const realstayApi = createApi({
     reducerPath: 'real_stay',
-    tagTypes:[""],
+    tagTypes: ["User"],
     baseQuery: axiosBaseQuery({}, AxiosInstance as AxiosStatic),
     endpoints: () => ({}),
 });

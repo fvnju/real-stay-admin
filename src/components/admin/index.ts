@@ -13,3 +13,4 @@ export { SegmentTabs, type Segment } from "./segment-tabs";
 export { ReviewList } from "./review-list";
 export { PhotoGallery } from "./photo-gallery";
 export { listingFields } from "./listing-fields";
+export { UserAvatar } from "./user-avatar";

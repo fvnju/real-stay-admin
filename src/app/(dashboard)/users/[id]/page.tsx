@@ -1,16 +1,16 @@
 "use client";
 
-import { Avatar, Button, Card, Skeleton } from "@heroui/react";
+import { Button, Card, Skeleton } from "@heroui/react";
 import { useParams } from "next/navigation";
 import { toast } from "react-toastify";
 import {
   DetailSection,
   formatDate,
   fullName,
-  initialsOf,
   PageHeader,
   ReviewList,
   StatusChip,
+  UserAvatar,
 } from "@/components/admin";
 import { Icon } from "@/components/icon";
 import { kycApi } from "@/app/endpoints/kyc/kyc-api-slice";
@@ -84,10 +84,7 @@ export default function UserDetailsPage() {
         {isFetching && !user ? (
           <Skeleton className="size-16 rounded-full" />
         ) : (
-          <Avatar className="size-16 text-lg">
-            {user?.image_url ? <Avatar.Image src={user.image_url} alt="" /> : null}
-            <Avatar.Fallback>{initialsOf(name)}</Avatar.Fallback>
-          </Avatar>
+          <UserAvatar user={user} size="lg" />
         )}
         <div className="flex min-w-0 flex-col gap-1">
           <p className="truncate text-lg font-semibold">{isFetching && !user ? "" : name}</p>

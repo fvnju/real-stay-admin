@@ -1,21 +1,13 @@
 "use client";
 
-import { Avatar, Dropdown, Label } from "@heroui/react";
+import { Dropdown, Label } from "@heroui/react";
+import { UserAvatar } from "@/components/admin";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/icon";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
 import { useSessionUser } from "@/app/providers/session-user";
 import { logout, profileMenuItem } from "@/lib/dashboardMenu";
-
-function initialsOf(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]!.toUpperCase())
-    .join("");
-}
 
 /** The signed-in admin, with "My profile" and "Log out". */
 export function AccountMenu({ collapsed = false }: { collapsed?: boolean }) {
@@ -39,9 +31,7 @@ export function AccountMenu({ collapsed = false }: { collapsed?: boolean }) {
           collapsed && "justify-center",
         )}
       >
-        <Avatar size="sm">
-          <Avatar.Fallback>{initialsOf(name)}</Avatar.Fallback>
-        </Avatar>
+        <UserAvatar user={user ?? { id: sessionUser?.id }} size="sm" />
         <span className={clsx("min-w-0 flex-1", collapsed && "sr-only")}>
           <span className="block truncate text-sm font-medium">{name}</span>
           <span className="block truncate text-xs text-muted">{email}</span>

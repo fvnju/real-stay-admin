@@ -1,15 +1,15 @@
 "use client";
 
-import { Avatar, Card, Skeleton } from "@heroui/react";
+import { Card, Skeleton } from "@heroui/react";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import {
   DetailSection,
   formatDate,
   fullName,
-  initialsOf,
   PageHeader,
 } from "@/components/admin";
+import { ProfilePhoto } from "@/components/profile/profile-photo";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
 import { useSessionUser } from "@/app/providers/session-user";
@@ -17,16 +17,15 @@ import { GetErrorMessage } from "@/app/utils/error-handler";
 
 export default function Profile() {
   const sessionUser = useSessionUser();
-  const [userQuery, { isFetching, data }] = userApi.useLazyGetUserQuery();
+  // A query (not a lazy query), so that it loads again after a photo change.
+  const { data, isFetching, error } = userApi.useGetUserQuery(
+    { path: { id: sessionUser?.id } },
+    { skip: !sessionUser?.id },
+  );
 
   useEffect(() => {
-    if (!sessionUser?.id) return;
-    userQuery({ path: { id: sessionUser.id } })
-      .unwrap()
-      .catch((error) => {
-        toast.error(GetErrorMessage(error) || "Could not load your profile.");
-      });
-  }, [sessionUser?.id, userQuery]);
+    if (error) toast.error(GetErrorMessage(error) || "Could not load your profile.");
+  }, [error]);
 
   const user = data?.data?.user;
   const userId = user?._id || user?.id;
@@ -41,10 +40,7 @@ export default function Profile() {
         {loading ? (
           <Skeleton className="size-16 rounded-full" />
         ) : (
-          <Avatar className="size-16 text-lg">
-            {user?.image_url ? <Avatar.Image src={user.image_url} alt="" /> : null}
-            <Avatar.Fallback>{initialsOf(name)}</Avatar.Fallback>
-          </Avatar>
+          <ProfilePhoto user={user} />
         )}
         <div className="min-w-0">
           <p className="truncate text-lg font-semibold">{loading ? "" : name}</p>
