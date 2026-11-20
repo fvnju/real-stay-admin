@@ -45,6 +45,20 @@ Upstream keeps the access token and the refresh token in `localStorage`, so an X
 - A HeroUI dialog or drawer that opens from state (no trigger inside it): put `isOpen` on `Modal.Backdrop` / `Drawer.Backdrop`, without the `Modal` / `Drawer` root, which expects a trigger.
 - The frame of the dashboard is `src/components/dashboard/` (sidebar, header, account menu, mobile drawer, Cmd+K palette). The sign-in pages use `src/app/(auth)/components/`.
 
+## The bell (Needs attention)
+
+- Admins get no push or in-app notifications. The bell of the header (`src/components/dashboard/attention-center.tsx`) shows the admin queues of the backend instead: open reports (`GET /v1/admin/reports?status=open`), papers to check (`/v1/admin/listing-verifications?status=submitted`), visits to do (`status=documents_approved`), verified listings to check again (`recheck=true`), and admin invites with no answer (`/analytics/admins`).
+- The badge is the sum of the four queue totals. It loads again each minute while the tab is in front, and when the dialog opens. Each list shows the 5 oldest items; an item opens the listing or the user page.
+- The calls are in `src/app/endpoints/attention/`. A v1 list answers `{ data: { data, total, page, limit } }`.
+- The panel has no page to resolve a report or to act on a verification yet. Staff do it with the backend routes (backend `CLAUDE.md`, "Reports" and "Listing verification").
+
+## The bell (Needs attention)
+
+- Admins get no push or in-app notifications. The bell of the header (`src/components/dashboard/attention-center.tsx`) opens a popover under it with the admin queues of the backend: open reports (`GET /v1/admin/reports?status=open`), papers to check (`/v1/admin/listing-verifications?status=submitted`), visits to do (`status=documents_approved`), verified listings to check again (`recheck=true`), and admin invites with no answer (`/analytics/admins`).
+- The badge is the sum of the four queue totals. It loads again each minute while the tab is in front, and when the popover opens. Each list shows the 5 oldest items; an item opens the listing or the user page.
+- The calls are in `src/app/endpoints/attention/`. A v1 list answers `{ data: { data, total, page, limit } }`.
+- The panel has no page to resolve a report or to act on a verification yet.
+
 ## Profile photo
 
 - `UserAvatar` (`src/components/admin`) draws every avatar with the rule of the mobile app (`src/lib/avatar-url.ts`, a copy of realstay-prod `src/features/profile/avatar-url.ts`; change them together): the photo from Cloudinary at the size of the avatar, cropped to the face; else the DiceBear "line-face" of the user id; else the initials.

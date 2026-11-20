@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, buttonVariants, Drawer, Kbd } from "@heroui/react";
+import { Button, Drawer, Kbd } from "@heroui/react";
 import clsx from "clsx";
 import Image from "next/image";
 import Link from "next/link";
@@ -9,6 +9,7 @@ import { Icon } from "@/components/icon";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import DashboardCommandPalette from "@/ui/components/command-dashboard";
 import { AccountMenu } from "./account-menu";
+import { AttentionBell } from "./attention-center";
 import { NavList } from "./nav-list";
 
 /** The cookie that keeps the sidebar small between visits. */
@@ -132,17 +133,7 @@ export function DashboardShell({
 
           <div className="ml-auto flex items-center gap-2">
             <ThemeSwitcher className="hidden sm:flex" />
-            <Link
-              href="/notifications"
-              aria-label="Notifications"
-              className={buttonVariants({
-                variant: "ghost",
-                size: "sm",
-                isIconOnly: true,
-              })}
-            >
-              <Icon name="notifications-outline" size={20} />
-            </Link>
+            <AttentionBell />
           </div>
         </header>
 
