@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Icon } from "@/components/icon";
 import {
@@ -12,6 +11,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
+import { useGo } from "@/components/dashboard/instant-nav";
 import {
   adminMenuItems,
   logout,
@@ -28,7 +28,7 @@ const DashboardCommandPalette = ({
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }) => {
-  const router = useRouter();
+  const go = useGo();
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -49,10 +49,11 @@ const DashboardCommandPalette = ({
   const navItem = (item: MenuItem) => (
     <CommandItem
       key={item.path}
-      onSelect={() => run(() => router.push(item.path))}
+      onSelect={() => run(() => go(item.path))}
     >
       <Icon name={item.icon} size={18} className="text-muted" />
       <span>{item.label}</span>
+      <kbd className="ml-auto font-sans text-xs text-muted">G {item.shortcut.toUpperCase()}</kbd>
     </CommandItem>
   );
 

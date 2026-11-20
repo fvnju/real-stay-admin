@@ -14,14 +14,17 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
 import { useSessionUser } from "@/app/providers/session-user";
 import { GetErrorMessage } from "@/app/utils/error-handler";
+import { waitsForData } from "@/lib/page-queries";
 
 export default function Profile() {
   const sessionUser = useSessionUser();
   // A query (not a lazy query), so that it loads again after a photo change.
-  const { data, isFetching, error } = userApi.useGetUserQuery(
+  const listQuery = userApi.useGetUserQuery(
     { path: { id: sessionUser?.id } },
     { skip: !sessionUser?.id },
   );
+  const { data, error } = listQuery;
+  const isFetching = waitsForData(listQuery);
 
   useEffect(() => {
     if (error) toast.error(GetErrorMessage(error) || "Could not load your profile.");

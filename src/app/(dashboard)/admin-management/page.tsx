@@ -19,9 +19,9 @@ import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
 import type { Role } from "@/app/endpoints/rbac/rbac-types";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
 import { GetErrorMessage } from "@/app/utils/error-handler";
-import { sanitizeFilterQuery } from "@/app/utils/filter-helpers";
 import { InviteAdminModal } from "./components/InviteAdminModal";
 import { UserTable } from "./components/UserTable";
+import { adminsAnalyticsArgs, adminsArgs, PAGE_SIZE, waitsForData } from "@/lib/page-queries";
 
 const VIEWS = [
   { label: "Admins", value: "admins" },
@@ -36,7 +36,9 @@ const STATUSES = [
 ];
 
 function RolesTable() {
-  const { data, isFetching } = rbacApi.useGetRolesQuery({ params: { limit: 100 } });
+  const listQuery = rbacApi.useGetRolesQuery({ params: { limit: 100 } });
+  const { data } = listQuery;
+  const isFetching = waitsForData(listQuery);
   return (
     <AdminTable<Role>
       label="Roles"
@@ -71,22 +73,20 @@ function RolesTable() {
 export default function AdminsPage() {
   const [view, setView] = useState("admins");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE);
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
 
-  const { data, isFetching } = userApi.useGetAdminsQuery({
-    params: {
-      status: sanitizeFilterQuery(status),
-      search: sanitizeFilterQuery(search),
-      page,
-      page_size: pageSize,
-    },
-  });
+  const listQuery = userApi.useGetAdminsQuery(
+    adminsArgs({ page, pageSize, search, status }),
+  );
+  const { data } = listQuery;
+  const isFetching = waitsForData(listQuery);
 
-  const { data: analytics, isFetching: isFetchingAnalytics } =
-    analyticApi.useAdminsAnalyticsQuery({ params: {} });
+  const analyticsQuery = analyticApi.useAdminsAnalyticsQuery(adminsAnalyticsArgs);
+  const { data: analytics } = analyticsQuery;
+  const isFetchingAnalytics = waitsForData(analyticsQuery);
   const stats = analytics?.data?.userStats;
 
   const [inviteAdmin, { isLoading: isInviting }] = authApi.useInviteAdminMutation();

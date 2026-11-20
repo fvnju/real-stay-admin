@@ -7,6 +7,7 @@ import { NAIRA_FORMAT, PageHeader, SegmentTabs, StatCards, toAmount } from "@/co
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
 import { getStatsArray } from "@/app/utils/chart-helper";
 import StatsLineChart from "./components/Chart";
+import { dailyStatsArgs, defaultDailyRange, waitsForData } from "@/lib/page-queries";
 
 const PERIODS = [
   { label: "Daily", value: "daily" },
@@ -15,9 +16,6 @@ const PERIODS = [
 
 const THIS_YEAR = dayjs().year();
 const YEARS = Array.from({ length: 5 }, (_, i) => String(THIS_YEAR - i));
-
-/** The API takes "YYYY/MM/DD"; a date input gives "YYYY-MM-DD". */
-const toApiDate = (v: string) => (v ? v.replaceAll("-", "/") : undefined);
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -29,27 +27,34 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function DashboardPage() {
-  const { data: analytics, isFetching } = analyticApi.useAnalyticsQuery({});
+  const analyticsQuery = analyticApi.useAnalyticsQuery({});
+  const { data: analytics } = analyticsQuery;
+  const isFetching = waitsForData(analyticsQuery);
   const users = analytics?.data?.userStats;
   const listings = analytics?.data?.listingStats;
 
-  const { data: bookingAnalytics, isFetching: isFetchingBookings } =
-    analyticApi.useBookingsAnalyticsQuery({});
+  const bookingAnalyticsQuery = analyticApi.useBookingsAnalyticsQuery({});
+  const { data: bookingAnalytics } = bookingAnalyticsQuery;
+  const isFetchingBookings = waitsForData(bookingAnalyticsQuery);
   const bookings = bookingAnalytics?.data?.booking_stats;
 
   const [period, setPeriod] = useState<"daily" | "monthly">("daily");
-  const [startDate, setStartDate] = useState(dayjs().subtract(1, "month").format("YYYY-MM-DD"));
-  const [endDate, setEndDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const [startDate, setStartDate] = useState(() => defaultDailyRange().startDate);
+  const [endDate, setEndDate] = useState(() => defaultDailyRange().endDate);
   const [year, setYear] = useState(String(THIS_YEAR));
 
-  const { data: daily, isFetching: isFetchingDaily } = analyticApi.useDailyListingStatsQuery(
-    { params: { start_date: toApiDate(startDate), end_date: toApiDate(endDate) } },
+  const dailyQuery = analyticApi.useDailyListingStatsQuery(
+    dailyStatsArgs(startDate, endDate),
     { skip: period !== "daily" },
   );
-  const { data: monthly, isFetching: isFetchingMonthly } = analyticApi.useMonthlyListingStatsQuery(
+  const { data: daily } = dailyQuery;
+  const isFetchingDaily = waitsForData(dailyQuery);
+  const monthlyQuery = analyticApi.useMonthlyListingStatsQuery(
     { params: { year: Number(year) } },
     { skip: period !== "monthly" },
   );
+  const { data: monthly } = monthlyQuery;
+  const isFetchingMonthly = waitsForData(monthlyQuery);
 
   const series =
     period === "daily"

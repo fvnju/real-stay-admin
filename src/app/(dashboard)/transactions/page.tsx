@@ -4,8 +4,8 @@ import { Button, Card, Input, Label, TextField } from "@heroui/react";
 import { useState } from "react";
 import { FilterMenu, PageHeader, SearchInput, TablePagination } from "@/components/admin";
 import { transactionApi } from "@/app/endpoints/transactions/transactions-api-slice";
-import { sanitizeFilterQuery } from "@/app/utils/filter-helpers";
 import { TransactionTable } from "./components/TransactionsTable";
+import { PAGE_SIZE, transactionsArgs, waitsForData } from "@/lib/page-queries";
 
 const STATUSES = [
   { label: "All", value: "" },
@@ -51,24 +51,18 @@ function DateInput({
 
 export default function TransactionsPage() {
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [type, setType] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const { data, isFetching } = transactionApi.useGetTransactionsQuery({
-    params: {
-      search: sanitizeFilterQuery(search),
-      status: sanitizeFilterQuery(status),
-      type: sanitizeFilterQuery(type),
-      start_date: sanitizeFilterQuery(startDate),
-      end_date: sanitizeFilterQuery(endDate),
-      page,
-      page_size: pageSize,
-    },
-  });
+  const listQuery = transactionApi.useGetTransactionsQuery(
+    transactionsArgs({ page, pageSize, search, status, type, startDate, endDate }),
+  );
+  const { data } = listQuery;
+  const isFetching = waitsForData(listQuery);
 
   const reset = (fn: () => void) => {
     fn();

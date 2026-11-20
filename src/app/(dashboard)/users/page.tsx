@@ -14,8 +14,8 @@ import {
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
 import { GetErrorMessage } from "@/app/utils/error-handler";
-import { sanitizeFilterQuery } from "@/app/utils/filter-helpers";
 import { UserTable } from "./components/UserTable";
+import { PAGE_SIZE, usersArgs, waitsForData } from "@/lib/page-queries";
 
 const USER_TYPES = [
   { label: "All", value: "" },
@@ -32,20 +32,16 @@ const STATUSES = [
 
 export default function UsersPage() {
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE);
   const [userType, setUserType] = useState("");
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
 
-  const { data, isFetching, refetch } = userApi.useGetUsersQuery({
-    params: {
-      user_type: sanitizeFilterQuery(userType),
-      status: sanitizeFilterQuery(status),
-      search: sanitizeFilterQuery(search),
-      page,
-      page_size: pageSize,
-    },
-  });
+  const listQuery = userApi.useGetUsersQuery(
+    usersArgs({ page, pageSize, search, status, userType }),
+  );
+  const { data, refetch } = listQuery;
+  const isFetching = waitsForData(listQuery);
 
   const [manageUserMutation, { isLoading }] = userApi.useManageUsersMutation();
 
@@ -59,8 +55,9 @@ export default function UsersPage() {
       .catch((err) => toast.error(GetErrorMessage(err)));
   };
 
-  const { data: analytics, isFetching: isFetchingAnalytics } =
-    analyticApi.useAnalyticsQuery({});
+  const analyticsQuery = analyticApi.useAnalyticsQuery({});
+  const { data: analytics } = analyticsQuery;
+  const isFetchingAnalytics = waitsForData(analyticsQuery);
   const stats = analytics?.data?.userStats;
 
   return (

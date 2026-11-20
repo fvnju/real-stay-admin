@@ -14,10 +14,10 @@ import { Icon } from "@/components/icon";
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
 import { listingsApi } from "@/app/endpoints/properties/properties-api-slice";
 import { GetErrorMessage } from "@/app/utils/error-handler";
-import { sanitizeFilterQuery } from "@/app/utils/filter-helpers";
 import PropertiesGrid from "./components/PropertiesGrid";
 import { PropertiesTable } from "./components/PropertiesTable";
 import type { ManageListing } from "./components/listing-actions";
+import { LISTINGS_PAGE_SIZE, listingsArgs, waitsForData } from "@/lib/page-queries";
 
 const STATUSES = [
   { label: "All", value: "" },
@@ -27,22 +27,21 @@ const STATUSES = [
 
 export default function PropertiesPage() {
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(12);
+  const [pageSize, setPageSize] = useState(LISTINGS_PAGE_SIZE);
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"grid" | "list">("grid");
 
-  const { data: analytics, isFetching: isFetchingStats } = analyticApi.useAnalyticsQuery({});
+  const analyticsQuery = analyticApi.useAnalyticsQuery({});
+  const { data: analytics } = analyticsQuery;
+  const isFetchingStats = waitsForData(analyticsQuery);
   const stats = analytics?.data?.listingStats;
 
-  const { data, isFetching, refetch } = listingsApi.useGetListingsQuery({
-    params: {
-      status: sanitizeFilterQuery(status),
-      search: sanitizeFilterQuery(search),
-      page,
-      page_size: pageSize,
-    },
-  });
+  const listQuery = listingsApi.useGetListingsQuery(
+    listingsArgs({ page, pageSize, search, status }),
+  );
+  const { data, refetch } = listQuery;
+  const isFetching = waitsForData(listQuery);
 
   const [manageListing, { isLoading }] = listingsApi.useManageListingMutation();
   const manage: ManageListing = async ({ action, id }) => {

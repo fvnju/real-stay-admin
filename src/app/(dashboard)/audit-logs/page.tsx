@@ -4,17 +4,19 @@ import { Card } from "@heroui/react";
 import { useState } from "react";
 import { PageHeader, SearchInput, TablePagination } from "@/components/admin";
 import { auditLogApi } from "@/app/endpoints/auditlogs/audit-logs-api-slice";
-import { sanitizeFilterQuery } from "@/app/utils/filter-helpers";
 import { AuditLogTable } from "./components/AuditlogTable";
+import { auditLogsArgs, PAGE_SIZE, waitsForData } from "@/lib/page-queries";
 
 export default function AuditLogsPage() {
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE);
   const [search, setSearch] = useState("");
 
-  const { data, isFetching } = auditLogApi.useGetAuditlogsQuery({
-    params: { search: sanitizeFilterQuery(search), page, page_size: pageSize },
-  });
+  const listQuery = auditLogApi.useGetAuditlogsQuery(
+    auditLogsArgs({ page, pageSize, search }),
+  );
+  const { data } = listQuery;
+  const isFetching = waitsForData(listQuery);
 
   return (
     <div className="flex flex-col gap-6">

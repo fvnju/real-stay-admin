@@ -14,9 +14,9 @@ import {
 } from "@/components/admin";
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
 import { bookingsApi } from "@/app/endpoints/bookings/bookings-api-slice";
-import { sanitizeFilterQuery } from "@/app/utils/filter-helpers";
 import { BookingsTable } from "./components/BookingsTable";
 import { BookingStatusEnum } from "./interfaces/bookings.enum";
+import { bookingsArgs, PAGE_SIZE, waitsForData } from "@/lib/page-queries";
 
 const STATUSES = [
   { label: "All", value: "" },
@@ -25,21 +25,19 @@ const STATUSES = [
 
 export default function BookingsPage() {
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE);
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
 
-  const { data, isFetching } = bookingsApi.useGetBookingsQuery({
-    params: {
-      status: sanitizeFilterQuery(status),
-      search: sanitizeFilterQuery(search),
-      page,
-      page_size: pageSize,
-    },
-  });
+  const listQuery = bookingsApi.useGetBookingsQuery(
+    bookingsArgs({ page, pageSize, search, status }),
+  );
+  const { data } = listQuery;
+  const isFetching = waitsForData(listQuery);
 
-  const { data: analytics, isFetching: isFetchingAnalytics } =
-    analyticApi.useBookingsAnalyticsQuery({});
+  const analyticsQuery = analyticApi.useBookingsAnalyticsQuery({});
+  const { data: analytics } = analyticsQuery;
+  const isFetchingAnalytics = waitsForData(analyticsQuery);
   const stats = analytics?.data?.booking_stats;
 
   return (

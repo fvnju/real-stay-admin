@@ -45,6 +45,15 @@ Upstream keeps the access token and the refresh token in `localStorage`, so an X
 - A HeroUI dialog or drawer that opens from state (no trigger inside it): put `isOpen` on `Modal.Backdrop` / `Drawer.Backdrop`, without the `Modal` / `Drawer` root, which expects a trigger.
 - The frame of the dashboard is `src/components/dashboard/` (sidebar, header, account menu, mobile drawer, Cmd+K palette). The sign-in pages use `src/app/(auth)/components/`.
 
+## Fast navigation
+
+- The sidebar (`src/components/dashboard/nav-list.tsx`) loads each page in advance (`prefetch`), loads the data of a page when the pointer goes over its link (`prefetchPage`, `src/lib/page-queries.ts`), opens the page when the mouse button goes down, and marks the link as current at once (`useShownPath`).
+- `src/components/dashboard/instant-nav.ts`: `useGo()` opens a page and loads its data; use it for a move to a page of the menu. `useGoShortcuts()` (in the shell): "g" then the `shortcut` of a menu item (`src/lib/dashboardMenu.ts`) opens the page, for example "g u" Users. The command palette shows the keys.
+- `src/lib/page-queries.ts` builds the query arguments of the first view of each page (`usersArgs`, `PAGE_SIZE`, ...). The page and the prefetch must use the same function, else the prefetch fills a different cache entry. When you add a page to the menu, add its queries to `PREFETCH`.
+- Show skeletons with `waitsForData(query)`, not `isFetching`: data from the cache shows at once, and a reload in the background does not hide it.
+- RTK Query keeps data 5 minutes (`keepUnusedDataFor: 300`) and loads data older than 10 seconds again when a page opens (`storeConfigQuery.ts`). The router keeps a page 5 minutes (`staleTimes`, `next.config.mjs`).
+- In `next dev`, a page compiles on its first visit and Next.js does not prefetch. Measure the speed with `next build` and `next start`.
+
 ## The bell (Needs attention)
 
 - Admins get no push or in-app notifications. The bell of the header (`src/components/dashboard/attention-center.tsx`) shows the admin queues of the backend instead: open reports (`GET /v1/admin/reports?status=open`), papers to check (`/v1/admin/listing-verifications?status=submitted`), visits to do (`status=documents_approved`), verified listings to check again (`recheck=true`), and admin invites with no answer (`/analytics/admins`).

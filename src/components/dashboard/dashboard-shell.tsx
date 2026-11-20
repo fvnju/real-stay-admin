@@ -10,6 +10,7 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import DashboardCommandPalette from "@/ui/components/command-dashboard";
 import { AccountMenu } from "./account-menu";
 import { AttentionBell } from "./attention-center";
+import { useGoShortcuts } from "./instant-nav";
 import { NavList } from "./nav-list";
 
 /** The cookie that keeps the sidebar small between visits. */
@@ -54,6 +55,7 @@ export function DashboardShell({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [isMac, setIsMac] = useState(true);
+  useGoShortcuts();
 
   useEffect(() => {
     setIsMac(/Mac|iPhone|iPad/.test(navigator.platform));
