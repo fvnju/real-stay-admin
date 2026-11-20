@@ -11,6 +11,7 @@ import {
   statusLabel,
   TablePagination,
   toAmount,
+  totalItems,
 } from "@/components/admin";
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
 import { bookingsApi } from "@/app/endpoints/bookings/bookings-api-slice";
@@ -75,7 +76,7 @@ export default function BookingsPage() {
         </div>
         <BookingsTable isFetching={isFetching} bookings={data?.data?.bookings || []} />
         <TablePagination
-          total={data?.data?.pagination?.total_items || 0}
+          total={totalItems(data)}
           page={page}
           pageSize={pageSize}
           onPageChange={setPage}

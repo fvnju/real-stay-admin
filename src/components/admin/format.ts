@@ -56,3 +56,16 @@ export function nightsBetween(start?: string | null, end?: string | null) {
   if (!start || !end) return 0;
   return Math.max(0, dayjs.utc(end).startOf("day").diff(dayjs.utc(start).startOf("day"), "day"));
 }
+
+type PageInfo = { total_items?: number | null } | null | undefined;
+
+/**
+ * The number of items of a list response. The response interceptor of the
+ * backend moves `pagination` to the top of the body (`{ data, pagination }`);
+ * an older reply had it in `data`, so read both.
+ */
+export function totalItems(
+  res: { pagination?: PageInfo; data?: { pagination?: PageInfo } | null } | null | undefined,
+) {
+  return res?.pagination?.total_items ?? res?.data?.pagination?.total_items ?? 0;
+}

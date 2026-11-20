@@ -11,6 +11,7 @@ import {
   ReviewList,
   StatusChip,
   UserAvatar,
+  totalItems,
 } from "@/components/admin";
 import { Icon } from "@/components/icon";
 import { kycApi } from "@/app/endpoints/kyc/kyc-api-slice";
@@ -143,7 +144,7 @@ export default function UserDetailsPage() {
         <ReviewList
           title="Reviews of this host"
           reviews={reviewsRes?.data?.reviews ?? []}
-          total={reviewsRes?.data?.pagination?.total_items}
+          total={totalItems(reviewsRes)}
           isLoading={isFetchingReviews}
         />
       ) : null}

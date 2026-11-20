@@ -9,6 +9,7 @@ import {
   SegmentTabs,
   StatCards,
   TablePagination,
+  totalItems,
 } from "@/components/admin";
 import { Icon } from "@/components/icon";
 import { SegmentedControl } from "@/components/segmented-control";
@@ -112,7 +113,7 @@ export default function PropertiesPage() {
         )}
 
         <TablePagination
-          total={data?.data?.pagination?.total_items || 0}
+          total={totalItems(data)}
           page={page}
           pageSize={pageSize}
           onPageChange={setPage}

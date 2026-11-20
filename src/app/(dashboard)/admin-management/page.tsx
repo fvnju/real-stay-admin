@@ -11,6 +11,7 @@ import {
   SegmentTabs,
   StatCards,
   TablePagination,
+  totalItems,
 } from "@/components/admin";
 import { Icon } from "@/components/icon";
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
@@ -143,7 +144,7 @@ export default function AdminsPage() {
           <>
             <UserTable isFetching={isFetching} users={data?.data?.users || []} />
             <TablePagination
-              total={data?.data?.pagination?.total_items || 0}
+              total={totalItems(data)}
               page={page}
               pageSize={pageSize}
               onPageChange={setPage}

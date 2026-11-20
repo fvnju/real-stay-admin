@@ -10,6 +10,7 @@ import {
   SegmentTabs,
   StatCards,
   TablePagination,
+  totalItems,
 } from "@/components/admin";
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
@@ -111,7 +112,7 @@ export default function UsersPage() {
           manageUser={manageUser}
         />
         <TablePagination
-          total={data?.data?.pagination?.total_items || 0}
+          total={totalItems(data)}
           page={page}
           pageSize={pageSize}
           onPageChange={setPage}

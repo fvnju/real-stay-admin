@@ -2,7 +2,7 @@
 
 import { Card } from "@heroui/react";
 import { useState } from "react";
-import { PageHeader, SearchInput, TablePagination } from "@/components/admin";
+import { PageHeader, SearchInput, TablePagination, totalItems } from "@/components/admin";
 import { auditLogApi } from "@/app/endpoints/auditlogs/audit-logs-api-slice";
 import { AuditLogTable } from "./components/AuditlogTable";
 import { auditLogsArgs, PAGE_SIZE, waitsForData } from "@/lib/page-queries";
@@ -35,7 +35,7 @@ export default function AuditLogsPage() {
         />
         <AuditLogTable isFetching={isFetching} logs={data?.data?.logs || []} />
         <TablePagination
-          total={data?.data?.pagination?.total_items || 0}
+          total={totalItems(data)}
           page={page}
           pageSize={pageSize}
           onPageChange={setPage}

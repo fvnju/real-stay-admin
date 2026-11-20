@@ -2,7 +2,7 @@
 
 import { Button, Card, Input, Label, TextField } from "@heroui/react";
 import { useState } from "react";
-import { FilterMenu, PageHeader, SearchInput, TablePagination } from "@/components/admin";
+import { FilterMenu, PageHeader, SearchInput, TablePagination, totalItems } from "@/components/admin";
 import { transactionApi } from "@/app/endpoints/transactions/transactions-api-slice";
 import { TransactionTable } from "./components/TransactionsTable";
 import { PAGE_SIZE, transactionsArgs, waitsForData } from "@/lib/page-queries";
@@ -105,7 +105,7 @@ export default function TransactionsPage() {
 
         <TransactionTable isFetching={isFetching} transactions={data?.data?.transactions || []} />
         <TablePagination
-          total={data?.data?.pagination?.total_items || 0}
+          total={totalItems(data)}
           page={page}
           pageSize={pageSize}
           onPageChange={setPage}

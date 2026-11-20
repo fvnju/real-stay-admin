@@ -33,6 +33,7 @@ Upstream keeps the access token and the refresh token in `localStorage`, so an X
 - The proxy refuses a request that is not GET when the `Origin` header is not the origin of the panel.
 - The endpoints are RTK Query slices in `src/app/endpoints/*/*-api-slice.ts`. Their `url` is the backend path without a base URL (`url: "/users"`). The axios base URL is `/api/backend`.
 - Env: `NEXT_PUBLIC_BASE_URL` is the backend URL (`.env.example`).
+- The backend response interceptor puts `pagination` at the top of the body: `{ data, success, pagination }`, not in `data`. Read the total of a list with `totalItems(res)` (`@/components/admin`).
 
 ## UI, theme, and icons
 

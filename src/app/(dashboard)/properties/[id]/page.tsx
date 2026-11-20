@@ -12,6 +12,7 @@ import {
   PhotoGallery,
   ReviewList,
   StatusChip,
+  totalItems,
 } from "@/components/admin";
 import { Icon } from "@/components/icon";
 import { listingsApi } from "@/app/endpoints/properties/properties-api-slice";
@@ -110,7 +111,7 @@ export default function PropertyDetailsPage() {
 
       <ReviewList
         reviews={reviewsRes?.data?.reviews ?? []}
-        total={reviewsRes?.data?.pagination?.total_items}
+        total={totalItems(reviewsRes)}
         isLoading={isFetchingReviews}
       />
     </div>
