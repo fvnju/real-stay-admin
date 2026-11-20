@@ -1,12 +1,16 @@
 "use client";
 
 import { Card, Skeleton } from "@heroui/react";
-import type { ReactNode } from "react";
+import NumberFlow, { type Format } from "@number-flow/react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Icon, type IconName } from "@/components/icon";
 
 export type Stat = {
   label: string;
+  /** A number animates with NumberFlow. Other values show as they are. */
   value: ReactNode;
+  /** The format of a number value, for example `NAIRA_FORMAT`. */
+  format?: Format;
   icon: IconName;
 };
 
@@ -32,11 +36,25 @@ export function StatCards({
             <Skeleton className="h-8 w-24 rounded-md" />
           ) : (
             <p className="text-2xl font-semibold tabular-nums tracking-tight">
-              {typeof item.value === "number" ? item.value.toLocaleString() : (item.value ?? "–")}
+              {typeof item.value === "number" ? (
+                <StatNumber value={item.value} format={item.format} />
+              ) : (
+                (item.value ?? "–")
+              )}
             </p>
           )}
         </Card>
       ))}
     </div>
   );
+}
+
+/**
+ * NumberFlow does not animate its first value, so the number starts at 0 and
+ * rolls to the value after the card shows. A later change rolls from the old value.
+ */
+function StatNumber({ value, format }: { value: number; format?: Format }) {
+  const [shown, setShown] = useState(0);
+  useEffect(() => setShown(value), [value]);
+  return <NumberFlow value={shown} format={format} locales="en-NG" />;
 }

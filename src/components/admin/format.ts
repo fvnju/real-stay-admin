@@ -14,12 +14,17 @@ export function formatDateTime(value?: string | Date | null) {
 }
 
 /** Naira, "₦12,500.00". */
-export function formatNaira(value?: number | string | null) {
+/** The format of an amount in naira, for `formatNaira` and the stat cards. */
+export const NAIRA_FORMAT = { style: "currency", currency: "NGN" } as const;
+
+/** A number from the backend (a number or a string), or 0. */
+export function toAmount(value?: number | string | null) {
   const n = Number(value ?? 0);
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-  }).format(Number.isFinite(n) ? n : 0);
+  return Number.isFinite(n) ? n : 0;
+}
+
+export function formatNaira(value?: number | string | null) {
+  return new Intl.NumberFormat("en-NG", NAIRA_FORMAT).format(toAmount(value));
 }
 
 export function fullName(user?: { first_name?: string; last_name?: string } | null) {

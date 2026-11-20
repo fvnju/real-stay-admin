@@ -3,13 +3,14 @@
 import { Card } from "@heroui/react";
 import { useState } from "react";
 import {
-  formatNaira,
+  NAIRA_FORMAT,
   PageHeader,
   SearchInput,
   SegmentTabs,
   StatCards,
   statusLabel,
   TablePagination,
+  toAmount,
 } from "@/components/admin";
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
 import { bookingsApi } from "@/app/endpoints/bookings/bookings-api-slice";
@@ -49,8 +50,8 @@ export default function BookingsPage() {
         isLoading={isFetchingAnalytics}
         items={[
           { label: "Bookings", value: stats?.total_booking_count ?? 0, icon: "calendar" },
-          { label: "Gross booking value", value: formatNaira(stats?.total_gtv), icon: "cash-in-outline" },
-          { label: "RealStay margin", value: formatNaira(stats?.total_margin), icon: "trending-up-outline" },
+          { label: "Gross booking value", value: toAmount(stats?.total_gtv), format: NAIRA_FORMAT, icon: "cash-in-outline" },
+          { label: "RealStay margin", value: toAmount(stats?.total_margin), format: NAIRA_FORMAT, icon: "trending-up-outline" },
         ]}
       />
 

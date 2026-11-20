@@ -3,7 +3,7 @@
 import { Card, Input, Label, ListBox, Select, TextField } from "@heroui/react";
 import dayjs from "dayjs";
 import { useState } from "react";
-import { formatNaira, PageHeader, SegmentTabs, StatCards } from "@/components/admin";
+import { NAIRA_FORMAT, PageHeader, SegmentTabs, StatCards, toAmount } from "@/components/admin";
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
 import { getStatsArray } from "@/app/utils/chart-helper";
 import StatsLineChart from "./components/Chart";
@@ -87,8 +87,8 @@ export default function DashboardPage() {
           isLoading={isFetchingBookings}
           items={[
             { label: "Bookings", value: bookings?.total_booking_count ?? 0, icon: "calendar" },
-            { label: "Gross booking value", value: formatNaira(bookings?.total_gtv), icon: "cash-in-outline" },
-            { label: "RealStay margin", value: formatNaira(bookings?.total_margin), icon: "trending-up-outline" },
+            { label: "Gross booking value", value: toAmount(bookings?.total_gtv), format: NAIRA_FORMAT, icon: "cash-in-outline" },
+            { label: "RealStay margin", value: toAmount(bookings?.total_margin), format: NAIRA_FORMAT, icon: "trending-up-outline" },
           ]}
         />
       </Section>
