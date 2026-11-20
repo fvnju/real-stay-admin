@@ -15,11 +15,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
+  // The backend refuses unknown fields (forbidNonWhitelisted), so do not
+  // send `confirm_password` of the form.
+  const { email, token, password } = (body ?? {}) as Record<string, unknown>;
+
   const { data: resp, error: respError } = await safeReturn(
     fetch(`${BASE_URL}/auth/accept-invite`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ email, token, password }),
       cache: "no-store",
     })
   );
