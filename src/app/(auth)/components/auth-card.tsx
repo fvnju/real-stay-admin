@@ -35,7 +35,7 @@ export function AuthCard({
           />
           <span className="text-sm font-semibold">RealStay Admin</span>
         </div>
-        <ThemeSwitcher />
+        <ThemeSwitcher surface="background" />
       </header>
 
       <main className="flex flex-1 items-center justify-center px-4 py-8">
