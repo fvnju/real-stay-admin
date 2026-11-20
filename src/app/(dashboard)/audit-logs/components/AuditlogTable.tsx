@@ -1,130 +1,48 @@
 "use client";
-import {
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Tooltip,
-  Typography,
-} from "@mui/material";
 
+import { Chip } from "@heroui/react";
 import { useRouter } from "next/navigation";
+import type { FC } from "react";
+import { AdminTable, formatDateTime, fullName, statusLabel, type Column } from "@/components/admin";
+import type { AuditLog } from "@/app/endpoints/auditlogs/audit-logs-types";
 
-import { EmptyTableRows } from "@/app/components/table-utilities/EmptyTable";
-import { TableRowSkeletonLoader } from "@/app/components/table-utilities/TableRowSkeletonLoader";
+const COLUMNS: Column[] = [
+  { key: "time", label: "Time" },
+  { key: "action", label: "Action", isRowHeader: true },
+  { key: "description", label: "Description" },
+  { key: "by", label: "Done by" },
+];
 
-import { AuditLog } from "@/app/endpoints/auditlogs/audit-logs-types";
-import dayjs from "dayjs";
-import { FC } from "react";
-
-export const AuditLogTable: FC<{ users: AuditLog[]; isFetching: boolean }> = ({
-  users,
+export const AuditLogTable: FC<{ logs: AuditLog[]; isFetching: boolean }> = ({
+  logs,
   isFetching,
 }) => {
-  const tableHeaders = [, "Timestamp", "Action", "Description", "Actioned By"];
-
   const router = useRouter();
-
   return (
-    <TableContainer sx={{}}>
-      <Table sx={{ minWidth: 650, mb: 3 }}>
-        <TableHead
-          sx={{ backgroundColor: "primary.dark", color: "primary.light" }}
-        >
-          <TableRow>
-            {tableHeaders.map((header, index) => {
-              return (
-                <TableCell key={index} sx={{}}>
-                  <Typography variant="body2" fontWeight={500}>
-                    {" "}
-                    {header}
-                  </Typography>
-                </TableCell>
-              );
-            })}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {isFetching ? (
-            <TableRowSkeletonLoader
-              noOfColumns={tableHeaders.length}
-              noOfRows={8}
-            />
-          ) : (
-            users?.map((u, indx) => {
-              return (
-                <TableRow key={indx}>
-                  {" "}
-                  <TableCell align="left">
-                    <Typography variant="body2" sx={{ textWrap: "nowrap" }}>
-                      {dayjs(u?.createdAt).format("DD,MMM YYYY - hh:mm A")}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {u.action}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {u.description}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="left">
-                    <Stack
-                      alignItems={"center"}
-                      display={"flex"}
-                      direction={"row"}
-                      spacing={1}
-                    >
-                      <Stack>
-                        <Tooltip
-                          title={u.first_name + " " + u?.last_name}
-                          arrow
-                        >
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {u.first_name + " " + u?.last_name}
-                          </Typography>
-                        </Tooltip>
-                      </Stack>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              );
-            })
-          )}
-          {!isFetching && !users?.length && (
-            <EmptyTableRows
-              noOfColumns={tableHeaders.length}
-              text="No user to display..."
-            />
-          )}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <AdminTable
+      label="Audit logs"
+      columns={COLUMNS}
+      items={logs}
+      getKey={(log) => log._id}
+      isLoading={isFetching}
+      emptyText="No audit logs match."
+      onRowAction={(log) => log.user_id && router.push(`/admin-management/${log.user_id}`)}
+      renderCell={(log, key) => {
+        switch (key) {
+          case "time":
+            return <span className="whitespace-nowrap tabular-nums">{formatDateTime(log.createdAt)}</span>;
+          case "action":
+            return (
+              <Chip size="sm" variant="soft">
+                {statusLabel(log.action ?? "")}
+              </Chip>
+            );
+          case "description":
+            return <span className="line-clamp-2 max-w-md">{log.description || "–"}</span>;
+          case "by":
+            return fullName(log);
+        }
+      }}
+    />
   );
 };

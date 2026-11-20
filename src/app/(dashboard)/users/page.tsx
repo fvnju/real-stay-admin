@@ -1,64 +1,49 @@
 "use client";
-import { PaginationComponent } from "@/app/components/pagination";
 
-import { ContextMenu } from "@/app/components/ContextMenu";
-import { PageHeading } from "@/app/components/pageHeading";
-import { userApi } from "@/app/endpoints/user/user-api-slice";
-import { theme } from "@/app/lib/theme";
-import { sanitizeFilterQuery } from "@/app/utils/filter-helpers";
-import {
-  Button,
-  Card,
-  debounce,
-  Grid2,
-  Menu,
-  MenuItem,
-  Skeleton,
-  Stack,
-  Tab,
-  Tabs,
-  TextField,
-  Typography,
-} from "@mui/material";
-import { Fragment, useMemo, useState } from "react";
-import { UserTable } from "./components/UserTable";
-import { Icon } from "@iconify/react/dist/iconify.js";
-import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
+import { Card } from "@heroui/react";
+import { useState } from "react";
 import { toast } from "react-toastify";
+import {
+  FilterMenu,
+  PageHeader,
+  SearchInput,
+  SegmentTabs,
+  StatCards,
+  TablePagination,
+} from "@/components/admin";
+import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
+import { userApi } from "@/app/endpoints/user/user-api-slice";
 import { GetErrorMessage } from "@/app/utils/error-handler";
+import { sanitizeFilterQuery } from "@/app/utils/filter-helpers";
+import { UserTable } from "./components/UserTable";
 
-export default function DashboardPage() {
+const USER_TYPES = [
+  { label: "All", value: "" },
+  { label: "Guests", value: "guest" },
+  { label: "Hosts", value: "host" },
+];
+
+const STATUSES = [
+  { label: "All", value: "" },
+  { label: "Pending", value: "pending" },
+  { label: "Active", value: "active" },
+  { label: "Inactive", value: "inactive" },
+];
+
+export default function UsersPage() {
   const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-
-  const [searchParams, setSearchParams] = useState<{
-    user_type: undefined | string;
-    status: undefined | string;
-    search: undefined | string;
-  }>({
-    user_type: undefined,
-    status: undefined,
-    search: undefined,
-  });
-
-  const userTypes = [
-    { lebel: "All", value: "" },
-    { lebel: "Guests", value: "guest" },
-    { lebel: "Hosts", value: "host" },
-  ];
-
-  const statuses = [
-    { lebel: "All", value: "" },
-    { lebel: "Pending", value: "pending" },
-    { lebel: "Active", value: "active" },
-    { lebel: "Inactive", value: "inactive" },
-  ];
+  const [pageSize, setPageSize] = useState(10);
+  const [userType, setUserType] = useState("");
+  const [status, setStatus] = useState("");
+  const [search, setSearch] = useState("");
 
   const { data, isFetching, refetch } = userApi.useGetUsersQuery({
     params: {
-      ...searchParams,
+      user_type: sanitizeFilterQuery(userType),
+      status: sanitizeFilterQuery(status),
+      search: sanitizeFilterQuery(search),
       page,
-      page_size: rowsPerPage,
+      page_size: pageSize,
     },
   });
 
@@ -68,237 +53,74 @@ export default function DashboardPage() {
     await manageUserMutation({ path: { id, action } })
       .unwrap()
       .then(() => {
-        toast.success(`user has been ${action}d`);
+        toast.success(action === "activate" ? "User activated." : "User deactivated.");
         refetch();
       })
-      .catch((err) => {
-        toast.error(GetErrorMessage(err));
-      });
+      .catch((err) => toast.error(GetErrorMessage(err)));
   };
-
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-  const handleClickAway = () => {
-    setAnchorEl(null);
-  };
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    event.stopPropagation();
-    setAnchorEl(anchorEl ? null : event.currentTarget);
-  };
-
-  const debounceSearch = useMemo(
-    () =>
-      debounce((val: string) => {
-        setSearchParams((prev) => ({
-          ...prev,
-          search: sanitizeFilterQuery(val),
-        }));
-        setPage(1);
-      }, 1000),
-    [setSearchParams] // only depend on stable setter
-  );
 
   const { data: analytics, isFetching: isFetchingAnalytics } =
     analyticApi.useAnalyticsQuery({});
-  const userAnalytics = [
-    {
-      title: "Total users",
-      value: analytics?.data?.userStats?.total_users,
-      icon: "hugeicons:user-multiple",
-    },
-    {
-      title: "Active users",
-      value: analytics?.data?.userStats?.active_users,
-      icon: "hugeicons:user-check-02",
-    },
-    {
-      title: "Inactive users",
-      value: analytics?.data?.userStats?.inactive_users,
-      icon: "hugeicons:user-block-02",
-    },
-  ];
+  const stats = analytics?.data?.userStats;
 
   return (
-    <Stack>
-      <PageHeading
-        showBackButton={false}
-        title="User"
-        decription="Manage guests, hosts, and user accounts"
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Users" description="Guests and hosts of RealStay." />
+
+      <StatCards
+        isLoading={isFetchingAnalytics}
+        items={[
+          { label: "Total users", value: stats?.total_users, icon: "people" },
+          { label: "Active users", value: stats?.active_users, icon: "checkmark-circle-outline" },
+          { label: "Inactive users", value: stats?.inactive_users, icon: "close-circle" },
+        ]}
       />
 
-      <Grid2 container spacing={1.5} sx={{ mt: 2 }}>
-        {userAnalytics?.map((d) => (
-          <Grid2 size={{ xs: 12, md: 4 }} key={d.title}>
-            <Card
-              sx={{
-                p: 2,
-              }}
-            >
-              <Stack
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  gap: 1,
-                  alignItems: "center",
-                  mb: 1.5,
-                }}
-              >
-                <Typography className="text-foreground w-fit" variant="body2">
-                  {isFetchingAnalytics ? <Skeleton variant="text" /> : d?.title}{" "}
-                </Typography>
-                <Icon
-                  icon={d?.icon}
-                  height="15"
-                  color={theme.vars.palette.secondary.light}
-                />
-              </Stack>
-
-              <Typography className="text-foreground" variant="h4" sx={{}}>
-                {isFetchingAnalytics ? (
-                  <Skeleton
-                    variant="text"
-                    sx={{
-                      backgroundColor: "secondary.light",
-                      maxWidth: "100px",
-                    }}
-                  />
-                ) : (
-                  d?.value
-                )}
-              </Typography>
-            </Card>
-          </Grid2>
-        ))}
-      </Grid2>
-      <Tabs
-        value={searchParams?.user_type || ""}
-        onChange={(_, val) =>
-          setSearchParams({
-            ...searchParams,
-            user_type: sanitizeFilterQuery(val),
-          })
-        }
-        sx={{ mt: 2 }}
-      >
-        {userTypes.map((t, i) => (
-          <Tab label={t.lebel} value={t.value} key={i} />
-        ))}
-      </Tabs>
-
-      <Stack sx={{ mt: 6 }}>
-        {" "}
-        <Stack
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            flexDirection: "row",
-            justifyContent: "space-between",
-          }}
-        >
-          <TextField
-            onChange={(e) => debounceSearch(e?.target?.value)}
-            placeholder="search name, email, phone number ..."
-            size="small"
-            color="secondary"
-            margin="none"
-            fullWidth
-            sx={{
-              borderRadius: "60px",
-              p: 0,
-              m: 0,
-              width: "40%",
-            }}
-            InputProps={{
-              inputProps: { borderRadius: "20px" },
-              startAdornment: (
-                <Icon
-                  icon="hugeicons:search-01"
-                  width="18"
-                  height="18"
-                  color={theme.vars.palette.secondary.light}
-                />
-              ),
+      <Card className="gap-4 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <SegmentTabs
+            label="User type"
+            segments={USER_TYPES}
+            value={userType}
+            onChange={(v) => {
+              setUserType(v);
+              setPage(1);
             }}
           />
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+            <SearchInput
+              placeholder="Search name, email, phone"
+              className="w-full sm:w-72"
+              onSearch={(v) => {
+                setSearch(v);
+                setPage(1);
+              }}
+            />
+            <FilterMenu
+              label="Status"
+              options={STATUSES}
+              value={status}
+              onChange={(v) => {
+                setStatus(v);
+                setPage(1);
+              }}
+            />
+          </div>
+        </div>
 
-          <Button
-            id="filter-by-status-btn"
-            aria-controls={open ? "filter-by-status" : undefined}
-            aria-haspopup="true"
-            aria-expanded={open ? "true" : undefined}
-            color="secondary"
-            sx={{
-              // borderRadius: 0,
-              "&:hover": {
-                bgcolor: theme.vars.palette.secondary.main,
-                color: theme.vars.palette.secondary.contrastText,
-              },
-            }}
-            size="small"
-            onClick={handleClick}
-            startIcon={<Icon icon="mi:filter" width="18" height="18" />}
-            variant="outlined"
-          >
-            filter by status
-          </Button>
-          <Menu
-            sx={{ width: "200px" }}
-            id="filter-by-status"
-            anchorEl={anchorEl}
-            anchorOrigin={{
-              vertical: "bottom", // where menu is attached relative to button
-              horizontal: "left",
-            }}
-            open={open}
-            onClose={() => {
-              handleClickAway();
-            }}
-            slotProps={{
-              list: {
-                "aria-labelledby": "filter-by-status-btn",
-              },
-            }}
-          >
-            {statuses?.map((s, key) => (
-              <MenuItem
-                sx={{ width: "130px" }}
-                key={key}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClickAway();
-                  setSearchParams({
-                    ...searchParams,
-                    status: sanitizeFilterQuery(s.value),
-                  });
-                }}
-              >
-                <Typography variant="body2"> {s?.lebel}</Typography>
-              </MenuItem>
-            ))}
-          </Menu>
-        </Stack>
-      </Stack>
-
-      <Card
-        sx={{
-          mt: 2,
-        }}
-      >
         <UserTable
           isFetching={isFetching || isLoading}
           users={data?.data?.users || []}
           manageUser={manageUser}
         />
-        <Stack sx={{ p: 2 }}>
-          <PaginationComponent
-            total={data?.data?.pagination?.total_items || 0}
-            rowsPerPage={rowsPerPage}
-            handlePageChange={(val) => setPage(val)}
-            handleRowChange={(val) => setRowsPerPage(val)}
-            pageNumber={page}
-          />
-        </Stack>
+        <TablePagination
+          total={data?.data?.pagination?.total_items || 0}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
       </Card>
-    </Stack>
+    </div>
   );
 }

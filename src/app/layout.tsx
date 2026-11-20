@@ -9,7 +9,6 @@ import { Inter } from "next/font/google";
 import { ViewTransitions } from "next-view-transitions";
 import { ReduxProvider } from "./providers/redux-provider";
 import { AppThemeProvider } from "./providers/theme-provider";
-import { MuiDateProvider } from "./providers/mui-date-provider";
 
 // Setup dayjs plugins
 dayjs.extend(relativeTime);
@@ -35,13 +34,16 @@ export default function RootLayout({
 }>) {
   return (
     // next-themes sets the `light` or `dark` class before React loads.
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={inter.variable}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <body>
         <ReduxProvider>
           <AppThemeProvider>
-            <MuiDateProvider>
-              <ViewTransitions>{children}</ViewTransitions>
-            </MuiDateProvider>
+            <ViewTransitions>{children}</ViewTransitions>
           </AppThemeProvider>
         </ReduxProvider>
       </body>

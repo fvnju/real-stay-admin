@@ -1,20 +1,19 @@
-import * as React from "react";
+"use client";
+
 import {
-  Modal,
-  Card,
-  CardContent,
-  Typography,
-  TextField,
   Button,
-  Stack,
-  Box,
-  Divider,
-  MenuItem,
-} from "@mui/material";
+  FieldError,
+  Form,
+  Input,
+  Label,
+  ListBox,
+  Modal,
+  Select,
+  Spinner,
+  TextField,
+} from "@heroui/react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { getFormikTextFieldProps } from "@/app/utils/formik-helpers";
-import { Button as LoadingButton } from "@mui/material";
 import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
 
 export interface InviteAdminFormValues {
@@ -25,164 +24,149 @@ export interface InviteAdminFormValues {
   role_id: string;
 }
 
-interface InviteAdminModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: (values: InviteAdminFormValues) => void;
-  isLoading?: boolean;
-}
-
 const validationSchema = Yup.object({
-  email: Yup.string().email("Invalid email").required("Email is required"),
-  first_name: Yup.string().required("First name is required"),
-  last_name: Yup.string().required("Last name is required"),
+  email: Yup.string().email("Enter a valid email.").required("Enter an email."),
+  first_name: Yup.string().trim().required("Enter a first name."),
+  last_name: Yup.string().trim().required("Enter a last name."),
   phone_number: Yup.string()
-    .min(11, "Minimum 10 digits")
-    .max(15, "Maximum 15 digits")
-    .required("Phone number is required"),
-  role_id: Yup.string().required("Role is required"),
+    .min(11, "Use 11 to 15 digits.")
+    .max(15, "Use 11 to 15 digits.")
+    .required("Enter a phone number."),
+  role_id: Yup.string().required("Choose a role."),
 });
 
-export const InviteAdminModal: React.FC<InviteAdminModalProps> = ({
+const FIELDS: {
+  name: Exclude<keyof InviteAdminFormValues, "role_id">;
+  label: string;
+  type?: string;
+  autoComplete: string;
+}[] = [
+  { name: "first_name", label: "First name", autoComplete: "off" },
+  { name: "last_name", label: "Last name", autoComplete: "off" },
+  { name: "email", label: "Email", type: "email", autoComplete: "off" },
+  { name: "phone_number", label: "Phone number", type: "tel", autoComplete: "off" },
+];
+
+/** A dialog that sends an admin invite by email. */
+export function InviteAdminModal({
   open,
   onClose,
   onSubmit,
   isLoading,
-}) => {
+}: {
+  open: boolean;
+  onClose: () => void;
+  /** Resolves after the invite is sent; the form then clears. */
+  onSubmit: (values: InviteAdminFormValues) => Promise<boolean>;
+  isLoading?: boolean;
+}) {
   // The backend refuses an invite without a role.
-  const { data: rolesData, isFetching: rolesLoading } =
-    rbacApi.useGetRolesQuery({ params: { limit: 100 } }, { skip: !open });
+  const { data: rolesData, isFetching: rolesLoading } = rbacApi.useGetRolesQuery(
+    { params: { limit: 100 } },
+    { skip: !open },
+  );
   const roles = rolesData?.data?.roles ?? [];
 
   const formik = useFormik<InviteAdminFormValues>({
-    initialValues: {
-      email: "",
-      first_name: "",
-      last_name: "",
-      phone_number: "",
-      role_id: "",
-    },
+    initialValues: { email: "", first_name: "", last_name: "", phone_number: "", role_id: "" },
     validationSchema,
-    onSubmit: (values) => {
-      onSubmit(values);
-    //   onClose();
+    onSubmit: async (values, helpers) => {
+      if (await onSubmit(values)) helpers.resetForm();
     },
   });
 
+  const errorOf = (name: keyof InviteAdminFormValues) =>
+    formik.touched[name] ? formik.errors[name] : undefined;
+
   return (
-    <Modal open={open} onClose={onClose}>
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          px: 2,
-        }}
-      >
-        <Card sx={{ width: 420 }}>
-          <CardContent>
-            <Typography
-              variant="subtitle1"
-              fontWeight={600}
-              color="secondary"
-              gutterBottom
-              sx={{ mb: 6 }}
-            >
-              Invite Admin
-            </Typography>
-            <Divider />
-
-            <form onSubmit={formik.handleSubmit}>
-              <Stack spacing={4}>
+    <Modal.Backdrop
+      isOpen={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
+    >
+      <Modal.Container size="md">
+        <Modal.Dialog>
+          <Modal.CloseTrigger />
+          <Modal.Header className="pb-2">
+            <Modal.Heading>Invite an admin</Modal.Heading>
+            <p className="text-sm text-muted">
+              They get an email with a link to set a password.
+            </p>
+          </Modal.Header>
+          <Form
+            validationBehavior="aria"
+            onSubmit={(e) => {
+              e.preventDefault();
+              formik.handleSubmit();
+            }}
+          >
+            <Modal.Body className="grid grid-cols-1 gap-4 smallPhone:grid-cols-2">
+              {FIELDS.map((field) => (
                 <TextField
-                  variant="outlined"
-                  label="Email"
-                  size="medium"
-                  color="secondary"
-                  placeholder="enter email"
-                  value={formik.values.email}
-                  {...getFormikTextFieldProps(formik, "email")}
-                />
-
-                <TextField
-                  variant="outlined"
-                  label="First Name"
-                  size="medium"
-                  color="secondary"
-                  placeholder="enter first name"
-                  value={formik.values.first_name}
-                  {...getFormikTextFieldProps(formik, "first_name")}
-                />
-
-                <TextField
-                  variant="outlined"
-                  label="Last Name"
-                  size="medium"
-                  color="secondary"
-                  placeholder="enter last name"
-                  value={formik.values.last_name}
-                  {...getFormikTextFieldProps(formik, "last_name")}
-                />
-
-                <TextField
-                  variant="outlined"
-                  label="Phone Number"
-                  size="medium"
-                  color="secondary"
-                  placeholder="enter phone number"
-                  value={formik.values.phone_number}
-                  {...getFormikTextFieldProps(formik, "phone_number")}
-                />
-
-                <TextField
-                  select
-                  variant="outlined"
-                  label="Role"
-                  size="medium"
-                  color="secondary"
-                  value={formik.values.role_id}
-                  {...getFormikTextFieldProps(formik, "role_id")}
-                  helperText={
-                    (formik.touched.role_id && formik.errors.role_id) ||
-                    (!rolesLoading && roles.length === 0
-                      ? "No roles found. Make a role first (POST /rbac)."
-                      : undefined)
-                  }
+                  key={field.name}
+                  name={field.name}
+                  type={field.type ?? "text"}
+                  value={formik.values[field.name]}
+                  onChange={(v) => formik.setFieldValue(field.name, v)}
+                  onBlur={() => formik.setFieldTouched(field.name)}
+                  isInvalid={!!errorOf(field.name)}
+                  fullWidth
+                  className={field.name === "email" ? "smallPhone:col-span-2" : undefined}
                 >
-                  {roles.map((role) => (
-                    <MenuItem key={role._id} value={role._id}>
-                      {role.name}
-                    </MenuItem>
-                  ))}
+                  <Label>{field.label}</Label>
+                  <Input autoComplete={field.autoComplete} />
+                  <FieldError>{errorOf(field.name)}</FieldError>
                 </TextField>
-
-                <Stack direction="row" spacing={1} pt={1}>
-                  <LoadingButton
-                    loading={isLoading}
-                    type="submit"
-                    variant="contained"
-                    color="secondary"
-                    fullWidth
-                    disabled={!formik.isValid }
-                  >
-                    Send Invite
-                  </LoadingButton>
-
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    fullWidth
-                    onClick={onClose}
-                  >
-                    Cancel
-                  </Button>
-                </Stack>
-              </Stack>
-            </form>
-          </CardContent>
-        </Card>
-      </Box>
-    </Modal>
+              ))}
+              <Select
+                className="smallPhone:col-span-2"
+                placeholder={rolesLoading ? "Loading roles" : "Choose a role"}
+                selectedKey={formik.values.role_id || null}
+                onSelectionChange={(key) => formik.setFieldValue("role_id", key ? String(key) : "")}
+                onBlur={() => formik.setFieldTouched("role_id")}
+                isInvalid={!!errorOf("role_id")}
+                isDisabled={rolesLoading}
+                fullWidth
+              >
+                <Label>Role</Label>
+                <Select.Trigger>
+                  <Select.Value />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <FieldError>{errorOf("role_id")}</FieldError>
+                <Select.Popover>
+                  <ListBox>
+                    {roles.map((role) => (
+                      <ListBox.Item key={role._id} id={role._id} textValue={role.name}>
+                        <div className="flex flex-col">
+                          <span>{role.name}</span>
+                          {role.description ? (
+                            <span className="text-xs text-muted">{role.description}</span>
+                          ) : null}
+                        </div>
+                      </ListBox.Item>
+                    ))}
+                  </ListBox>
+                </Select.Popover>
+              </Select>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="tertiary" onPress={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" variant="primary" isPending={isLoading}>
+                {({ isPending }) => (
+                  <>
+                    {isPending ? <Spinner color="current" size="sm" /> : null}
+                    {isPending ? "Sending invite" : "Send invite"}
+                  </>
+                )}
+              </Button>
+            </Modal.Footer>
+          </Form>
+        </Modal.Dialog>
+      </Modal.Container>
+    </Modal.Backdrop>
   );
-};
+}

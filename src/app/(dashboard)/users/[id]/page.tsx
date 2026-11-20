@@ -1,42 +1,23 @@
 "use client";
 
+import { Avatar, Button, Card, Skeleton } from "@heroui/react";
 import { useParams } from "next/navigation";
-
-import { LabelAndValue } from "@/app/components/LabelValue";
-import { PageHeading } from "@/app/components/pageHeading";
-import StatusPill from "@/app/components/statusPill";
-import { userApi } from "@/app/endpoints/user/user-api-slice";
-import { theme } from "@/app/lib/theme";
-import {
-  capitalizeFirstLetter,
-  trucateString,
-} from "@/app/utils/string-helper";
-import { Icon } from "@iconify/react/dist/iconify.js";
-import { Button as LoadingButton } from "@mui/material";
-import {
-  alpha,
-  Avatar,
-  Button,
-  Card,
-  Divider,
-  Grid2,
-  IconButton,
-  Menu,
-  MenuItem,
-  Rating,
-  Skeleton,
-  Stack,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import dayjs from "dayjs";
-import { useState } from "react";
-import { UserActionEnum, UserStatusEnum } from "../interfaces/users.types";
 import { toast } from "react-toastify";
-import { GetErrorMessage } from "@/app/utils/error-handler";
+import {
+  DetailSection,
+  formatDate,
+  fullName,
+  initialsOf,
+  PageHeader,
+  ReviewList,
+  StatusChip,
+} from "@/components/admin";
+import { Icon } from "@/components/icon";
 import { kycApi } from "@/app/endpoints/kyc/kyc-api-slice";
 import { reviewsApi } from "@/app/endpoints/reviews/reviews-api-slice";
-import { NoData } from "@/app/components/table-utilities/EmptyTable";
+import { userApi } from "@/app/endpoints/user/user-api-slice";
+import { GetErrorMessage } from "@/app/utils/error-handler";
+import { UserActionEnum, UserStatusEnum } from "../interfaces/users.types";
 
 export default function UserDetailsPage() {
   // Next 15 gives `params` to a page as a Promise; a client page reads them here.
@@ -44,421 +25,131 @@ export default function UserDetailsPage() {
   const { data, isFetching, refetch } = userApi.useGetUserQuery({
     path: { id: params.id },
   });
+  const user = data?.data?.user;
+  const userId = user?._id || user?.id;
 
-  const { data: kycDataRes, isFetching: isFetchingKyc } =
-    kycApi.useGetUserKycQuery({
-      path: { id: params.id },
-    });
+  const { data: kycRes, isFetching: isFetchingKyc } = kycApi.useGetUserKycQuery({
+    path: { id: params.id },
+  });
+  const kyc = kycRes?.data;
 
-  const ownerData = [
-    {
-      label: "ID",
-      value: trucateString(data?.data?.user?._id!, 9),
-      canCopy: true,
-    },
-    { label: "First Name", value: data?.data?.user?.first_name },
-    { label: "Last Name", value: data?.data?.user?.last_name },
-    { label: "Email", value: data?.data?.user?.email, canCopy: true },
-    {
-      label: "Phone Number",
-      value: data?.data?.user?.phone_number,
-      canCopy: true,
-    },
-    { label: "Gender", value: data?.data?.user?.gender },
-    {
-      label: "Joined At",
-      value: dayjs(data?.data?.user?.createdAt).format("DD MMM, YYYY"),
-    },
-  ];
-
-  const kycData = [
-    { label: "Id No.", value: kycDataRes?.data?.id_number, canCopy: true },
-    { label: "Id Type.", value: kycDataRes?.data?.id_type?.toUpperCase() },
-    { label: "Provider", value: kycDataRes?.data?.provider },
-    {
-      label: "Date of Birth",
-      value: dayjs(kycDataRes?.data?.identity_data?.date_of_birth).format(
-        "DD MMM, YYYY"
-      ),
-    },
-    {
-      label: "Selfie Match",
-      value: kycDataRes?.data?.identity_data?.selfie_verification?.match
-        ? "Yes"
-        : "No",
-    },
-    {
-      label: "Confidence Level",
-      value:
-        Number(
-          kycDataRes?.data?.identity_data?.selfie_verification
-            ?.confidence_value || 0
-        ).toFixed(2) + "%",
-    },
-  ];
-
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-  const handleClickAway = () => {
-    setAnchorEl(null);
-  };
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    event.stopPropagation();
-    setAnchorEl(anchorEl ? null : event.currentTarget);
-  };
-
-  const [manageUserMutation, { isLoading }] = userApi.useManageUsersMutation();
-  const manageUser = async ({ action, id }: { action: string; id: string }) => {
-    await manageUserMutation({ path: { id, action } })
-      .unwrap()
-      .then(() => {
-        toast.success(`user has been ${action}d`);
-        refetch();
-      })
-      .catch((err) => {
-        toast.error(GetErrorMessage(err));
-      });
-  };
-
-  const { data: reviewsResp, isFetching: isFetchingReviews } =
+  const { data: reviewsRes, isFetching: isFetchingReviews } =
     reviewsApi.useGetReviewsQuery(
-      {
-        params: {
-          property_owner_id: data?.data?.user?.id || data?.data?.user?._id,
-        },
-      },
-      { skip: (data?.data?.user?._id || data?.data?.user?.id) === undefined }
+      { params: { property_owner_id: userId } },
+      { skip: !userId },
     );
 
+  const [manageUserMutation, { isLoading: isChanging }] =
+    userApi.useManageUsersMutation();
+  const active = user?.status === UserStatusEnum.ACTIVE;
+
+  const toggleStatus = async () => {
+    if (!userId) return;
+    const action = active ? UserActionEnum.DEACTIVATE : UserActionEnum.ACTIVATE;
+    await manageUserMutation({ path: { id: userId, action } })
+      .unwrap()
+      .then(() => {
+        toast.success(active ? "User deactivated." : "User activated.");
+        refetch();
+      })
+      .catch((err) => toast.error(GetErrorMessage(err)));
+  };
+
+  const selfie = kyc?.identity_data?.selfie_verification;
+  const name = fullName(user);
+
   return (
-    <Stack>
-      <PageHeading
-        title={"User Details"}
-        decription={"more information about user"}
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        showBack
+        title={name}
+        description="User details"
+        isLoading={isFetching && !user}
+        actions={
+          user ? (
+            <Button
+              variant={active ? "danger-soft" : "primary"}
+              size="sm"
+              isPending={isChanging}
+              onPress={() => void toggleStatus()}
+            >
+              <Icon name={active ? "close-circle" : "checkmark-circle-outline"} size={16} />
+              {active ? "Deactivate" : "Activate"}
+            </Button>
+          ) : null
+        }
       />
 
-      <Grid2 container spacing={2}>
-        <Grid2 size={{ xs: 12, md: 10 }}>
-          <Card sx={{ mt: 4 }}>
-            {isFetching || isLoading ? (
-              <Stack sx={{ p: 2 }}>
-                <Skeleton
-                  variant="rounded"
-                  sx={{ backgroundColor: "primary.light", height: "400px" }}
-                />
-              </Stack>
-            ) : (
-              <Stack sx={{ p: 2, minHeight: "400px" }}>
-                <Stack
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  {" "}
-                  <Typography
-                    variant="body1"
-                    sx={{ color: "secondary.main", fontWeight: 600, mb: 2 }}
-                  >
-                    User Details
-                  </Typography>
-                  <Stack
-                    sx={{
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <StatusPill data={data?.data?.user?.status} />{" "}
-                    <Stack
-                      sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        rowGap: 4,
-                      }}
-                    >
-                      <Tooltip title="more actions" arrow>
-                        <IconButton
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleClick(e);
-                          }}
-                        >
-                          <Icon
-                            icon="lsicon:more-filled"
-                            fontSize={20}
-                            color={theme.vars.palette.secondary.light}
-                          />
-                        </IconButton>
-                      </Tooltip>
-                      <Menu
-                        id="actions"
-                        anchorEl={anchorEl}
-                        anchorOrigin={{
-                          vertical: "bottom",
-                          horizontal: "left",
-                        }}
-                        open={open}
-                        onClose={() => {
-                          handleClickAway();
-                        }}
-                        slotProps={{
-                          list: {
-                            "aria-labelledby": "actions-btn",
-                          },
-                        }}
-                      >
-                        <MenuItem
-                          onClick={(e) => {
-                            manageUser({
-                              action:
-                                data?.data?.user?.status ===
-                                UserStatusEnum.ACTIVE
-                                  ? UserActionEnum.DEACTIVATE
-                                  : UserActionEnum.ACTIVATE,
-                              id: (data?.data?.user?._id ||
-                                data?.data?.user?.id)!,
-                            });
-                            e.stopPropagation();
-                            handleClickAway();
-                          }}
-                        >
-                          <LoadingButton
-                            size="small"
-                            color={
-                              data?.data?.user?.status === UserStatusEnum.ACTIVE
-                                ? "error"
-                                : "success"
-                            }
-                          >
-                            {capitalizeFirstLetter(
-                              data?.data?.user?.status === UserStatusEnum.ACTIVE
-                                ? UserActionEnum.DEACTIVATE
-                                : UserActionEnum.ACTIVATE
-                            )}
-                          </LoadingButton>
-                        </MenuItem>
-                      </Menu>
-                    </Stack>
-                  </Stack>
-                </Stack>
-                <Grid2 container spacing={2}>
-                  <Grid2 size={{ xs: 12, md: 2 }} sx={{ my: 2 }}>
-                    <Avatar
-                      sx={{
-                        bgcolor: "primary.dark",
-                        width: 200,
-                        height: 200,
-                        mt: 2,
-                      }}
-                      variant="rounded"
-                      src={data?.data?.user?.image_url}
-                      alt={data?.data?.user?.first_name[0]}
-                    >
-                      {data?.data?.user?.first_name[0]}
-                    </Avatar>{" "}
-                  </Grid2>
-                  <Grid2 size={{ xs: 12, md: 1 }} sx={{ my: 2 }}>
-                    <Divider orientation="vertical" variant="middle" />
-                  </Grid2>
-                  <Grid2 size={{ xs: 12, md: 9 }} sx={{ my: 2 }}>
-                    <Grid2 container spacing={2}>
-                      {ownerData?.map((item, i) => (
-                        <Grid2 size={{ xs: 12, md: 4 }} sx={{ my: 2 }} key={i}>
-                          {" "}
-                          <LabelAndValue
-                            label={item?.label}
-                            value={item?.value}
-                            canCopy={item?.canCopy}
-                          />
-                        </Grid2>
-                      ))}
-                    </Grid2>
-                  </Grid2>
-                </Grid2>
-              </Stack>
-            )}
-          </Card>
-        </Grid2>
-        <Grid2 size={{ xs: 12, md: 6 }}>
-          <Card sx={{ minHeight: "400px",}}>
-            {isFetching ? (
-              <Stack sx={{ p: 2 }}>
-                <Skeleton
-                  variant="rounded"
-                  sx={{ backgroundColor: "primary.main", height: "400px" }}
-                />
-              </Stack>
-            ) : (
-              <Stack sx={{ p: 2, minHeight: "400px" }}>
-                <Stack
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  {" "}
-                  <Typography
-                    variant="body1"
-                    sx={{ color: "secondary.main", fontWeight: 600, mb: 2 }}
-                  >
-                    More info & KYC
-                  </Typography>
-                </Stack>
-                <Grid2 container spacing={2}>
-                  <Grid2 size={{ xs: 12, md: 9 }} sx={{ my: 2 }}>
-                    <Grid2 container spacing={2}>
-                      {kycData?.map((item, i) => (
-                        <Grid2 size={{ xs: 12, md: 4 }} sx={{ my: 2 }} key={i}>
-                          {" "}
-                          <LabelAndValue
-                            label={item?.label}
-                            value={item?.value}
-                            canCopy={item?.canCopy}
-                          />
-                        </Grid2>
-                      ))}
-                    </Grid2>
-                  </Grid2>
-                </Grid2>
-              </Stack>
-            )}
-          </Card>
-        </Grid2>
-        <Grid2 size={{ xs: 12, md: 4 }}>
-          <Card sx={{}}>
-            {isFetching ? (
-              <Stack sx={{ p: 2 }}>
-                <Skeleton
-                  variant="rounded"
-                  sx={{ backgroundColor: "primary.main", height: "400px" }}
-                />
-              </Stack>
-            ) : (
-              <Stack sx={{ p: 2, minHeight: "400px" }}>
-                <Typography
-                  variant="body1"
-                  sx={{ color: "secondary.main", fontWeight: 600, mb: 2 }}
-                >
-                  Reviews ({reviewsResp?.data?.pagination?.total_items || 0})
-                </Typography>
+      <Card className="flex-row flex-wrap items-center gap-4 p-5">
+        {isFetching && !user ? (
+          <Skeleton className="size-16 rounded-full" />
+        ) : (
+          <Avatar className="size-16 text-lg">
+            {user?.image_url ? <Avatar.Image src={user.image_url} alt="" /> : null}
+            <Avatar.Fallback>{initialsOf(name)}</Avatar.Fallback>
+          </Avatar>
+        )}
+        <div className="flex min-w-0 flex-col gap-1">
+          <p className="truncate text-lg font-semibold">{isFetching && !user ? "" : name}</p>
+          <p className="truncate text-sm text-muted">{user?.email}</p>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-sm capitalize text-muted">{user?.user_type}</span>
+          <StatusChip status={user?.status} />
+        </div>
+      </Card>
 
-                <Divider />
-                <Grid2 container spacing={2}>
-                  {isFetchingReviews ? (
-                    Array(5)
-                      .fill("*")
-                      .map((_, i) => (
-                        <Skeleton
-                          key={i}
-                          variant="rounded"
-                          sx={{
-                            backgroundColor: "primary.light",
-                            height: "50px",
-                            width: "100%",
-                            boxSizing: "border-box",
-                          }}
-                        />
-                      ))
-                  ) : !reviewsResp?.data?.reviews?.length ? (
-                    <NoData text="no reviews yet" />
-                  ) : (
-                    reviewsResp?.data?.reviews?.map((review, i) => (
-                      <Grid2
-                        size={{ xs: 12 }}
-                        key={i}
-                        sx={{
-                          my: 1,
-                          backgroundColor: "var(--surface-secondary)",
-                          // p: 2,
-                          borderRadius: 2,
-                        }}
-                      >
-                        <Typography
-                          sx={{ color: "secondary.main" }}
-                          variant="body2"
-                        >
-                          {review?.comment}
-                          <span className="text-2xl">&quot;</span>
-                        </Typography>
-                        <Stack
-                          sx={{
-                            justifyContent: "start",
-                            alignItems: "center",
-                            flexDirection: "row",
-                            mt: 1,
-                            cursor: "pointer",
-                          }}
-                        >
-                          <Avatar
-                            sx={{
-                              bgcolor: "primary.dark",
-                              width: 40,
-                              height: 40,
-                              // mt: 2,
-                            }}
-                            variant="rounded"
-                            src={review?.reviewer?.image_url}
-                            alt={review?.reviewer?.first_name[0]}
-                          >
-                            {review?.reviewer?.first_name[0]}
-                          </Avatar>{" "}
-                          <Stack>
-                            {" "}
-                            <Typography
-                              sx={{
-                                color: "secondary.main",
-                                fontWeight: 600,
-                              }}
-                              variant="caption"
-                            >
-                              {review?.reviewer?.first_name +
-                                " " +
-                                review?.reviewer?.last_name}
-                            </Typography>
-                            <br></br>
-                            <Typography
-                              sx={{ color: "secondary.lighter" }}
-                              variant="caption"
-                            >
-                              {review?.reviewer?.email}
-                            </Typography>
-                          </Stack>
-                        </Stack>
-                        <Rating
-                          size="small"
-                          sx={{
-                            mt: 1,
-                            "& .MuiRating-label": {
-                              borderColor: theme.vars.palette.secondary.light,
-                            },
-                          }}
-                          defaultValue={review?.rating_score}
-                          precision={0.5}
-                        />
-                        <Divider variant="middle" />
-                      </Grid2>
-                    ))
-                  )}
-                  {reviewsResp?.data?.pagination?.total_items! > 5 && (
-                    <Button variant="text" size="small" sx={{ mt: 2 }}>
-                      View more
-                    </Button>
-                  )}
-                </Grid2>
-              </Stack>
-            )}
-          </Card>
-        </Grid2>
-      </Grid2>
-    </Stack>
+      <DetailSection
+        title="Account"
+        isLoading={isFetching && !user}
+        fields={[
+          { label: "User ID", value: userId, copy: userId },
+          { label: "First name", value: user?.first_name },
+          { label: "Last name", value: user?.last_name },
+          { label: "Email", value: user?.email, copy: user?.email },
+          { label: "Phone number", value: user?.phone_number, copy: user?.phone_number },
+          { label: "Gender", value: <span className="capitalize">{user?.gender ?? "–"}</span> },
+          { label: "Joined", value: formatDate(user?.createdAt) },
+        ]}
+      />
+
+      <DetailSection
+        title="Identity (KYC)"
+        isLoading={isFetchingKyc}
+        fields={
+          kyc
+            ? [
+                { label: "ID number", value: kyc.id_number, copy: kyc.id_number },
+                { label: "ID type", value: kyc.id_type?.toUpperCase() },
+                { label: "Provider", value: kyc.provider },
+                { label: "Date of birth", value: formatDate(kyc.identity_data?.date_of_birth) },
+                {
+                  label: "Selfie match",
+                  value: selfie ? <StatusChip status={selfie.match ? "Approved" : "Failed"} /> : undefined,
+                },
+                {
+                  label: "Confidence",
+                  value: selfie?.confidence_value != null
+                    ? `${Number(selfie.confidence_value).toFixed(2)}%`
+                    : undefined,
+                },
+              ]
+            : undefined
+        }
+      >
+        {!isFetchingKyc && !kyc ? (
+          <p className="text-sm text-muted">This user has not done the identity check.</p>
+        ) : null}
+      </DetailSection>
+
+      {user?.user_type === "host" || reviewsRes?.data?.reviews?.length ? (
+        <ReviewList
+          title="Reviews of this host"
+          reviews={reviewsRes?.data?.reviews ?? []}
+          total={reviewsRes?.data?.pagination?.total_items}
+          isLoading={isFetchingReviews}
+        />
+      ) : null}
+    </div>
   );
 }

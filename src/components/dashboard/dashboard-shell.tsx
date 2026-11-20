@@ -151,8 +151,8 @@ export function DashboardShell({
         </main>
       </div>
 
-      <Drawer isOpen={drawerOpen} onOpenChange={setDrawerOpen}>
-        <Drawer.Backdrop>
+      {/* No Drawer root: it expects a trigger inside it, and the menu button is in the header. */}
+      <Drawer.Backdrop isOpen={drawerOpen} onOpenChange={setDrawerOpen}>
           <Drawer.Content placement="left" className="md:hidden">
             <Drawer.Dialog className="flex h-full w-72 flex-col gap-0 p-0">
               <Drawer.Header className="flex h-16 flex-row items-center justify-between border-b border-separator px-5">
@@ -169,8 +169,7 @@ export function DashboardShell({
               </Drawer.Footer>
             </Drawer.Dialog>
           </Drawer.Content>
-        </Drawer.Backdrop>
-      </Drawer>
+      </Drawer.Backdrop>
 
       <DashboardCommandPalette isOpen={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>

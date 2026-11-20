@@ -21,7 +21,7 @@ export interface PaginationMeta {
 
 export interface AuditLogsData {
   logs: AuditLog[];
-  // pagination: PaginationMeta;
+  pagination?: PaginationMeta;
 }
 
 export interface AuditLogsResponse {

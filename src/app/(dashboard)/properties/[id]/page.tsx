@@ -1,536 +1,118 @@
 "use client";
 
-import ImageViewer from "@/app/components/imageview";
-import { LabelAndValue } from "@/app/components/LabelValue";
-import { PageHeading } from "@/app/components/pageHeading";
-import StatusPill from "@/app/components/statusPill";
-import { NoData } from "@/app/components/table-utilities/EmptyTable";
-import { listingsApi } from "@/app/endpoints/properties/properties-api-slice";
-import { reviewsApi } from "@/app/endpoints/reviews/reviews-api-slice";
-import { userApi } from "@/app/endpoints/user/user-api-slice";
-import { theme } from "@/app/lib/theme";
-import { GetErrorMessage } from "@/app/utils/error-handler";
-import { Icon } from "@iconify/react/dist/iconify.js";
-import {
-  alpha,
-  Avatar,
-  Button,
-  Card,
-  Divider,
-  Grid2,
-  IconButton,
-  Menu,
-  MenuItem,
-  Rating,
-  Skeleton,
-  Stack,
-  Tab,
-  Tabs,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import dayjs from "dayjs";
-import { useRouter, useParams } from "next/navigation";
-import { useState } from "react";
+import { Button, Chip } from "@heroui/react";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import {
-  UserActionEnum,
-  UserStatusEnum,
-} from "../../users/interfaces/users.types";
-import { Button as LoadingButton } from "@mui/material";
-import { capitalizeFirstLetter } from "@/app/utils/string-helper";
+  DetailSection,
+  formatDate,
+  fullName,
+  listingFields,
+  PageHeader,
+  PhotoGallery,
+  ReviewList,
+  StatusChip,
+} from "@/components/admin";
+import { Icon } from "@/components/icon";
+import { listingsApi } from "@/app/endpoints/properties/properties-api-slice";
+import { reviewsApi } from "@/app/endpoints/reviews/reviews-api-slice";
+import { GetErrorMessage } from "@/app/utils/error-handler";
 
-export default function DashboardPage() {
+export default function PropertyDetailsPage() {
   // Next 15 gives `params` to a page as a Promise; a client page reads them here.
   const params = useParams<{ id: string }>();
-  const tabs = [
-    { label: "Details", value: "" },
-    { label: "Transactions", value: "transactions" },
-  ];
-
-  const [activeTab, setActiveTab] = useState(tabs[0].value);
+  const router = useRouter();
 
   const { data, isFetching, refetch } = listingsApi.useGetListingQuery({
     path: { id: params.id },
   });
+  const listing = data?.data;
+  const loading = isFetching && !listing;
 
-  const { data: reviewsResp, isFetching: isFetchingReviews } =
-    reviewsApi.useGetReviewsQuery({
-      params: { listing_id: params.id },
-    });
+  const { data: reviewsRes, isFetching: isFetchingReviews } = reviewsApi.useGetReviewsQuery({
+    params: { listing_id: params.id },
+  });
 
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
+  const [manageListing, { isLoading: isChanging }] = listingsApi.useManageListingMutation();
+  const active = listing?.status === "active";
 
-  const handleClickAway = () => {
-    setAnchorEl(null);
-  };
-
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    event.stopPropagation();
-    setAnchorEl(anchorEl ? null : event.currentTarget);
-  };
-
-  const [openImageviewer, setopenImageviewer] = useState(false);
-  const [index, setIndex] = useState(0);
-
-  const propertyData = [
-    { label: "Title", value: data?.data?.title },
-    { label: "Description", value: data?.data?.description },
-    { label: "Location", value: data?.data?.state + "," + data?.data?.lga },
-    { label: "Address", value: data?.data?.place_holder_address },
-    { label: "Cost", value: "₦" + data?.data?.cost?.toLocaleString() },
-    { label: "Payment Cycle", value: data?.data?.cost_cycle },
-    { label: "Type", value: data?.data?.type },
-    {
-      label: "No. of Bedrooms",
-      value: data?.data?.no_of_bedrooms?.toString() || "-",
-    },
-    {
-      label: "Are pets allowed?",
-      value: data?.data?.are_pets_allowed ? "Yes" : "No",
-    },
-    {
-      label: "Are pets allowed?",
-      value: data?.data?.are_pets_allowed ? "Yes" : "No",
-    },
-
-    {
-      label: "Extra offerings",
-      value: data?.data?.extra_offerings?.join(", "),
-    },
-    {
-      label: "Average rating",
-      value: data?.data?.average_rating?.toString() || "-",
-    },
-  ];
-
-  const ownerData = [
-    { label: "First Name", value: data?.data?.owner?.first_name },
-    { label: "last Name", value: data?.data?.owner?.last_name },
-    { label: "Email", value: data?.data?.owner?.email, canCopy: true },
-    {
-      label: "Phone Number",
-      value: data?.data?.owner?.phone_number,
-      canCopy: true,
-    },
-    { label: "Gender", value: data?.data?.owner?.gender },
-    {
-      label: "Joined At",
-      value: dayjs(data?.data?.owner?.createdAt).format("DD MMM, YYYY"),
-    },
-  ];
-
-  const router = useRouter();
-
-  const [manageListing, { isLoading }] = listingsApi.useManageListingMutation();
-
-  const manage = async ({ action, id }: { action: string; id: string }) => {
-    await manageListing({ path: { id, action } })
+  const toggleStatus = async () => {
+    if (!listing) return;
+    const action = active ? "deactivate" : "activate";
+    await manageListing({ path: { id: listing._id, action } })
       .unwrap()
       .then(() => {
-        toast.success(`listing has been ${action}d`);
+        toast.success(active ? "Listing deactivated." : "Listing activated.");
         refetch();
       })
-      .catch((err) => {
-        toast.error(GetErrorMessage(err));
-      });
+      .catch((err) => toast.error(GetErrorMessage(err)));
   };
 
   return (
-    <Stack>
-      <PageHeading
-        title={data?.data?.title || "Property Details"}
-        decription={data?.data?.description || ""}
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        showBack
+        title={listing?.title || "Listing"}
+        isLoading={loading}
+        description={
+          listing ? (
+            <span className="flex flex-wrap items-center gap-2">
+              <StatusChip status={listing.status || "pending"} />
+              {listing.isVerified ? (
+                <Chip size="sm" variant="soft" color="accent">
+                  <Icon name="shield-checkmark" size={12} />
+                  Verified
+                </Chip>
+              ) : null}
+              <span>{[listing.neighbourhood, listing.lga, listing.state].filter(Boolean).join(", ")}</span>
+            </span>
+          ) : undefined
+        }
+        actions={
+          listing ? (
+            <Button
+              size="sm"
+              variant={active ? "danger-soft" : "primary"}
+              isPending={isChanging}
+              onPress={() => void toggleStatus()}
+            >
+              <Icon name={active ? "close-circle" : "checkmark-circle-outline"} size={16} />
+              {active ? "Deactivate" : "Activate"}
+            </Button>
+          ) : null
+        }
       />
 
-      <Tabs
-        value={activeTab || ""}
-        onChange={(_, val) => setActiveTab(val)}
-        sx={{ mt: 2 }}
-      >
-        {tabs.map((t, i) => (
-          <Tab label={t.label} value={t.value} key={i} />
-        ))}
-      </Tabs>
-      <Grid2 container spacing={2}>
-        <Grid2 size={{ xs: 12, md: 8 }}>
-          <Card sx={{ mt: 4 }}>
-            {isFetching || isLoading ? (
-              <Stack sx={{ p: 2 }}>
-                <Skeleton
-                  variant="rounded"
-                  sx={{ backgroundColor: "primary.main", height: "400px" }}
-                />
-              </Stack>
-            ) : (
-              <Stack sx={{ p: 2, minHeight: "400px" }}>
-                <Stack
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    mb: 2,
-                  }}
-                >
-                  {" "}
-                  <Typography
-                    variant="body1"
-                    sx={{ color: "secondary.main", fontWeight: 600 }}
-                  >
-                    Property Details
-                  </Typography>
-                  <Stack
-                    sx={{
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <StatusPill data={data?.data.status} />{" "}
-                    <Stack
-                      sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        rowGap: 4,
-                      }}
-                    >
-                      <Tooltip title="more actions" arrow>
-                        <IconButton
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleClick(e);
-                          }}
-                        >
-                          <Icon
-                            icon="lsicon:more-filled"
-                            fontSize={20}
-                            color={theme.vars.palette.secondary.light}
-                          />
-                        </IconButton>
-                      </Tooltip>
-                      <Menu
-                        id="actions"
-                        anchorEl={anchorEl}
-                        anchorOrigin={{
-                          vertical: "bottom",
-                          horizontal: "left",
-                        }}
-                        open={open}
-                        onClose={() => {
-                          handleClickAway();
-                        }}
-                        slotProps={{
-                          list: {
-                            "aria-labelledby": "actions-btn",
-                          },
-                        }}
-                      >
-                        <MenuItem
-                          onClick={(e) => {
-                            manage({
-                              action:
-                                data?.data?.status === UserStatusEnum.ACTIVE
-                                  ? UserActionEnum.DEACTIVATE
-                                  : UserActionEnum.ACTIVATE,
-                              id: data?.data?._id!,
-                            });
-                            e.stopPropagation();
-                            handleClickAway();
-                          }}
-                        >
-                          <LoadingButton
-                            size="small"
-                            color={
-                              data?.data?.status === UserStatusEnum.ACTIVE
-                                ? "error"
-                                : "success"
-                            }
-                          >
-                            {capitalizeFirstLetter(
-                              data?.data?.status === UserStatusEnum.ACTIVE
-                                ? UserActionEnum.DEACTIVATE
-                                : UserActionEnum.ACTIVATE
-                            )}
-                          </LoadingButton>
-                        </MenuItem>
-                      </Menu>
-                    </Stack>
-                  </Stack>
-                </Stack>
+      <DetailSection title="Photos" isLoading={loading}>
+        {listing ? <PhotoGallery photos={listing.photos ?? []} title={listing.title} /> : null}
+      </DetailSection>
 
-                <Divider />
-                <Grid2 container spacing={2}>
-                  {propertyData?.map((item, i) => (
-                    <Grid2 size={{ xs: 12, md: 4 }} key={i} sx={{ my: 2 }}>
-                      {" "}
-                      <LabelAndValue label={item?.label} value={item?.value} />
-                    </Grid2>
-                  ))}
-                </Grid2>
-              </Stack>
-            )}
-          </Card>
-          <Card sx={{ mt: 4 }}>
-            {isFetching ? (
-              <Stack sx={{ p: 2 }}>
-                <Skeleton
-                  variant="rounded"
-                  sx={{ backgroundColor: "primary.main", height: "400px" }}
-                />
-              </Stack>
-            ) : (
-              <Stack sx={{ p: 2, minHeight: "400px" }}>
-                <Stack
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  {" "}
-                  <Typography
-                    variant="body1"
-                    sx={{ color: "secondary.main", fontWeight: 600, mb: 2 }}
-                  >
-                    Owner Details
-                  </Typography>
-                  <StatusPill data={data?.data?.owner?.status} />
-                </Stack>
-                <Grid2 container spacing={2}>
-                  <Grid2 size={{ xs: 12, md: 2 }} sx={{ my: 2 }}>
-                    <Avatar
-                      sx={{
-                        bgcolor: "primary.dark",
-                        width: { xs: 100, md: 150, xl: 200 },
-                        height: { xs: 100, md: 150, xl: 200 },
-                        boxSizing: "border-box",
-                        mt: 2,
-                      }}
-                      variant="circular"
-                      src={data?.data?.owner?.image_url}
-                      alt={data?.data?.owner?.first_name[0]}
-                    >
-                      {data?.data?.owner?.first_name[0]}
-                    </Avatar>{" "}
-                  </Grid2>
-                  <Grid2 size={{ xs: 12, md: 1 }} sx={{ my: 2 }}>
-                    <Divider orientation="vertical" variant="middle" />
-                  </Grid2>
-                  <Grid2 size={{ xs: 12, md: 9 }} sx={{ my: 2 }}>
-                    <Grid2 container spacing={2}>
-                      {ownerData?.map((item, i) => (
-                        <Grid2 size={{ xs: 12, md: 4 }} sx={{ my: 2 }} key={i}>
-                          {" "}
-                          <LabelAndValue
-                            label={item?.label}
-                            value={item?.value}
-                            canCopy={item?.canCopy}
-                          />
-                        </Grid2>
-                      ))}
-                    </Grid2>
-                  </Grid2>
-                </Grid2>
-              </Stack>
-            )}
-          </Card>
-        </Grid2>
-        <Grid2 size={{ xs: 12, md: 4 }}>
-          <Card sx={{ mt: 4, height: "auto" }}>
-            {isFetching ? (
-              <Stack sx={{ p: 2 }}>
-                <Skeleton
-                  variant="rounded"
-                  sx={{ backgroundColor: "primary.main", height: "400px" }}
-                />
-              </Stack>
-            ) : (
-              <Stack sx={{ p: 2 }}>
-                <Typography
-                  variant="body1"
-                  sx={{ color: "secondary.main", fontWeight: 600, mb: 2 }}
-                >
-                  Images
-                </Typography>
+      <DetailSection title="Listing" isLoading={loading} fields={listingFields(listing)} />
 
-                <Divider />
-                <Grid2 container spacing={2}>
-                  {data?.data?.photos?.map((image, i) => (
-                    <Grid2 size={{ xs: 12, md: 4 }} key={i} sx={{ my: 2 }}>
-                      {" "}
-                      <img
-                        src={image}
-                        alt={`property image ${i + 1}`}
-                        width="100%"
-                        style={{
-                          borderRadius: 8,
-                          height: "100px",
-                          objectFit: "cover",
-                          transition: "transform 0.3s ease-in-out",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => {
-                          setIndex(i);
-                          setopenImageviewer(true);
-                        }}
-                        onMouseEnter={(e) => {
-                          (
-                            e.currentTarget as HTMLImageElement
-                          ).style.transform = "translateY(8px)";
-                        }}
-                        onMouseLeave={(e) => {
-                          (
-                            e.currentTarget as HTMLImageElement
-                          ).style.transform = "translateY(0)";
-                        }}
-                      />
-                    </Grid2>
-                  ))}
-                </Grid2>
-              </Stack>
-            )}
-          </Card>
-          <Card sx={{ mt: 2 }}>
-            {isFetching ? (
-              <Stack sx={{ p: 2 }}>
-                <Skeleton
-                  variant="rounded"
-                  sx={{ backgroundColor: "primary.main", height: "400px" }}
-                />
-              </Stack>
-            ) : (
-              <Stack sx={{ p: 2, minHeight: "400px" }}>
-                <Typography
-                  variant="body1"
-                  sx={{ color: "secondary.main", fontWeight: 600, mb: 2 }}
-                >
-                  Reviews ({reviewsResp?.data?.pagination?.total_items || 0})
-                </Typography>
-
-                <Divider />
-                <Grid2 container spacing={2}>
-                  {isFetchingReviews ? (
-                    Array(5)
-                      .fill("*")
-                      .map((_, i) => (
-                        <Skeleton
-                          key={i}
-                          variant="rounded"
-                          sx={{
-                            backgroundColor: "primary.light",
-                            height: "50px",
-                            width: "100%",
-                            boxSizing: "border-box",
-                          }}
-                        />
-                      ))
-                  ) : !reviewsResp?.data?.reviews?.length ? (
-                    <NoData text="no reviews yet" />
-                  ) : (
-                    reviewsResp?.data?.reviews?.map((review, i) => (
-                      <Grid2
-                        size={{ xs: 12 }}
-                        key={i}
-                        sx={{
-                          my: 1,
-                          backgroundColor: "var(--surface-secondary)",
-                          // p: 2,
-                          borderRadius: 2,
-                        }}
-                      >
-                        <Typography
-                          sx={{ color: "secondary.main" }}
-                          variant="body2"
-                        >
-                          {review?.comment}
-                          <span className="text-2xl">&quot;</span>
-                        </Typography>
-                        <Stack
-                          sx={{
-                            justifyContent: "start",
-                            alignItems: "center",
-                            flexDirection: "row",
-                            mt: 1,
-                            cursor: "pointer",
-                          }}
-                          onClick={() => {
-                            router.push("/users/" + review?.reviewer?._id);
-                          }}
-                        >
-                          <Avatar
-                            sx={{
-                              bgcolor: "primary.dark",
-                              width: 40,
-                              height: 40,
-                              // mt: 2,
-                            }}
-                            variant="rounded"
-                            src={review?.reviewer?.image_url}
-                            alt={review?.reviewer?.first_name[0]}
-                          >
-                            {review?.reviewer?.first_name[0]}
-                          </Avatar>{" "}
-                          <Stack>
-                            {" "}
-                            <Typography
-                              sx={{
-                                color: "secondary.main",
-                                fontWeight: 600,
-                              }}
-                              variant="caption"
-                            >
-                              {review?.reviewer?.first_name +
-                                " " +
-                                review?.reviewer?.last_name}
-                            </Typography>
-                            <br></br>
-                            <Typography
-                              sx={{ color: "secondary.lighter" }}
-                              variant="caption"
-                            >
-                              {review?.reviewer?.email}
-                            </Typography>
-                          </Stack>
-                        </Stack>
-                        <Rating
-                          size="small"
-                          sx={{
-                            mt: 1,
-                            "& .MuiRating-label": {
-                              borderColor: theme.vars.palette.secondary.light,
-                            },
-                          }}
-                          defaultValue={review?.rating_score}
-                          precision={0.5}
-                        />
-                        <Divider variant="middle" />
-                      </Grid2>
-                    ))
-                  )}
-                  {reviewsResp?.data?.pagination?.total_items! > 5 && (
-                    <Button variant="text" size="small" sx={{ mt: 2 }}>
-                      View more
-                    </Button>
-                  )}
-                </Grid2>
-              </Stack>
-            )}
-          </Card>
-        </Grid2>
-      </Grid2>
-      <ImageViewer
-        photos={data?.data?.photos || []}
-        open={openImageviewer}
-        initialIndex={index}
-        onClose={() => setopenImageviewer(false)}
+      <DetailSection
+        title="Host"
+        isLoading={loading}
+        fields={[
+          { label: "Name", value: fullName(listing?.owner) },
+          { label: "Email", value: listing?.owner?.email, copy: listing?.owner?.email },
+          { label: "Phone number", value: listing?.owner?.phone_number, copy: listing?.owner?.phone_number },
+          { label: "Joined", value: formatDate(listing?.owner?.createdAt) },
+        ]}
+        actions={
+          listing?.owner_id ? (
+            <Button size="sm" variant="ghost" onPress={() => router.push(`/users/${listing.owner_id}`)}>
+              View
+              <Icon name="chevron-forward" size={14} />
+            </Button>
+          ) : null
+        }
       />
-    </Stack>
+
+      <ReviewList
+        reviews={reviewsRes?.data?.reviews ?? []}
+        total={reviewsRes?.data?.pagination?.total_items}
+        isLoading={isFetchingReviews}
+      />
+    </div>
   );
 }

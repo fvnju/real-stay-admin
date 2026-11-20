@@ -45,6 +45,5 @@ export function getStatsArray(
       });
   }
 
-  console.log({ result });
   return result;
 }

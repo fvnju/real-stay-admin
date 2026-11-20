@@ -12,6 +12,7 @@ export interface TransactionsResponse {
 
 export interface TransactionsAPIResponse {
   transactions: Transaction[];
+  pagination?: TransactionsResponse["pagination"];
 }
 export interface Transaction {
   _id: string;

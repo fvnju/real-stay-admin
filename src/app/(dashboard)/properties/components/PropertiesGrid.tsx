@@ -1,231 +1,88 @@
-import { Listing } from "@/app/endpoints/properties/properties-types";
-import { theme } from "@/app/lib/theme";
-import { capitalizeText } from "@/app/utils/text-formatter";
-import {
-  Avatar,
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardMedia,
-  Divider,
-  Grid2,
-  Skeleton,
-  Stack,
-  Typography,
-} from "@mui/material";
-import React, { FC } from "react";
-import { useRouter } from "next/navigation";
-import { NoData } from "@/app/components/table-utilities/EmptyTable";
-import {
-  UserActionEnum,
-  UserStatusEnum,
-} from "../../users/interfaces/users.types";
-import { capitalizeFirstLetter } from "@/app/utils/string-helper";
+"use client";
 
-const PropertiesGrid: FC<{
+import { Card, Skeleton } from "@heroui/react";
+import { useRouter } from "next/navigation";
+import { formatNaira, fullName, RowActions, StatusChip } from "@/components/admin";
+import { Icon } from "@/components/icon";
+import type { Listing } from "@/app/endpoints/properties/properties-types";
+import { listingActions, type ManageListing } from "./listing-actions";
+
+/** Listings as photo cards. */
+export default function PropertiesGrid({
+  listings,
+  isFetching,
+  manage,
+}: {
   listings: Listing[];
   isFetching: boolean;
-  manage: ({ action, id }: { action: string; id: string }) => Promise<void>;
-}> = ({ listings, isFetching, manage }) => {
+  manage: ManageListing;
+}) {
   const router = useRouter();
+  const open = (id: string) => router.push(`/properties/${id}`);
 
-  if (!listings.length && !isFetching) {
-    return <NoData text="no properties to display" color="secondary.light" />;
+  if (isFetching) {
+    return (
+      <div className="grid grid-cols-1 gap-4 smallPhone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {Array.from({ length: 8 }, (_, i) => (
+          <Skeleton key={i} className="aspect-[4/5] w-full rounded-3xl" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!listings.length) {
+    return (
+      <div className="flex flex-col items-center gap-2 py-16 text-muted">
+        <Icon name="file-tray-outline" size={40} />
+        <p className="text-sm">No listings match.</p>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <Grid2 container spacing={2} sx={{ my: 2 }}>
-        {isFetching
-          ? Array(10)
-              .fill("*")
-              .map((_, i) => (
-                <Grid2
-                  key={i}
-                  size={{ sm: 12, md: 4, lg: 4, xl: 3 }}
-                  sx={{ width: "100%" }}
-                >
-                  {" "}
-                  <Skeleton
-                    width={"100%"}
-                    variant="rounded"
-                    sx={{
-                      backgroundColor: "primary.main",
-                      height: "400px",
-                    }}
-                  />
-                </Grid2>
-              ))
-          : listings?.map((listing, i) => (
-              <Grid2
-                key={i}
-                size={{ sm: 12, md: 4, lg: 4, xl: 3 }}
-                sx={{ width: "100%" }}
-              >
-                <Card
-                  onClick={() => {
-                    router.push("/properties/" + listing._id);
-                  }}
-                  sx={{
-                    height: "100%", // let it fill the grid cell vertically if needed
-                    width: "100%", // full width inside the grid cell
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    boxSizing: "border-box",
-                    ":hover": {
-                      boxShadow: 6,
-                      cursor: "pointer",
-                      scale: "1.01",
-                      transition: "0.3s",
-                    },
-                  }}
-                >
-                  <Stack component="div">
-                    <CardMedia
-                      component="img"
-                      alt="listing photo"
-                      sx={{ height: 140, width: "100%" }}
-                      image={listing?.photos[0]}
-                    />
-
-                    <CardContent
-                      sx={{
-                        height: 200,
-                        width: "100%",
-                        boxSizing: "border-box",
-                        position: "relative",
-                      }}
-                    >
-                      <Stack
-                        sx={{
-                          color: theme.vars.palette.secondary.main,
-                          backgroundColor: theme?.palette?.success?.dark,
-                          p: 1,
-                          position: "absolute",
-                          top: -20,
-                          right: 10,
-                          borderRadius: "1rem",
-                        }}
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="center"
-                      >
-                        <Typography variant="body1" fontWeight={500}>
-                          {`₦${listing?.cost?.toLocaleString()} · ${
-                            listing?.cost_cycle
-                          }`}
-                        </Typography>
-                      </Stack>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: "secondary.lighter" }}
-                      >
-                        {capitalizeText(listing?.lga)},{" "}
-                        {capitalizeText(listing?.state)}
-                      </Typography>
-
-                      <Typography
-                        gutterBottom
-                        variant="h5"
-                        component="div"
-                        sx={{
-                          color: "secondary.main",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {listing?.title}
-                      </Typography>
-
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: "secondary.lighter",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {listing?.description}
-                      </Typography>
-                    </CardContent>
-                  </Stack>
-                  <Divider variant="middle" />
-                  <CardActions
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Stack
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        flexDirection: "row",
-                        gap: 1,
-                      }}
-                    >
-                      <Avatar
-                        sx={{ bgcolor: "primary.dark", width: 24, height: 24 }}
-                        src={listing?.owner?.image_url}
-                        alt={listing?.owner?.first_name[0]}
-                      >
-                        {listing?.owner?.first_name[0]}
-                      </Avatar>
-                      <Stack>
-                        <Typography
-                          variant="caption"
-                          sx={{ color: "secondary.main", fontweight: "bold" }}
-                          fontWeight={600}
-                        >{`${listing?.owner?.first_name} ${listing?.owner?.last_name}`}</Typography>{" "}
-                        <Typography
-                          variant="caption"
-                          sx={{ color: "secondary.lighter" }}
-                        >{`${listing?.owner?.email} `}</Typography>{" "}
-                      </Stack>
-                    </Stack>
-                    <Stack
-                      sx={{ display: "flex", flexDirection: "row", gap: 1 }}
-                    >
-                      <Button
-                        variant="contained"
-                        size="small"
-                        color={
-                          listing?.status === UserStatusEnum.ACTIVE
-                            ? "error"
-                            : "success"
-                        }
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          manage({
-                            action:
-                              listing?.status === UserStatusEnum.ACTIVE
-                                ? UserActionEnum.DEACTIVATE
-                                : UserActionEnum.ACTIVATE,
-                            id: listing?._id!,
-                          });
-                        }}
-                      >
-                        {capitalizeFirstLetter(
-                          listing?.status === UserStatusEnum.ACTIVE
-                            ? UserActionEnum.DEACTIVATE
-                            : UserActionEnum.ACTIVATE
-                        )}
-                      </Button>
-                    </Stack>
-                  </CardActions>
-                </Card>
-              </Grid2>
-            ))}
-      </Grid2>
+    <div className="grid grid-cols-1 gap-4 smallPhone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      {listings.map((l) => (
+        <Card key={l._id} className="relative gap-0 overflow-hidden p-0">
+          <button
+            type="button"
+            onClick={() => open(l._id)}
+            className="flex flex-col text-left outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            aria-label={`Open ${l.title || "listing"}`}
+          >
+            <div className="aspect-[4/3] w-full bg-default">
+              {l.photos?.[0] ? (
+                // eslint-disable-next-line @next/next/no-img-element -- photos come from many hosts
+                <img src={l.photos[0]} alt="" loading="lazy" className="size-full object-cover" />
+              ) : (
+                <div className="flex size-full items-center justify-center text-muted">
+                  <Icon name="image-outline" size={32} />
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col gap-1 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <StatusChip status={l.status || "pending"} />
+                <span className="text-sm font-medium tabular-nums">
+                  {l.hasRooms ? "Rooms" : formatNaira(l.cost)}
+                </span>
+              </div>
+              <p className="mt-1 flex items-center gap-1 text-sm font-semibold">
+                <span className="truncate">{l.title || "Untitled listing"}</span>
+                {l.isVerified ? (
+                  <Icon name="shield-checkmark" size={14} className="shrink-0 text-accent" label="Verified" />
+                ) : null}
+              </p>
+              <p className="truncate text-xs text-muted">
+                {[l.neighbourhood, l.lga, l.state].filter(Boolean).join(", ")}
+              </p>
+              <p className="truncate text-xs text-muted">Host: {fullName(l.owner)}</p>
+            </div>
+          </button>
+          <div className="absolute right-2 top-2 rounded-full bg-overlay/90">
+            <RowActions label={`Actions for ${l.title}`} actions={listingActions(l, manage, open)} />
+          </div>
+        </Card>
+      ))}
     </div>
   );
-};
-
-export default PropertiesGrid;
+}

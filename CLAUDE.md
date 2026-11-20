@@ -1,6 +1,6 @@
 # real-stay-admin
 
-The admin panel of RealStay, for RealStay staff (Next.js 15 App Router, React 19, HeroUI v3, Tailwind v4, Redux Toolkit Query; the older pages still use MUI).
+The admin panel of RealStay, for RealStay staff (Next.js 15 App Router, React 19, HeroUI v3, Tailwind v4, Redux Toolkit Query).
 
 GitHub: https://github.com/fvnju/real-stay-admin (`origin`). It is a fork of https://github.com/chijiooke/real-stay-admin (`upstream`). Deployed at https://real-stay-admin.vercel.app.
 
@@ -39,10 +39,15 @@ Upstream keeps the access token and the refresh token in `localStorage`, so an X
 - New UI uses HeroUI v3 (`@heroui/react`, `@heroui/styles`), the web version of `heroui-native` in the mobile app. The theme is the HeroUI default theme, the same as the app: the same colors (`bg-background`, `bg-surface`, `text-muted`, `bg-accent`, ...), radius, and font (Inter, `src/app/layout.tsx`). `src/app/globals.css` has the Tailwind v4 setup and the old breakpoints (`sm` 900, `md` 1150, `lg` 1458).
 - A HeroUI component runs only in a client component (`"use client"`).
 - Light and dark mode: `next-themes` sets the `light` or `dark` class on `<html>` (`src/app/providers/theme-provider.tsx`). `ThemeSwitcher` (`src/components/theme-switcher.tsx`) is in the header and on the sign-in pages. Do not add a color that is right in one mode only (`text-white`, `bg-[#181818]`); use the HeroUI colors.
-- MUI follows the same class (`cssVariables: { colorSchemeSelector: "class" }` in `src/app/lib/theme.ts`). In MUI code use `theme.vars.palette.*` (a CSS variable that changes with the mode), not `theme.palette.*` (the light value). The old names keep their meanings: `primary` is a surface, `secondary` is text. Do not give `theme.vars.palette.*` to `alpha()`: it needs a real color.
-- Icons: `Icon` (`src/components/icon`) draws the icons of the mobile app, with the same names (`name="people"`, `"calendar-outline"`). `glyphs.ts` is a copy of realstay-prod `components/icon/glyphs.ts`; copy it again after a change there. Icons that the app does not have are in `admin-glyphs.ts`, made by `node tools/make-icons.mjs` from MingCute. Some MUI pages still use `@iconify/react`.
-- Done with HeroUI: the sign-in, invite, and forgot-password pages (`src/app/(auth)/components/`), and the dashboard frame (`src/components/dashboard/`: sidebar, header, account menu, mobile drawer, Cmd+K palette). The pages in `src/app/(dashboard)/` still use MUI.
-- The forgot-password page does not call the backend yet (`POST /auth/forgot-password` exists there).
+- Icons: `Icon` (`src/components/icon`) draws the icons of the mobile app, with the same names (`name="people"`, `"calendar-outline"`). `glyphs.ts` is a copy of realstay-prod `components/icon/glyphs.ts`; copy it again after a change there. Icons that the app does not have are in `admin-glyphs.ts`, made by `node tools/make-icons.mjs` from MingCute.
+- Shared page parts are in `src/components/admin` (import from `@/components/admin`): `PageHeader`, `StatCards`, `AdminTable` (a HeroUI table with loading rows, an empty state and row clicks), `TablePagination`, `SearchInput` (waits 400 ms), `FilterMenu`, `SegmentTabs`, `RowActions`, `StatusChip`, `DetailSection`, `CopyButton`, `UserCell`, `PhotoGallery`, `ReviewList`, and the formats (`formatNaira`, `formatDate`, `formatStayDate`). Build a new page from these.
+- A stay date (check-in, checkout) is UTC midnight of the date: show it with `formatStayDate`, not `formatDate`.
+- A HeroUI dialog or drawer that opens from state (no trigger inside it): put `isOpen` on `Modal.Backdrop` / `Drawer.Backdrop`, without the `Modal` / `Drawer` root, which expects a trigger.
+- The frame of the dashboard is `src/components/dashboard/` (sidebar, header, account menu, mobile drawer, Cmd+K palette). The sign-in pages use `src/app/(auth)/components/`.
+
+## Password reset
+
+`/forgot-password` has three steps: the email, the 5-digit code, and the new password. The page calls `POST /api/auth/password-reset` with `step` `request`, `verify` or `change`. The route sends only the fields of the step to the backend (`/auth/forgot-password`, `/auth/forgot-password/verify`, `PATCH /auth/change-password`), with no cookies, and checks the `Origin`. The new password must pass the backend rule; `src/lib/password-rules.ts` has a copy (change both together). The backend lets one email ask for a code every 30 seconds.
 
 ## Pages
 

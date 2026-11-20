@@ -15,6 +15,7 @@ const ADMIN_ICONS = {
   "desktop-outline": "computer-line",
   "sunny-outline": "sun-line",
   "moon-outline": "moon-line",
+  "copy-outline": "copy-2-line",
 };
 
 const require = createRequire(import.meta.url);

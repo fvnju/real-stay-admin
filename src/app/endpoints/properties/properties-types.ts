@@ -29,6 +29,12 @@ export interface Listing {
   ownerObjectId: string;
   owner: User;
   average_rating: number | null;
+  /** RealStay staff checked the place (listing verification). */
+  isVerified?: boolean;
+  /** Public area, for example "Wuse 2". */
+  neighbourhood?: string | null;
+  /** A hotel with room types. */
+  hasRooms?: boolean;
 }
 
 export interface ListingResponse {

@@ -1,22 +1,19 @@
 "use client";
 
-import { LabelAndValue } from "@/app/components/LabelValue";
-import { PageHeading } from "@/app/components/pageHeading";
+import { Avatar, Card, Skeleton } from "@heroui/react";
+import { useEffect } from "react";
+import { toast } from "react-toastify";
+import {
+  DetailSection,
+  formatDate,
+  fullName,
+  initialsOf,
+  PageHeader,
+} from "@/components/admin";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
 import { useSessionUser } from "@/app/providers/session-user";
 import { GetErrorMessage } from "@/app/utils/error-handler";
-import { trucateString } from "@/app/utils/string-helper";
-import {
-  Avatar,
-  Button,
-  Card,
-  Grid2,
-  LinearProgress,
-  Stack,
-} from "@mui/material";
-import dayjs from "dayjs";
-import { useEffect } from "react";
-import { toast } from "react-toastify";
 
 export default function Profile() {
   const sessionUser = useSessionUser();
@@ -27,104 +24,55 @@ export default function Profile() {
     userQuery({ path: { id: sessionUser.id } })
       .unwrap()
       .catch((error) => {
-        toast.error(GetErrorMessage(error) || "Failed to fetch user data");
+        toast.error(GetErrorMessage(error) || "Could not load your profile.");
       });
   }, [sessionUser?.id, userQuery]);
 
-  const ownerData = [
-    {
-      label: "ID",
-      value: trucateString(data?.data?.user?._id!, 9),
-      canCopy: true,
-    },
-    { label: "First Name", value: data?.data?.user?.first_name },
-    { label: "Last Name", value: data?.data?.user?.last_name },
-    { label: "Email", value: data?.data?.user?.email, canCopy: true },
-    {
-      label: "Phone Number",
-      value: data?.data?.user?.phone_number,
-      canCopy: true,
-    },
-    { label: "Gender", value: data?.data?.user?.gender },
-    {
-      label: "Joined At",
-      value: dayjs(data?.data?.user?.createdAt).format("DD MMM, YYYY"),
-    },
-  ];
+  const user = data?.data?.user;
+  const userId = user?._id || user?.id;
+  const name = fullName(user);
+  const loading = isFetching && !user;
+
   return (
-    <Stack>
-      <PageHeading
-        showBackButton={false}
-        title="My Profile"
-        decription="Manage my account details"
+    <div className="flex max-w-4xl flex-col gap-6">
+      <PageHeader title="My profile" description="Your admin account." />
+
+      <Card className="flex-row items-center gap-4 p-5">
+        {loading ? (
+          <Skeleton className="size-16 rounded-full" />
+        ) : (
+          <Avatar className="size-16 text-lg">
+            {user?.image_url ? <Avatar.Image src={user.image_url} alt="" /> : null}
+            <Avatar.Fallback>{initialsOf(name)}</Avatar.Fallback>
+          </Avatar>
+        )}
+        <div className="min-w-0">
+          <p className="truncate text-lg font-semibold">{loading ? "" : name}</p>
+          <p className="truncate text-sm text-muted">{user?.email ?? sessionUser?.email}</p>
+        </div>
+      </Card>
+
+      <DetailSection
+        title="Account"
+        isLoading={loading}
+        fields={[
+          { label: "User ID", value: userId, copy: userId },
+          { label: "First name", value: user?.first_name },
+          { label: "Last name", value: user?.last_name },
+          { label: "Email", value: user?.email, copy: user?.email },
+          { label: "Phone number", value: user?.phone_number, copy: user?.phone_number },
+          { label: "Gender", value: <span className="capitalize">{user?.gender ?? "–"}</span> },
+          { label: "Joined", value: formatDate(user?.createdAt) },
+        ]}
       />
 
-      <Grid2 container spacing={1.5} sx={{ mt: 2 }}>
-        <Grid2
-          size={{ xs: 12 }}
-          sx={{ display: "flex", justifyContent: "center", mt: 3 }}
-        >
-          <Card
-            sx={{
-              p: 2,
-              width: "600px",
-            }}
-          >
-            {isFetching && <LinearProgress color="primary" />}
-            <Stack
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 1,
-                mb: 1.5,
-              }}
-            ></Stack>
-            <Grid2 container spacing={2}>
-              <Grid2
-                size={{ xs: 12 }}
-                sx={{
-                  my: 2,
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Avatar
-                  sx={{
-                    bgcolor: "primary.dark",
-                    width: 200,
-                    height: 200,
-                    mt: 2,
-                  }}
-                  variant="circular"
-                  src={data?.data?.user?.image_url}
-                  alt={data?.data?.user?.first_name[0]}
-                >
-                  {data?.data?.user?.first_name[0]}
-                </Avatar>{" "}
-              </Grid2>
-              {ownerData?.map((item, i) => (
-                <Grid2 size={{ xs: 12, md: 4 }} sx={{ my: 2 }} key={i}>
-                  {" "}
-                  <LabelAndValue
-                    label={item?.label}
-                    value={item?.value}
-                    canCopy={item?.canCopy}
-                  />
-                </Grid2>
-              ))}
-              <Grid2 size={{ xs: 12 }} sx={{ my: 2 }}>
-                {" "}
-                <Button variant="contained" color="secondary" fullWidth>
-                  Update my profile
-                </Button>
-              </Grid2>
-            </Grid2>
-          </Card>
-        </Grid2>
-      </Grid2>
-    </Stack>
+      <Card className="flex-row flex-wrap items-center justify-between gap-4 p-5">
+        <div>
+          <h2 className="text-base font-semibold">Appearance</h2>
+          <p className="text-sm text-muted">Follow the system, or always use light or dark mode.</p>
+        </div>
+        <ThemeSwitcher />
+      </Card>
+    </div>
   );
 }
