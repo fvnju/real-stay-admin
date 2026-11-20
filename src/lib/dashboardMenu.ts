@@ -1,9 +1,7 @@
 export type MenuItem = {
   label: string;
   icon: string;
-  path?: string;
-  color?: string;
-  func?: () => void;
+  path: string;
 };
 
 export const menuItems = [
@@ -23,47 +21,50 @@ export const menuItems = [
     path: "/properties",
   },
   {
+    label: "Bookings",
+    icon: "hugeicons:calendar-03",
+    path: "/bookings",
+  },
+  {
     label: "Notifications and Email",
     icon: "solar:notification-unread-lines-linear",
     path: "/notifications",
   },
   {
-    label: "Reports and Analytics",
+    label: "Transaction Monitoring",
     icon: "mage:dashboard-bar-notification",
-    path: "/reports",
+    path: "/transactions",
   },
-  {
-    label: "Settings",
-    icon: "hugeicons:settings-03",
-    path: "/settings",
-  },
-] as const;
+] as const satisfies readonly MenuItem[];
 
 export const adminMenuItems = [
-  { label: "Audit logs", icon: "hugeicons:task-01", path: "/audit-log" },
   {
-    label: "Roles and Permissions",
-    icon: "solar:shield-user-linear",
-    path: "/roles-and-permissions",
+    label: "Admin User Mgt.",
+    icon: "hugeicons:settings-03",
+    path: "/admin-management",
   },
-] as const;
+  { label: "Audit logs", icon: "hugeicons:task-01", path: "/audit-logs" },
+] as const satisfies readonly MenuItem[];
 
-export const userItems: MenuItem[] = [
-  {
-    label: "Account",
-    icon: "iconoir:user",
-    path: "/users",
-  },
-  {
-    label: "Log out",
-    icon: "akar-icons:door",
-    color: "error.light",
-    func: () => {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("user_id");
-        localStorage.removeItem("token");
-        window.location.href = "/";
-      }
-    },
-  },
-];
+export const profileMenuItem = {
+  label: "My Profile",
+  icon: "iconoir:user",
+  path: "/profile",
+} as const satisfies MenuItem;
+
+/** True when `pathname` is the page of `itemPath` or one of its sub-pages. */
+export function isMenuPathActive(pathname: string, itemPath: string) {
+  return pathname === itemPath || pathname.startsWith(`${itemPath}/`);
+}
+
+/**
+ * Ends the session. The server route clears the httpOnly cookies; the
+ * page has no token of its own to remove.
+ */
+export async function logout() {
+  try {
+    await fetch("/api/auth/logout", { method: "POST" });
+  } finally {
+    window.location.href = "/sign-in";
+  }
+}

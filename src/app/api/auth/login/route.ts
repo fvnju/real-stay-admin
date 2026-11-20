@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
-import { BASE_URL, ENVIRONMENT } from "@/utils/configs/constant";
-import { AuthResponse } from "@/utils/endpoints/auth/auth-types";
+import { BASE_URL } from "@/utils/configs/constant";
+import { AuthResponse } from "@/app/endpoints/auth/auth-types";
 import { safeReturn } from "@/utils/errorHandler";
 import { loginSchema } from "@/utils/schema/auth";
+import { ADMIN_USER_TYPE, writeSession } from "@/server/session";
 import { AuthApiError } from "../types";
 
 export async function POST(request: NextRequest) {
-  const cookieStore = cookies();
-
   const { data: body, error } = await safeReturn(request.json());
   if (error !== null) {
     return NextResponse.json({ error: error.message }, { status: 400 });
@@ -29,6 +27,7 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
+      cache: "no-store",
     })
   );
   if (authRespError !== null) {
@@ -52,23 +51,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: authDataError.message }, { status: 500 });
   }
   if (!authData.success) {
-    return NextResponse.json({ error: "Login was not successful" });
+    return NextResponse.json(
+      { error: "Login was not successful" },
+      { status: 500 }
+    );
   }
 
-  cookieStore.set("access_token", authData.data.access_token, {
-    httpOnly: true,
-    secure: ENVIRONMENT === "production",
-    sameSite: "lax",
-    maxAge: 1 * 60 * 60,
-    path: "/",
-  });
-  cookieStore.set("user", JSON.stringify(authData.data.user), {
-    httpOnly: false,
-    secure: ENVIRONMENT === "production",
-    sameSite: "lax",
-    maxAge: 1 * 60 * 60,
-    path: "/",
-  });
+  // The panel is for RealStay staff only. The backend refuses the admin
+  // routes to other users too, but do not give them a session here.
+  if (authData.data.user?.user_type !== ADMIN_USER_TYPE) {
+    return NextResponse.json(
+      { error: "This account is not a RealStay admin account." },
+      { status: 403 }
+    );
+  }
 
-  return NextResponse.json({ error: null });
+  const response = NextResponse.json({ error: null });
+  writeSession(response.cookies, authData.data, authData.data.user);
+  return response;
 }

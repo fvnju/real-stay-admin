@@ -1,5 +1,13 @@
 "use client";
-import { adminMenuItems, menuItems } from "@/lib/dashboardMenu";
+import {
+  adminMenuItems,
+  isMenuPathActive,
+  logout,
+  menuItems,
+  profileMenuItem,
+} from "@/lib/dashboardMenu";
+import { useSessionUser } from "@/app/providers/session-user";
+import { userApi } from "@/app/endpoints/user/user-api-slice";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import clsx from "clsx";
 import { usePathname, useRouter } from "next/navigation";
@@ -38,7 +46,9 @@ export function DashboardButtonsGeneral({
           onClick={() => router.push(val.path)}
           className={clsx(
             `flex gap-2 p-3 items-center w-full rounded-xl text-sm leading-none font-semibold transition-all duration-200`,
-            pathname === val.path ? "bg-white/[0.04]" : "hover:bg-white/[0.02]"
+            isMenuPathActive(pathname, val.path)
+              ? "bg-white/[0.04]"
+              : "hover:bg-white/[0.02]"
           )}
         >
           <Icon
@@ -86,7 +96,9 @@ export function DashboardButtonsAdmin({
           onClick={() => router.push(val.path)}
           className={clsx(
             `flex gap-2 p-3 items-center w-full rounded-xl text-sm leading-none font-semibold transition-all duration-200`,
-            pathname === val.path ? "bg-white/[0.04]" : "hover:bg-white/[0.02]"
+            isMenuPathActive(pathname, val.path)
+              ? "bg-white/[0.04]"
+              : "hover:bg-white/[0.02]"
           )}
         >
           <Icon
@@ -113,6 +125,16 @@ export function DashboardButtonsAdmin({
 
 export function AccountMenu({ isCollapsed }: { isCollapsed: boolean }) {
   const [isClicked, setIsClicked] = useState(false);
+  const router = useRouter();
+  const sessionUser = useSessionUser();
+  const { data } = userApi.useGetUserQuery(
+    { path: { id: sessionUser?.id } },
+    { skip: !sessionUser?.id }
+  );
+  const user = data?.data?.user;
+  const name =
+    [user?.first_name, user?.last_name].filter(Boolean).join(" ") || "Admin";
+  const email = user?.email || sessionUser?.email || "";
 
   // Always use the same layout regardless of collapsed state
   return (
@@ -159,10 +181,10 @@ export function AccountMenu({ isCollapsed }: { isCollapsed: boolean }) {
             }}
           >
             <p className="text-sm font-semibold tracking-wide leading-none">
-              {"Favours G"}
+              {name}
             </p>
             <p className="text-xs tracking-wide leading-none opacity-70">
-              {"seeing.things@fr.com"}
+              {email}
             </p>
           </div>
 
@@ -204,7 +226,10 @@ export function AccountMenu({ isCollapsed }: { isCollapsed: boolean }) {
               }}
               className="mt-3 bg-[#181818] flex flex-col gap-3 rounded-3xl border border-[#262626] text-sm font-semibold p-3"
             >
-              <button className="p-2 gap-2 text-left flex items-center hover:bg-white/5 hover:pl-4 rounded-xl transition-all duration-200">
+              <button
+                onClick={() => router.push(profileMenuItem.path)}
+                className="p-2 gap-2 text-left flex items-center hover:bg-white/5 hover:pl-4 rounded-xl transition-all duration-200"
+              >
                 <Icon
                   icon={"hugeicons:user"}
                   width={16}
@@ -223,7 +248,10 @@ export function AccountMenu({ isCollapsed }: { isCollapsed: boolean }) {
                   Account
                 </span>
               </button>
-              <button className="p-2 gap-2 text-left flex items-center hover:bg-white/5 hover:pl-4 rounded-xl transition-all duration-200">
+              <button
+                onClick={() => void logout()}
+                className="p-2 gap-2 text-left flex items-center hover:bg-white/5 hover:pl-4 rounded-xl transition-all duration-200"
+              >
                 <svg
                   width="16"
                   height="16"
@@ -326,7 +354,7 @@ export const MobileDashboardButtons = ({
       (val) =>
         val.path !== pathname && (
           <button
-            key={`mobile-${val}`}
+            key={`mobile-${val.path}`}
             onClick={() => {
               setOpen(false);
               setTimeout(() => router.push(val.path), 100);

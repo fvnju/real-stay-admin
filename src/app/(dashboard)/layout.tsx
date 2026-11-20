@@ -24,6 +24,8 @@ import {
   MobileDashboardButtons,
 } from "@/components/ui/DashboardButtons";
 import SideBarControl from "@/components/ui/SideBarControl";
+import { SessionUserProvider } from "@/app/providers/session-user";
+import { parseSessionUser, USER_COOKIE } from "@/server/session";
 
 export default function Layout({ children }: { children: ReactNode }) {
   const ViewTransitionPA = dynamic(() => import("@/utils/ViewTransitionsA"), {
@@ -31,8 +33,10 @@ export default function Layout({ children }: { children: ReactNode }) {
   });
   const cookieStore = cookies();
   const isShrink = cookieStore.get("sidebar_shrink")?.value || "";
+  const sessionUser = parseSessionUser(cookieStore.get(USER_COOKIE)?.value);
 
   return (
+    <SessionUserProvider user={sessionUser}>
     <ViewTransitions>
       <ViewTransitionPA />
       <div className="flex h-svh overflow-hidden">
@@ -65,6 +69,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
       </div>
     </ViewTransitions>
+    </SessionUserProvider>
   );
 }
 

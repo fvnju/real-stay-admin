@@ -9,6 +9,9 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { ViewTransitions } from "next-view-transitions";
 import dynamic from "next/dynamic";
+import { ReduxProvider } from "./providers/redux-provider";
+import { MuiThemeProvider } from "./providers/theme-provider";
+import { MuiDateProvider } from "./providers/mui-date-provider";
 
 // Setup dayjs plugins
 dayjs.extend(relativeTime);
@@ -34,10 +37,20 @@ export default function RootLayout({
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="bg-[#0F0F0F]">
         <ViewTransitionPA />
-        <ViewTransitions>
-          {children}
-          <ToastContainer position="top-right" autoClose={3000} />
-        </ViewTransitions>
+        <ReduxProvider>
+          <MuiThemeProvider>
+            <MuiDateProvider>
+              <ViewTransitions>
+                {children}
+                <ToastContainer
+                  position="top-right"
+                  autoClose={3000}
+                  theme="dark"
+                />
+              </ViewTransitions>
+            </MuiDateProvider>
+          </MuiThemeProvider>
+        </ReduxProvider>
       </body>
     </html>
   );

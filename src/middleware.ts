@@ -1,28 +1,32 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+
+// The same names as in `src/server/session.ts`.
+const SESSION_COOKIES = ["access_token", "refresh_token", "user"];
+
+const PUBLIC_PATHS = ["/", "/sign-in", "/forgot-password", "/accept-invite"];
 
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
-  // console.log(path);
   if (path === "/logout") {
     const resp = NextResponse.redirect(new URL("/sign-in", request.nextUrl));
-    resp.cookies.delete("access_token");
+    for (const name of SESSION_COOKIES) resp.cookies.delete(name);
     return resp;
   }
 
-  const isPublicPath =
-    path === "/sign-in" || path === "/forgot-password" || path === "/";
+  const isPublicPath = PUBLIC_PATHS.includes(path);
 
-  const token = request.cookies.get("access_token")?.value || "";
+  // The access token lives 15 minutes, the refresh token 7 days. The
+  // session exists while the refresh token exists: `/api/backend` gets a
+  // new access token when it needs one.
+  const hasSession = !!request.cookies.get("refresh_token")?.value;
 
-  if (!isPublicPath && !token) {
-    // console.log(token);
+  if (!isPublicPath && !hasSession) {
     return NextResponse.redirect(new URL("/sign-in", request.nextUrl));
   }
 
-  if (isPublicPath && token && path !== "/") {
+  if (isPublicPath && hasSession && path !== "/") {
     return NextResponse.redirect(new URL("/dashboard", request.nextUrl));
   }
 
@@ -37,7 +41,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - the public images
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|splash.svg|Pic.JPG|edge-tech-logo.svg|blue-logo.svg).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|splash.svg|Pic.JPG|edge-tech-logo.svg|blue-logo.svg|Real%20Stay.png|fonts/).*)",
   ],
 };

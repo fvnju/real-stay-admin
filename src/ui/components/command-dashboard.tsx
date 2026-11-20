@@ -10,15 +10,18 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-  CommandShortcut,
 } from "@/components/ui/command";
 import { useCommandPalette } from "./cmdk";
 import { useRouter } from "next/navigation";
-import { useTransitionRouter } from "next-view-transitions";
-import { safeReturn } from "@/utils/errorHandler";
-import { toast } from "react-toastify";
+import {
+  adminMenuItems,
+  logout,
+  menuItems,
+  profileMenuItem,
+  type MenuItem,
+} from "@/lib/dashboardMenu";
 
-const ExampleCommandPalette = () => {
+const DashboardCommandPalette = () => {
   const router = useRouter();
   const { isOpen, open, close } = useCommandPalette();
 
@@ -28,121 +31,47 @@ const ExampleCommandPalette = () => {
   };
 
   useEffect(() => {
-    document.getElementById("cmdk")?.addEventListener("click", () => open());
-  }, []);
+    const button = document.getElementById("cmdk");
+    button?.addEventListener("click", open);
+    return () => button?.removeEventListener("click", open);
+  }, [open]);
+
+  const navItem = (item: MenuItem) => (
+    <CommandItem
+      key={item.path}
+      onSelect={() => handleCommand(() => router.push(item.path))}
+    >
+      <Icon icon={item.icon} className="w-4 h-4" />
+      <span>{item.label}</span>
+    </CommandItem>
+  );
 
   return (
-    <>
-      <CommandDialog open={isOpen} onOpenChange={close}>
-        <CommandInput placeholder="Type a command or search..." />
-        <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
+    <CommandDialog open={isOpen} onOpenChange={close}>
+      <CommandInput placeholder="Type a command or search..." />
+      <CommandList>
+        <CommandEmpty>No results found.</CommandEmpty>
 
-          <CommandGroup heading="Navigation">
-            <CommandItem
-              onSelect={() =>
-                handleCommand(() => console.log("Navigating to dashboard..."))
-              }
-            >
-              <Icon icon="hugeicons:home-09" className="w-4 h-4" />
-              <span>Go to Dashboard</span>
-              <CommandShortcut>⌘H</CommandShortcut>
-            </CommandItem>
-            <CommandItem
-              onSelect={() =>
-                handleCommand(() => console.log("Opening profile..."))
-              }
-            >
-              <Icon icon="hugeicons:user" className="w-4 h-4" />
-              <span>View Profile</span>
-              <CommandShortcut>⌘P</CommandShortcut>
-            </CommandItem>
-            <CommandItem
-              onSelect={() =>
-                handleCommand(() => console.log("Opening settings..."))
-              }
-            >
-              <Icon icon="hugeicons:settings-02" className="w-4 h-4" />
-              <span>Settings</span>
-              <CommandShortcut>⌘,</CommandShortcut>
-            </CommandItem>
-          </CommandGroup>
+        <CommandGroup heading="General">{menuItems.map(navItem)}</CommandGroup>
 
-          <CommandSeparator />
+        <CommandSeparator />
 
-          <CommandGroup heading="Actions">
-            <CommandItem
-              onSelect={() =>
-                handleCommand(() => console.log("Opening search..."))
-              }
-            >
-              <Icon icon="hugeicons:search-01" className="w-4 h-4" />
-              <span>Search Documents</span>
-              <CommandShortcut>⌘F</CommandShortcut>
-            </CommandItem>
-          </CommandGroup>
+        <CommandGroup heading="Admin Utility">
+          {adminMenuItems.map(navItem)}
+        </CommandGroup>
 
-          <CommandSeparator />
+        <CommandSeparator />
 
-          <CommandGroup heading="Apps">
-            <CommandItem
-              onSelect={() =>
-                handleCommand(() => console.log("Opening calendar..."))
-              }
-            >
-              <Icon icon="hugeicons:calendar-03" className="w-4 h-4" />
-              <span>Open Calendar</span>
-            </CommandItem>
-            <CommandItem
-              onSelect={() =>
-                handleCommand(() => console.log("Opening mail..."))
-              }
-            >
-              <Icon icon="hugeicons:mail-01" className="w-4 h-4" />
-              <span>Check Mail</span>
-            </CommandItem>
-          </CommandGroup>
-
-          <CommandSeparator />
-
-          <CommandGroup heading="Help">
-            <CommandItem
-              onSelect={() =>
-                handleCommand(() =>
-                  window.open("https://docs.example.com", "_blank")
-                )
-              }
-            >
-              <Icon icon="hugeicons:file-02" className="w-4 h-4" />
-              <span>Documentation</span>
-            </CommandItem>
-          </CommandGroup>
-
-          <CommandSeparator />
-
-          <CommandGroup heading="Account">
-            <CommandItem
-              onSelect={() =>
-                handleCommand(async () => {
-                  const data = await safeReturn(
-                    fetch("api/auth/logout", { method: "POST" })
-                  );
-                  if (data.error !== null) {
-                    toast.error("Could not logout");
-                  }
-                  router.push("/sign-in");
-                })
-              }
-            >
-              <Icon icon="hugeicons:logout-01" className="w-4 h-4" />
-              <span>Sign Out</span>
-              <CommandShortcut>⌘Q</CommandShortcut>
-            </CommandItem>
-          </CommandGroup>
-        </CommandList>
-      </CommandDialog>
-    </>
+        <CommandGroup heading="Account">
+          {navItem(profileMenuItem)}
+          <CommandItem onSelect={() => handleCommand(() => void logout())}>
+            <Icon icon="hugeicons:logout-01" className="w-4 h-4" />
+            <span>Sign Out</span>
+          </CommandItem>
+        </CommandGroup>
+      </CommandList>
+    </CommandDialog>
   );
 };
 
-export default ExampleCommandPalette;
+export default DashboardCommandPalette;
