@@ -6,15 +6,15 @@ import {
   Form,
   Input,
   Label,
-  ListBox,
   Modal,
-  Select,
   Spinner,
   TextField,
 } from "@heroui/react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
+import { useMyPermissions } from "@/lib/use-permission";
+import { RoleSelect } from "./role-select";
 
 export interface InviteAdminFormValues {
   email: string;
@@ -66,6 +66,8 @@ export function InviteAdminModal({
     { skip: !open },
   );
   const roles = rolesData?.data?.roles ?? [];
+  // A role above the own role cannot be picked; the backend refuses it too.
+  const { data: me } = useMyPermissions();
 
   const formik = useFormik<InviteAdminFormValues>({
     initialValues: { email: "", first_name: "", last_name: "", phone_number: "", role_id: "" },
@@ -119,37 +121,16 @@ export function InviteAdminModal({
                   <FieldError>{errorOf(field.name)}</FieldError>
                 </TextField>
               ))}
-              <Select
+              <RoleSelect
                 className="smallPhone:col-span-2"
-                placeholder={rolesLoading ? "Loading roles" : "Choose a role"}
-                selectedKey={formik.values.role_id || null}
-                onSelectionChange={(key) => formik.setFieldValue("role_id", key ? String(key) : "")}
+                roles={roles}
+                me={me}
+                value={formik.values.role_id}
+                onChange={(id) => formik.setFieldValue("role_id", id)}
                 onBlur={() => formik.setFieldTouched("role_id")}
-                isInvalid={!!errorOf("role_id")}
-                isDisabled={rolesLoading}
-                fullWidth
-              >
-                <Label>Role</Label>
-                <Select.Trigger>
-                  <Select.Value />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <FieldError>{errorOf("role_id")}</FieldError>
-                <Select.Popover>
-                  <ListBox>
-                    {roles.map((role) => (
-                      <ListBox.Item key={role._id} id={role._id} textValue={role.name}>
-                        <div className="flex flex-col">
-                          <span>{role.name}</span>
-                          {role.description ? (
-                            <span className="text-xs text-muted">{role.description}</span>
-                          ) : null}
-                        </div>
-                      </ListBox.Item>
-                    ))}
-                  </ListBox>
-                </Select.Popover>
-              </Select>
+                isLoading={rolesLoading}
+                error={errorOf("role_id")}
+              />
             </Modal.Body>
             <Modal.Footer>
               <Button variant="tertiary" onPress={onClose}>

@@ -10,6 +10,9 @@ export interface User {
   phone_number?: string;
   status?: string;
   createdAt?: string; // ISO date
+  /** An admin: the id and the name of the role. */
+  role_id?: string | null;
+  role_name?: string;
 }
 export interface UserResponse {
   user: User;

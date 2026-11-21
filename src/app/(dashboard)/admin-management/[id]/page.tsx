@@ -1,7 +1,9 @@
 "use client";
 
-import { Card, Skeleton } from "@heroui/react";
+import { Button, Card, Modal, Skeleton, Spinner } from "@heroui/react";
 import { useParams } from "next/navigation";
+import { useState } from "react";
+import { toast } from "react-toastify";
 import {
   DetailSection,
   formatDate,
@@ -9,8 +11,14 @@ import {
   PageHeader,
   StatusChip,
   UserAvatar,
+  useGuardedAction,
 } from "@/components/admin";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
+import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
+import { useSessionUser } from "@/app/providers/session-user";
+import { roleErrorMessage } from "@/lib/role-text";
+import { useMyPermissions } from "@/lib/use-permission";
+import { RoleSelect } from "../components/role-select";
 
 /** One admin account. Also used by `/audit-logs/[id]` (the admin of a log). */
 export default function AdminDetailsPage() {
@@ -21,6 +29,12 @@ export default function AdminDetailsPage() {
   const userId = user?._id || user?.id;
   const name = fullName(user);
   const loading = isFetching && !user;
+  const session = useSessionUser();
+  const { data: me } = useMyPermissions();
+  const isSelf = !!userId && session?.id === userId;
+  const canChangeOwn = !!me?.isSuperAdmin;
+  const [changeOpen, setChangeOpen] = useState(false);
+  const guard = useGuardedAction();
 
   return (
     <div className="flex max-w-4xl flex-col gap-6">
@@ -42,6 +56,37 @@ export default function AdminDetailsPage() {
       </Card>
 
       <DetailSection
+        title="Role"
+        isLoading={loading}
+        actions={
+          user && (!isSelf || canChangeOwn) ? (
+            <Button
+              size="sm"
+              variant="secondary"
+              onPress={guard("admin-management:actions", () => setChangeOpen(true))}
+            >
+              Change role
+            </Button>
+          ) : null
+        }
+        fields={[
+          { label: "Role", value: user?.role_name || "No role" },
+          ...(isSelf && !canChangeOwn
+            ? [{ label: "Your role", value: "You cannot change your own role." }]
+            : []),
+        ]}
+      />
+
+      {user && userId ? (
+        <ChangeRoleDialog
+          open={changeOpen}
+          onClose={() => setChangeOpen(false)}
+          adminId={userId}
+          currentRoleId={user.role_id ?? ""}
+        />
+      ) : null}
+
+      <DetailSection
         title="Account"
         isLoading={loading}
         fields={[
@@ -55,5 +100,66 @@ export default function AdminDetailsPage() {
         ]}
       />
     </div>
+  );
+}
+
+/** Gives the admin another role, never above the role of the signed-in admin. */
+function ChangeRoleDialog({
+  open,
+  onClose,
+  adminId,
+  currentRoleId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  adminId: string;
+  currentRoleId: string;
+}) {
+  const [roleId, setRoleId] = useState(currentRoleId);
+  const { data: me } = useMyPermissions();
+  const roles = rbacApi.useGetRolesQuery({ params: { limit: 100 } }, { skip: !open });
+  const [changeRole, { isLoading }] = userApi.useChangeAdminRoleMutation();
+
+  return (
+    <Modal.Backdrop isOpen={open} onOpenChange={(next) => !next && onClose()}>
+      <Modal.Container size="sm">
+        <Modal.Dialog>
+          <Modal.CloseTrigger />
+          <Modal.Header>
+            <Modal.Heading>Change role</Modal.Heading>
+          </Modal.Header>
+          <Modal.Body>
+            <RoleSelect
+              roles={roles.data?.data?.roles ?? []}
+              me={me}
+              value={roleId}
+              onChange={setRoleId}
+              isLoading={roles.isLoading}
+            />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onPress={onClose}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              isDisabled={isLoading || !roleId || roleId === currentRoleId}
+              onPress={() =>
+                changeRole({ id: adminId, roleId })
+                  .unwrap()
+                  .then(() => {
+                    toast.success("Role changed.");
+                    onClose();
+                  })
+                  .catch((err) => toast.error(roleErrorMessage(err)))
+              }
+            >
+              {isLoading ? <Spinner size="sm" color="current" /> : null}
+              Save
+            </Button>
+          </Modal.Footer>
+        </Modal.Dialog>
+      </Modal.Container>
+    </Modal.Backdrop>
   );
 }

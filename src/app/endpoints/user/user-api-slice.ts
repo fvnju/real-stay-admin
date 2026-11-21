@@ -1,7 +1,7 @@
 import { AxiosInstance } from "@/app/store/httpConfig";
 import { realstayApi } from "@/app/store/storeConfigQuery";
 import { ApiRequest, ApiResponse } from "../api";
-import { UserResponse, UsersResponse } from "./user-types";
+import { User, UserResponse, UsersResponse } from "./user-types";
 
 export const userApi = realstayApi.injectEndpoints({
   overrideExisting: true,
@@ -72,6 +72,16 @@ export const userApi = realstayApi.injectEndpoints({
           params,
         };
       },
+      providesTags: ["User"],
+    }),
+    /** `PATCH /users/:id/role`: gives an admin another role. */
+    changeAdminRole: builder.mutation<ApiResponse<User>, { id: string; roleId: string }>({
+      query: ({ id, roleId }) => ({
+        url: `/users/${id}/role`,
+        method: "PATCH",
+        data: { role_id: roleId },
+      }),
+      invalidatesTags: ["User", "MyPermissions"],
     }),
     manageUsers: builder.mutation<ApiResponse<UsersResponse>, ApiRequest>({
       query: ({ path }) => {
