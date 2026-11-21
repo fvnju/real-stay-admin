@@ -226,7 +226,7 @@ export function TestAccountsSection() {
       <div>
         <h2 className="text-base font-semibold">Test accounts</h2>
         <p className="text-sm text-muted">
-          The numbers above leave out these users. Mark a user on their user page ("Leave out of analytics").
+          The numbers above leave out these users. Mark a user on their user page (“Leave out of analytics”).
         </p>
       </div>
       {query.error && !query.data ? (
