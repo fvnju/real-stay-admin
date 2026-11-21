@@ -2,6 +2,7 @@ import "server-only";
 
 import type { NextResponse } from "next/server";
 
+import { ACCESS_EXPIRES_COOKIE, jwtExpiryMs } from "@/app/store/refresh-gate";
 import { BASE_URL, ENVIRONMENT } from "@/utils/configs/constant";
 
 /**
@@ -46,6 +47,13 @@ function cookieOptions(maxAge: number) {
 
 export function writeTokens(cookies: CookieWriter, tokens: SessionTokens) {
   cookies.set(ACCESS_COOKIE, tokens.access_token, cookieOptions(ACCESS_MAX_AGE));
+  // Only the time, so the page can send one request first when the token
+  // has expired (`src/app/store/refresh-gate.ts`). Not httpOnly.
+  const expiry = jwtExpiryMs(tokens.access_token) ?? Date.now() + ACCESS_MAX_AGE * 1000;
+  cookies.set(ACCESS_EXPIRES_COOKIE, String(expiry), {
+    ...cookieOptions(ACCESS_MAX_AGE),
+    httpOnly: false,
+  });
   cookies.set(
     REFRESH_COOKIE,
     tokens.refresh_token,
@@ -67,7 +75,7 @@ export function writeSession(
 }
 
 export function clearSession(cookies: CookieWriter) {
-  for (const name of [ACCESS_COOKIE, REFRESH_COOKIE, USER_COOKIE]) {
+  for (const name of [ACCESS_COOKIE, REFRESH_COOKIE, USER_COOKIE, ACCESS_EXPIRES_COOKIE]) {
     cookies.set(name, "", { ...cookieOptions(0), expires: new Date(0) });
   }
 }
