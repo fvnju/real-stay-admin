@@ -51,3 +51,27 @@ export async function posthogFetch<T>(
   const body: unknown = await res.json().catch(() => null);
   return posthogResultOf<T>(res.status, body);
 }
+
+/**
+ * Sends one event to PostHog, as the app does, with the public project
+ * token (`POSTHOG_PROJECT_TOKEN`, the same as `EXPO_PUBLIC_POSTHOG_API_KEY`
+ * of the app). The panel uses it only to set person properties.
+ */
+export async function posthogCapture(event: (token: string) => object): Promise<PosthogResult<true>> {
+  const token = process.env.POSTHOG_PROJECT_TOKEN;
+  if (!token) return { ok: false, error: NOT_CONFIGURED };
+  const ingest = (process.env.POSTHOG_INGEST_HOST || "https://eu.i.posthog.com").replace(/\/$/, "");
+  try {
+    const res = await fetch(`${ingest}/i/v0/e/`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(event(token)),
+      cache: "no-store",
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!res.ok) return { ok: false, error: UNAVAILABLE };
+    return { ok: true, data: true };
+  } catch {
+    return { ok: false, error: UNAVAILABLE };
+  }
+}

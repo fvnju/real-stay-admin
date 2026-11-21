@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, Chip, Skeleton } from "@heroui/react";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { NAIRA_FORMAT, StatCards, toAmount } from "@/components/admin";
 import { posthogApi } from "@/app/endpoints/posthog/posthog-api-slice";
@@ -212,5 +213,49 @@ export function ErrorsSection({ days }: { days: AnalyticsRange }) {
         );
       }}
     </MetricSection>
+  );
+}
+
+/** The users that the analytics leave out (marked on their user page). */
+export function TestAccountsSection() {
+  const query = posthogApi.useGetTestAccountsQuery();
+  const loading = waitsForData(query);
+  const accounts = query.data ?? [];
+  return (
+    <section className="flex flex-col gap-3">
+      <div>
+        <h2 className="text-base font-semibold">Test accounts</h2>
+        <p className="text-sm text-muted">
+          The numbers above leave out these users. Mark a user on their user page ("Leave out of analytics").
+        </p>
+      </div>
+      {query.error && !query.data ? (
+        <PosthogErrorState error={query.error} onRetry={query.refetch} />
+      ) : (
+        <Card className="gap-3 p-4">
+          {loading ? (
+            <Skeleton className="h-16 w-full rounded-xl" />
+          ) : accounts.length ? (
+            <ul className="flex flex-col divide-y divide-separator">
+              {accounts.map((a, i) => (
+                <li key={a.userId ?? `person-${i}`} className="flex items-center justify-between gap-3 py-2 text-sm">
+                  <span className="min-w-0">
+                    <span className="block truncate font-medium">{a.name ?? a.email ?? "A person without a name"}</span>
+                    {a.name && a.email ? <span className="block truncate text-xs text-muted">{a.email}</span> : null}
+                  </span>
+                  {a.userId ? (
+                    <Link className="shrink-0 text-accent underline" href={`/users/${a.userId}`}>
+                      User page
+                    </Link>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted">No test accounts. The numbers count all users.</p>
+          )}
+        </Card>
+      )}
+    </section>
   );
 }

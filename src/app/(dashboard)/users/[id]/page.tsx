@@ -20,6 +20,7 @@ import { reviewsApi } from "@/app/endpoints/reviews/reviews-api-slice";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
 import { GetErrorMessage } from "@/app/utils/error-handler";
 import { UserActionEnum, UserStatusEnum } from "../interfaces/users.types";
+import { TestAccountSection } from "../components/test-account-section";
 
 export default function UserDetailsPage() {
   // Next 15 gives `params` to a page as a Promise; a client page reads them here.
@@ -141,6 +142,8 @@ export default function UserDetailsPage() {
           <p className="text-sm text-muted">This user has not done the identity check.</p>
         ) : null}
       </DetailSection>
+
+      {userId ? <TestAccountSection userId={userId} /> : null}
 
       {user?.user_type === "host" || reviewsRes?.data?.reviews?.length ? (
         <ReviewList

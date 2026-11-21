@@ -10,6 +10,7 @@ import {
   HostsSection,
   PaymentsSection,
   SignupsSection,
+  TestAccountsSection,
 } from "./components/sections";
 
 export default function AnalyticsPage() {
@@ -35,6 +36,7 @@ export default function AnalyticsPage() {
       <PaymentsSection days={days} />
       <HostsSection days={days} />
       <ErrorsSection days={days} />
+      <TestAccountsSection />
     </div>
   );
 }
