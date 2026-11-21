@@ -61,9 +61,7 @@ export function RoleForm({
       <Card className="gap-3 p-5">
         <div>
           <h2 className="text-base font-semibold">Permissions</h2>
-          <p className="text-sm text-muted">
-            View opens the list page, Details opens a detail page, Actions changes things.
-          </p>
+          <p className="text-sm text-muted">Checking Details or Actions of an area also checks View.</p>
         </div>
         <PermissionGrid value={permissions} onChange={setPermissions} me={me} />
         {touched && permsErr ? <p className="text-sm text-danger">{permsErr}</p> : null}

@@ -3,6 +3,7 @@ import { PERMISSIONS_CONFIG } from "@/app/configs/rbac.perms";
 import {
   PAGE_PERMISSIONS,
   canGrant,
+  newRolePermissions,
   missingPermissionOf,
   pagePermissionOf,
   permissionStateOf,
@@ -110,5 +111,20 @@ describe("PAGE_PERMISSIONS", () => {
     for (const p of Object.values(PAGE_PERMISSIONS)) {
       if (p.permission) expect(PERMISSIONS_CONFIG).toContain(p.permission);
     }
+  });
+});
+
+describe("newRolePermissions", () => {
+  it("starts a new role with My profile", () => {
+    expect(newRolePermissions()).toEqual(["profile:view", "profile:details", "profile:actions"]);
+  });
+
+  it("keeps the asked permissions and adds My profile once", () => {
+    expect(newRolePermissions(["users:view", "profile:view"])).toEqual([
+      "users:view",
+      "profile:view",
+      "profile:details",
+      "profile:actions",
+    ]);
   });
 });

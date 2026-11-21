@@ -18,7 +18,7 @@ import {
 import { Icon } from "@/components/icon";
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
 import { authApi } from "@/app/endpoints/auth/auth-api-slice";
-import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
+import { ALL_ROLES_ARGS, rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
 import type { Role } from "@/app/endpoints/rbac/rbac-types";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
 import { GetErrorMessage } from "@/app/utils/error-handler";
@@ -42,7 +42,7 @@ const STATUSES = [
 
 function RolesTable() {
   const router = useRouter();
-  const listQuery = rbacApi.useGetRolesQuery({ params: { limit: 100 } });
+  const listQuery = rbacApi.useGetRolesQuery(ALL_ROLES_ARGS);
   const { data } = listQuery;
   const isFetching = waitsForData(listQuery);
   return (

@@ -12,7 +12,7 @@ import {
 } from "@heroui/react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
+import { ALL_ROLES_ARGS, rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
 import { useMyPermissions } from "@/lib/use-permission";
 import { RoleSelect } from "./role-select";
 
@@ -62,7 +62,7 @@ export function InviteAdminModal({
 }) {
   // The backend refuses an invite without a role.
   const { data: rolesData, isFetching: rolesLoading } = rbacApi.useGetRolesQuery(
-    { params: { limit: 100 } },
+    ALL_ROLES_ARGS,
     { skip: !open },
   );
   const roles = rolesData?.data?.roles ?? [];

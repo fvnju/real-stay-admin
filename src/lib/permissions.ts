@@ -135,3 +135,11 @@ export function pagePermissionOf(pathname: string): PagePermission {
 
 /** Every permission, in the order of the grid. */
 export const ALL_PERMISSIONS: readonly Permission[] = PERMISSIONS_CONFIG;
+
+/** The permissions that a new role starts with: each admin can open their own profile. */
+export const NEW_ROLE_PERMISSIONS: readonly Permission[] = ["profile:view", "profile:details", "profile:actions"];
+
+/** The first permissions of a new role: `asked` and the permissions of `NEW_ROLE_PERMISSIONS`. */
+export function newRolePermissions(asked: readonly string[] = []): string[] {
+  return [...asked, ...NEW_ROLE_PERMISSIONS.filter((p) => !asked.includes(p))];
+}

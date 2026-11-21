@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { accessRequestsApi } from "@/app/endpoints/access-requests/access-requests-api-slice";
-import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
+import { ALL_ROLES_ARGS, rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
 import { RoleSelect } from "@/app/(dashboard)/admin-management/components/role-select";
 import { PermissionGrid } from "@/app/(dashboard)/admin-management/components/permission-grid";
 import { MAX_REASON_LENGTH, accessRequestError } from "@/lib/access-requests";
@@ -33,7 +33,7 @@ export function AskAccessDialog({
   const [touched, setTouched] = useState(false);
   const [openRequest, setOpenRequest] = useState(false);
   // The list of roles needs roles:view; without it the admin asks for permissions only.
-  const roles = rbacApi.useGetRolesQuery({ params: { limit: 100 } }, { skip: !open });
+  const roles = rbacApi.useGetRolesQuery(ALL_ROLES_ARGS, { skip: !open });
   const [send, { isLoading }] = accessRequestsApi.useCreateRequestMutation();
   // Only the permissions that the admin does not have yet.
   const mine = new Set(me?.permissions ?? []);

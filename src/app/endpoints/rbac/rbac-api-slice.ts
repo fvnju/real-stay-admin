@@ -5,6 +5,13 @@ import { Role, RolesResponse } from "./rbac-types";
 
 export type RoleInput = { name: string; description?: string; permissions: string[] };
 
+/**
+ * The arguments of the full role list. The backend reads `page_size`, not
+ * `limit`: an unknown key such as `limit` goes into the Mongo filter and
+ * matches no role. Use this one value so that each caller shares the cache.
+ */
+export const ALL_ROLES_ARGS = { params: { page_size: 100 } };
+
 export const rbacApi = realstayApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({

@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { PageHeader, useGuardedAction } from "@/components/admin";
 import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
+import { newRolePermissions } from "@/lib/permissions";
 import { roleErrorMessage } from "@/lib/role-text";
 import { useMyPermissions } from "@/lib/use-permission";
 import { RoleForm } from "../../components/role-form";
@@ -23,7 +24,7 @@ export default function NewRolePage() {
       <PageHeader showBack title="New role" description="You can give only the permissions that you have." />
       <RoleForm
         me={me}
-        initial={asked.length ? { name: "", description: "", permissions: asked } : undefined}
+        initial={{ name: "", description: "", permissions: newRolePermissions(asked) }}
         submitText="Make the role"
         isSaving={isLoading}
         onSubmit={guard("roles:actions", (input) =>

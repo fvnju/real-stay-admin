@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { formatDateTime } from "@/components/admin";
 import { accessRequestsApi } from "@/app/endpoints/access-requests/access-requests-api-slice";
 import type { AccessRequest } from "@/app/endpoints/access-requests/access-requests-types";
-import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
+import { ALL_ROLES_ARGS, rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
 import { MAX_REASON_LENGTH, missingFromRole, permissionsForApproval } from "@/lib/access-requests";
 import { roleErrorMessage } from "@/lib/role-text";
 import { useMyPermissions } from "@/lib/use-permission";
@@ -35,7 +35,7 @@ export function DecideRequestDialog({
 }) {
   const router = useRouter();
   const { data: me } = useMyPermissions();
-  const roles = rbacApi.useGetRolesQuery({ params: { limit: 100 } }, { skip: !request });
+  const roles = rbacApi.useGetRolesQuery(ALL_ROLES_ARGS, { skip: !request });
   const [roleId, setRoleId] = useState(initialRoleId ?? request?.role?.id ?? "");
   const [declining, setDeclining] = useState(false);
   const [note, setNote] = useState("");

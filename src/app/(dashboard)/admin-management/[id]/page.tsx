@@ -14,7 +14,7 @@ import {
   useGuardedAction,
 } from "@/components/admin";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
-import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
+import { ALL_ROLES_ARGS, rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
 import { useSessionUser } from "@/app/providers/session-user";
 import { roleErrorMessage } from "@/lib/role-text";
 import { useMyPermissions } from "@/lib/use-permission";
@@ -117,7 +117,7 @@ function ChangeRoleDialog({
 }) {
   const [roleId, setRoleId] = useState(currentRoleId);
   const { data: me } = useMyPermissions();
-  const roles = rbacApi.useGetRolesQuery({ params: { limit: 100 } }, { skip: !open });
+  const roles = rbacApi.useGetRolesQuery(ALL_ROLES_ARGS, { skip: !open });
   const [changeRole, { isLoading }] = userApi.useChangeAdminRoleMutation();
 
   return (
