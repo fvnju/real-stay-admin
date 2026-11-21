@@ -27,6 +27,7 @@ export const menuItems = [
 export const adminMenuItems = [
   { label: "Admins", icon: "shield-checkmark", path: "/admin-management", shortcut: "a" },
   { label: "Audit logs", icon: "document-text", path: "/audit-logs", shortcut: "l" },
+  { label: "Feature flags", icon: "options-outline", path: "/feature-flags", shortcut: "f" },
 ] as const satisfies readonly MenuItem[];
 
 export const profileMenuItem = {

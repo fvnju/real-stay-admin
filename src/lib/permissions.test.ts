@@ -104,6 +104,9 @@ describe("PAGE_PERMISSIONS", () => {
     expect(pagePermissionOf("/users/abc")).toEqual({ permission: "users:details", name: "User" });
     expect(pagePermissionOf("/reports/123").permission).toBe("reports:details");
     expect(pagePermissionOf("/admin-management/roles/new").permission).toBe("roles:view");
+    expect(pagePermissionOf("/feature-flags").permission).toBe("feature-flags:view");
+    expect(pagePermissionOf("/feature-flags/new").permission).toBe("feature-flags:actions");
+    expect(pagePermissionOf("/feature-flags/370262").permission).toBe("feature-flags:details");
     expect(pagePermissionOf("/profile").permission).toBeNull();
     expect(pagePermissionOf("/notifications").permission).toBeNull();
   });

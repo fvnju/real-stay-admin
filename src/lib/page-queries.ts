@@ -8,6 +8,7 @@ import { transactionApi } from "@/app/endpoints/transactions/transactions-api-sl
 import { userApi } from "@/app/endpoints/user/user-api-slice";
 import store from "@/app/store/store";
 import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
+import { posthogApi } from "@/app/endpoints/posthog/posthog-api-slice";
 import { pagePermissionOf, permissionStateOf } from "@/lib/permissions";
 import { sanitizeFilterQuery } from "@/app/utils/filter-helpers";
 
@@ -145,6 +146,9 @@ const PREFETCH: Record<string, () => unknown[]> = {
     analyticApi.util.prefetch("adminsAnalytics", adminsAnalyticsArgs, {
       ifOlderThan: FRESH_SECONDS,
     }),
+  ],
+  "/feature-flags": () => [
+    posthogApi.util.prefetch("getFlags", flagsArgs(), { ifOlderThan: FRESH_SECONDS }),
   ],
   "/audit-logs": () => [
     auditLogApi.util.prefetch("getAuditlogs", auditLogsArgs(first), {

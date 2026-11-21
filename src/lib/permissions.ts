@@ -112,6 +112,9 @@ export const PAGE_PERMISSIONS = {
   "/admin-management/roles/[id]": { permission: "roles:view", name: "Role" },
   "/audit-logs": { permission: "audit-logs:view", name: "Audit logs" },
   "/audit-logs/[id]": { permission: "audit-logs:details", name: "Audit log" },
+  "/feature-flags": { permission: "feature-flags:view", name: "Feature flags" },
+  "/feature-flags/new": { permission: "feature-flags:actions", name: "New flag" },
+  "/feature-flags/[id]": { permission: "feature-flags:details", name: "Feature flag" },
   "/notifications": { permission: null, name: "Notifications" },
   "/profile": { permission: null, name: "My profile" },
 } as const satisfies Record<string, PagePermission>;
