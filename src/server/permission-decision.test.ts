@@ -8,8 +8,8 @@ const me = (permissions: string[], isSuperAdmin = false) => ({
 });
 
 describe("permissionDecision", () => {
-  it("allows on an old backend without /rbac/me (404)", () => {
-    expect(permissionDecision({ status: 404 }, "feature-flags:view")).toBe("allow");
+  it("does not allow when /rbac/me answers 404 (an unknown route runs no sign-in check)", () => {
+    expect(permissionDecision({ status: 404 }, "feature-flags:view")).toBe("unavailable");
   });
 
   it("signs out on a 401", () => {

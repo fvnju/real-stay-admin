@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toPosthogError } from "./posthog-errors";
+import { posthogResultOf, toPosthogError } from "./posthog-errors";
 
 describe("toPosthogError", () => {
   it("maps a 409 to FLAG_CHANGED", () => {
@@ -37,4 +37,19 @@ describe("toPosthogError", () => {
       expect(toPosthogError(400, body).message).toBe("PostHog refused the request.");
     },
   );
+});
+
+describe("posthogResultOf", () => {
+  it("gives the body of a good answer", () => {
+    expect(posthogResultOf(200, { results: [] })).toEqual({ ok: true, data: { results: [] } });
+  });
+  it("treats a good answer without a body that can be read as PostHog unavailable", () => {
+    expect(posthogResultOf(200, null)).toEqual({
+      ok: false,
+      error: expect.objectContaining({ status: 502, code: "POSTHOG_UNAVAILABLE" }),
+    });
+  });
+  it("maps an error answer", () => {
+    expect(posthogResultOf(409, null)).toEqual({ ok: false, error: expect.objectContaining({ code: "FLAG_CHANGED" }) });
+  });
 });

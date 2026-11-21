@@ -59,7 +59,7 @@ The owner picked A. The owner picked **full control** of the flags (make, edit a
 ### Server code
 
 - `src/server/posthog.ts` (`server-only`): one `posthogFetch(path, init)` that adds the key and the host. It never returns the key or the raw PostHog error body to the client; it maps errors to `{ status, code, message }`.
-- `src/server/require-permission.ts`: reads the session cookies, calls backend `GET /rbac/me` (with the same refresh rules as the proxy), and answers 401 or `403 MISSING_PERMISSION` with the same body as the backend. On a backend without `/rbac/me` (404), nothing is blocked, as in the panel. A route that is not GET also checks the `Origin` header, as the proxy does.
+- `src/server/require-permission.ts`: reads the session cookies, calls backend `GET /rbac/me` (with the same refresh rules as the proxy), and answers 401 or `403 MISSING_PERMISSION` with the same body as the backend. Only a real answer of `/rbac/me` allows: a 404 gives 502 too, because the backend answers 404 for an unknown route before it checks the sign-in (final review). A route that is not GET also checks the `Origin` header, as the proxy does.
 - Routes under `src/app/api/posthog/`:
   - `GET flags` (`feature-flags:view`): the list. `GET flags/[id]` (`feature-flags:details`): one flag with its full `filters`.
   - `POST flags`, `PATCH flags/[id]`, `DELETE flags/[id]` (`feature-flags:actions`). Delete is the soft delete of PostHog (`deleted: true`), so the owner can restore it in PostHog.

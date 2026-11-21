@@ -1,14 +1,14 @@
 import "server-only";
 
-import { NOT_CONFIGURED, UNAVAILABLE, toPosthogError, type PosthogError } from "./posthog-errors";
+import { NOT_CONFIGURED, UNAVAILABLE, posthogResultOf, type PosthogResult } from "./posthog-errors";
+
+export type { PosthogResult };
 
 /**
  * Calls the PostHog API of the project with the personal API key. Only the
  * server has the key (`POSTHOG_PERSONAL_API_KEY`, no `NEXT_PUBLIC_`). A
  * result or an error from here never has the key in it.
  */
-export type PosthogResult<T> = { ok: true; data: T } | { ok: false; error: PosthogError };
-
 const TIMEOUT_MS = 10_000;
 
 function config() {
@@ -49,6 +49,5 @@ export async function posthogFetch<T>(
   }
 
   const body: unknown = await res.json().catch(() => null);
-  if (!res.ok) return { ok: false, error: toPosthogError(res.status, body) };
-  return { ok: true, data: body as T };
+  return posthogResultOf<T>(res.status, body);
 }

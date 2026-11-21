@@ -48,3 +48,15 @@ export function toPosthogError(status: number, body: unknown): PosthogError {
   if (status >= 500) return UNAVAILABLE;
   return { status: 502, code: "POSTHOG_ERROR", message: "The PostHog request failed." };
 }
+
+export type PosthogResult<T> = { ok: true; data: T } | { ok: false; error: PosthogError };
+
+/**
+ * The result of a PostHog answer. A good answer without a body that can be
+ * read (a timeout while the body comes, or a gateway page) is not data.
+ */
+export function posthogResultOf<T>(status: number, body: unknown): PosthogResult<T> {
+  if (status < 200 || status >= 300) return { ok: false, error: toPosthogError(status, body) };
+  if (body === null || body === undefined) return { ok: false, error: UNAVAILABLE };
+  return { ok: true, data: body as T };
+}

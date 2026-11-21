@@ -103,6 +103,43 @@ export function isAppFlag(key: string): boolean {
   return (APP_FLAG_KEYS as readonly string[]).includes(key);
 }
 
+const FILTER_KEYS = new Set(["groups", "multivariate", "payloads", "aggregation_group_type_index", "early_exit", "version"]);
+const GROUP_KEYS = new Set(["condition_id", "properties", "rollout_percentage", "variant", "aggregation_group_type_index"]);
+const PROPERTY_KEYS = new Set(["key", "type", "operator", "value", "group_type_index", "cohort_name", "cohort_deleted", "cohort_missing"]);
+const NUMBER_OPERATORS: readonly string[] = ["gt", "gte", "lt", "lte"];
+
+/** null, false, "", [] or {}: a field that PostHog sends empty on a plain flag. */
+function isEmpty(v: unknown): boolean {
+  if (v === null || v === undefined || v === false || v === "") return true;
+  if (Array.isArray(v)) return v.length === 0;
+  return typeof v === "object" && Object.keys(v as object).length === 0;
+}
+
+/** True when an object has a field outside `known` with a value. */
+function hasUnknownField(obj: object, known: Set<string>): boolean {
+  return Object.entries(obj).some(([k, v]) => !known.has(k) && !isEmpty(v));
+}
+
+const hasSeparator = (text: string) => /[,\n]/.test(text);
+
+/**
+ * True when the form shows the value of a person filter and sends it back
+ * the same. A list operator keeps strings without a comma or a line break
+ * (the form splits on them); another operator keeps one string, or a number
+ * for a number comparison.
+ */
+function valueRoundTrips(operator: string, value: unknown): boolean {
+  if (NO_VALUE_OPERATORS.includes(operator as FlagOperator)) return true;
+  if (LIST_OPERATORS.includes(operator as FlagOperator)) {
+    const values = Array.isArray(value) ? value : [value];
+    return values.every((v) => typeof v === "string" && !hasSeparator(v));
+  }
+  if (typeof value === "string") return true;
+  return typeof value === "number" && NUMBER_OPERATORS.includes(operator);
+}
+
+const CANNOT_EDIT = "This flag has rules that the panel cannot edit.";
+
 /** Why the form cannot edit this flag, or null when it can. */
 export function readOnlyReason(flag: PosthogFlag): string | null {
   if (flag.experiment_set?.length) return "An experiment owns this flag.";
@@ -111,17 +148,20 @@ export function readOnlyReason(flag: PosthogFlag): string | null {
   const f = flag.filters ?? { groups: [] };
   if (f.version === 2) return "This flag uses rules that only PostHog can edit.";
   if (f.aggregation_group_type_index != null) return "This flag targets groups.";
+  if (hasUnknownField(f, FILTER_KEYS)) return CANNOT_EDIT;
   for (const g of f.groups ?? []) {
     if (g.aggregation_group_type_index != null) return "This flag targets groups.";
+    if (hasUnknownField(g, GROUP_KEYS)) return CANNOT_EDIT;
     for (const p of g.properties ?? []) {
+      if (hasUnknownField(p, PROPERTY_KEYS) || p.group_type_index != null) return CANNOT_EDIT;
       if (p.type === "cohort") {
         if (p.operator !== "in" || typeof p.value !== "number") return "This flag has a cohort rule that the panel cannot edit.";
         continue;
       }
-      if (p.type !== undefined && p.type !== "person") return "This flag has rules that the panel cannot edit.";
-      if (!(FLAG_OPERATORS as readonly string[]).includes(p.operator ?? "exact")) {
-        return "This flag has rules that the panel cannot edit.";
-      }
+      if (p.type !== undefined && p.type !== "person") return CANNOT_EDIT;
+      const operator = p.operator ?? "exact";
+      if (!(FLAG_OPERATORS as readonly string[]).includes(operator)) return CANNOT_EDIT;
+      if (!valueRoundTrips(operator, p.value)) return CANNOT_EDIT;
     }
   }
   return null;

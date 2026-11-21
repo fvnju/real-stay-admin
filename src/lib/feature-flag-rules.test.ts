@@ -169,6 +169,19 @@ describe("readOnlyReason", () => {
   it("is null for a flag that the form can edit", () => {
     expect(readOnlyReason(flag({ groups: [{ properties: [], rollout_percentage: 20 }] }))).toBeNull();
   });
+  it("is null for the fields that PostHog sends empty on a plain flag", () => {
+    const filters = {
+      groups: [{ condition_id: "c1", properties: [], rollout_percentage: 100, aggregation_group_type_index: null, variant: null, description: null }],
+      early_exit: false,
+      aggregation_group_type_index: null,
+      holdout_groups: [],
+      super_groups: null,
+      feature_enrollment: null,
+      payloads: {},
+      multivariate: null,
+    } as unknown as PosthogFlag["filters"];
+    expect(readOnlyReason(flag(filters))).toBeNull();
+  });
   it.each([
     ["an experiment", { experiment_set: [7] }, {}],
     ["a survey", { surveys: [{ id: "s" }] }, {}],
@@ -176,6 +189,13 @@ describe("readOnlyReason", () => {
     ["group targeting", {}, { aggregation_group_type_index: 0 }],
     ["a flag dependency", {}, { groups: [{ properties: [{ key: "other", type: "flag", operator: "flag_evaluates_to", value: true }], rollout_percentage: 100 }] }],
     ["a date operator", {}, { groups: [{ properties: [{ key: "joined", type: "person", operator: "is_date_after", value: "2026-01-01" }], rollout_percentage: 100 }] }],
+    ["a list value with a comma", {}, { groups: [{ properties: [{ key: "city", type: "person", operator: "exact", value: ["Lagos, Nigeria"] }], rollout_percentage: 100 }] }],
+    ["a text value with a comma on a list operator", {}, { groups: [{ properties: [{ key: "city", type: "person", operator: "exact", value: "Lagos, Nigeria" }], rollout_percentage: 100 }] }],
+    ["a list value on a text operator", {}, { groups: [{ properties: [{ key: "city", type: "person", operator: "icontains", value: ["a", "b"] }], rollout_percentage: 100 }] }],
+    ["holdout groups", {}, { holdout_groups: [{ properties: [], rollout_percentage: 10 }] }],
+    ["super groups", {}, { super_groups: [{ properties: [], rollout_percentage: 100 }] }],
+    ["early access enrollment", {}, { feature_enrollment: true }],
+    ["a condition description", {}, { groups: [{ properties: [], rollout_percentage: 100, description: "Beta testers" }] }],
   ])("is set for %s", (_name, extra, filters) => {
     const f = flag({ groups: [{ properties: [], rollout_percentage: 100 }], ...filters } as PosthogFlag["filters"], extra as Partial<PosthogFlag>);
     expect(readOnlyReason(f)).toEqual(expect.any(String));
