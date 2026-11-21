@@ -122,7 +122,7 @@ export default function AdminsPage() {
       <StatCards
         isLoading={isFetchingAnalytics}
         items={[
-          { label: "Admins", value: stats?.total_users, icon: "shield-checkmark" },
+          { label: "Admins", value: stats?.total_users, icon: "shield-checkmark-outline" },
           { label: "Active", value: stats?.active_users, icon: "checkmark-circle-outline" },
           { label: "Invite pending", value: stats?.pending_users, icon: "time-outline" },
         ]}

@@ -1,11 +1,20 @@
 "use client";
 
 import { Button, Modal } from "@heroui/react";
-import { useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import { Icon } from "@/components/icon";
 
 /** Photo thumbnails. A click opens a large view with previous and next. */
-export function PhotoGallery({ photos, title }: { photos: string[]; title: string }) {
+export function PhotoGallery({
+  photos,
+  title,
+  firstPhotoTransition,
+}: {
+  photos: string[];
+  title: string;
+  /** The view transition style of the first photo, for a morph from another page. */
+  firstPhotoTransition?: CSSProperties;
+}) {
   const [open, setOpen] = useState<number | null>(null);
   const count = photos.length;
 
@@ -38,6 +47,7 @@ export function PhotoGallery({ photos, title }: { photos: string[]; title: strin
             onClick={() => setOpen(i)}
             className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-default outline-none focus-visible:ring-2 focus-visible:ring-focus"
             aria-label={`Open photo ${i + 1} of ${count}`}
+            style={i === 0 ? firstPhotoTransition : undefined}
           >
             {/* eslint-disable-next-line @next/next/no-img-element -- photos come from many hosts */}
             <img src={src} alt="" loading="lazy" className="size-full object-cover transition-opacity group-hover:opacity-90" />

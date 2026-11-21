@@ -36,8 +36,21 @@ export function RowActions({
               id={action.id}
               textValue={action.label}
               variant={action.danger ? "danger" : undefined}
+              // HeroUI gives a danger item the grey hover of the other items.
+              className={
+                action.danger
+                  ? "hover:bg-danger-soft data-[hovered=true]:bg-danger-soft data-[focus-visible=true]:bg-danger-soft"
+                  : undefined
+              }
             >
-              {action.icon ? <Icon name={action.icon} size={16} /> : null}
+              {action.icon ? (
+                <Icon
+                  name={action.icon}
+                  size={16}
+                  // The icon of a danger action has the color of its label.
+                  className={`shrink-0 ${action.danger ? "text-danger" : "text-muted"}`}
+                />
+              ) : null}
               <Label>{action.label}</Label>
             </Dropdown.Item>
           ))}

@@ -14,6 +14,8 @@ import {
   PageHeader,
   PhotoGallery,
   StatusChip,
+  formatPhone,
+  phoneToCopy,
 } from "@/components/admin";
 import { Icon } from "@/components/icon";
 import { bookingsApi } from "@/app/endpoints/bookings/bookings-api-slice";
@@ -33,7 +35,7 @@ export default function BookingDetailsPage() {
   const personFields = (user?: User) => [
     { label: "Name", value: fullName(user) },
     { label: "Email", value: user?.email, copy: user?.email },
-    { label: "Phone number", value: user?.phone_number, copy: user?.phone_number },
+    { label: "Phone number", value: formatPhone(user?.phone_number), copy: phoneToCopy(user?.phone_number) },
     { label: "Joined", value: formatDate(user?.createdAt) },
   ];
 

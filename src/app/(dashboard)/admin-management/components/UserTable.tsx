@@ -9,13 +9,14 @@ import {
   StatusChip,
   UserCell,
   type Column,
+  formatPhone,
 } from "@/components/admin";
 import type { User } from "@/app/endpoints/user/user-types";
 
 const COLUMNS: Column[] = [
-  { key: "user", label: "Admin", isRowHeader: true },
+  { key: "user", label: "Admin", isRowHeader: true, skeleton: "user" },
   { key: "phone", label: "Phone number" },
-  { key: "status", label: "Status" },
+  { key: "status", label: "Status", skeleton: "chip" },
   { key: "joined", label: "Joined" },
 ];
 
@@ -40,7 +41,7 @@ export const UserTable: FC<{ users: User[]; isFetching: boolean }> = ({
           case "user":
             return <UserCell user={u} secondary={u.email} />;
           case "phone":
-            return <span className="tabular-nums">{u.phone_number ?? "–"}</span>;
+            return <span className="whitespace-nowrap tabular-nums">{formatPhone(u.phone_number)}</span>;
           case "status":
             return isRemovedAdmin(u) ? <StatusChip status="removed" /> : <StatusChip status={u.status} />;
           case "joined":

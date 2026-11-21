@@ -15,11 +15,11 @@ import {
 import type { Booking } from "@/app/endpoints/bookings/bookings-types";
 
 const COLUMNS: Column[] = [
-  { key: "listing", label: "Listing", isRowHeader: true },
-  { key: "stay", label: "Stay" },
-  { key: "guest", label: "Guest" },
-  { key: "host", label: "Host" },
-  { key: "status", label: "Status" },
+  { key: "listing", label: "Listing", isRowHeader: true, skeleton: "lines" },
+  { key: "stay", label: "Stay", skeleton: "lines" },
+  { key: "guest", label: "Guest", skeleton: "user" },
+  { key: "host", label: "Host", skeleton: "user" },
+  { key: "status", label: "Status", skeleton: "chip" },
   { key: "cost", label: "Total", className: "text-right" },
   { key: "margin", label: "Margin", className: "text-right" },
   { key: "requested", label: "Requested" },

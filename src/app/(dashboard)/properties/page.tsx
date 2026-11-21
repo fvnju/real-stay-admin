@@ -123,9 +123,9 @@ export default function PropertiesPage() {
       <StatCards
         isLoading={isFetchingStats}
         items={[
-          { label: "Listings", value: stats?.total_listings, icon: "home" },
+          { label: "Listings", value: stats?.total_listings, icon: "home-outline" },
           { label: "Active", value: stats?.active_listings, icon: "checkmark-circle-outline" },
-          { label: "Inactive", value: stats?.inactive_listings, icon: "close-circle" },
+          { label: "Inactive", value: stats?.inactive_listings, icon: "close-circle-outline" },
         ]}
       />
 

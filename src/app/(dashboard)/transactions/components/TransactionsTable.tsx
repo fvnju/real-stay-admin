@@ -18,8 +18,8 @@ const COLUMNS: Column[] = [
   { key: "time", label: "Time" },
   { key: "description", label: "Description", isRowHeader: true },
   { key: "amount", label: "Amount", className: "text-right" },
-  { key: "type", label: "Type" },
-  { key: "status", label: "Status" },
+  { key: "type", label: "Type", skeleton: "chip" },
+  { key: "status", label: "Status", skeleton: "chip" },
   { key: "reference", label: "Reference" },
   { key: "provider", label: "Provider" },
 ];

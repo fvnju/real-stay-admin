@@ -12,6 +12,35 @@
   navigation: auto;
 }
 
+/*
+ * View transitions between pages (next-view-transitions). The photo of a
+ * listing card morphs into the first photo of the listing page
+ * (properties/components/open-listing.ts); the rest of the page crossfades.
+ */
+::view-transition-group(*) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+::view-transition-image-pair(.listing-photo) {
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+::view-transition-old(.listing-photo),
+::view-transition-new(.listing-photo) {
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 @theme {
   /* The breakpoints of the old Tailwind config. The pages use them. */
   --breakpoint-xs: 0px;
@@ -51,11 +80,46 @@
     font-family: var(--font-sans);
   }
 
+  /* Tailwind v4 gives a button the default cursor; v3 and HeroUI use the pointer. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  summary {
+    cursor: pointer;
+  }
+
   /* Tailwind v4 borders are currentColor by default; v3 used the border color. */
   *,
   ::before,
   ::after {
     border-color: var(--color-border);
+  }
+}
+
+/*
+ * The list of the command dialog. The search bar covers its top 64 px and the
+ * footer its bottom 64 px, so the track stops at the bars. Chrome uses
+ * ::-webkit-scrollbar only when scrollbar-width and scrollbar-color are auto.
+ */
+@layer components {
+  .command-list {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+  }
+  .command-list::-webkit-scrollbar {
+    width: 12px;
+  }
+  .command-list::-webkit-scrollbar-track {
+    background: transparent;
+    margin-block: 64px 64px;
+  }
+  .command-list::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background: color-mix(in oklch, var(--foreground) 20%, transparent) padding-box;
+  }
+  .command-list::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklch, var(--foreground) 35%, transparent) padding-box;
   }
 }
 

@@ -1,12 +1,12 @@
 "use client";
 
 import { Skeleton } from "@heroui/react";
-import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { formatNaira, fullName, RowActions, statusColor, statusLabel } from "@/components/admin";
 import { Icon } from "@/components/icon";
 import type { Listing } from "@/app/endpoints/properties/properties-types";
 import { listingActions, type ManageListing } from "./listing-actions";
+import { listingPhotoTransition, useOpenListing } from "./open-listing";
 
 const GRID = "grid grid-cols-1 gap-x-6 gap-y-8 smallPhone:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
 
@@ -31,8 +31,7 @@ export default function PropertiesGrid({
   isFetching: boolean;
   manage: ManageListing;
 }) {
-  const router = useRouter();
-  const open = (id: string) => router.push(`/properties/${id}`);
+  const open = useOpenListing(listings);
 
   if (isFetching) {
     return (
@@ -100,7 +99,10 @@ function ListingCard({
 
   return (
     <div className="group relative flex flex-col">
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl bg-default [corner-shape:squircle]">
+      <div
+        className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl bg-default [corner-shape:squircle]"
+        style={listingPhotoTransition(l._id)}
+      >
         {photos.length ? (
           <div
             ref={strip}

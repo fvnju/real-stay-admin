@@ -69,9 +69,9 @@ export default function DashboardPage() {
         <StatCards
           isLoading={isFetching}
           items={[
-            { label: "Total users", value: users?.total_users, icon: "people" },
+            { label: "Total users", value: users?.total_users, icon: "people-outline" },
             { label: "Active", value: users?.active_users, icon: "checkmark-circle-outline" },
-            { label: "Inactive", value: users?.inactive_users, icon: "close-circle" },
+            { label: "Inactive", value: users?.inactive_users, icon: "close-circle-outline" },
           ]}
         />
       </Section>
@@ -80,9 +80,9 @@ export default function DashboardPage() {
         <StatCards
           isLoading={isFetching}
           items={[
-            { label: "Total listings", value: listings?.total_listings, icon: "home" },
+            { label: "Total listings", value: listings?.total_listings, icon: "home-outline" },
             { label: "Active", value: listings?.active_listings, icon: "checkmark-circle-outline" },
-            { label: "Inactive", value: listings?.inactive_listings, icon: "close-circle" },
+            { label: "Inactive", value: listings?.inactive_listings, icon: "close-circle-outline" },
           ]}
         />
       </Section>
@@ -91,7 +91,7 @@ export default function DashboardPage() {
         <StatCards
           isLoading={isFetchingBookings}
           items={[
-            { label: "Bookings", value: bookings?.total_booking_count ?? 0, icon: "calendar" },
+            { label: "Bookings", value: bookings?.total_booking_count ?? 0, icon: "calendar-outline" },
             { label: "Gross booking value", value: toAmount(bookings?.total_gtv), format: NAIRA_FORMAT, icon: "cash-in-outline" },
             { label: "RealStay margin", value: toAmount(bookings?.total_margin), format: NAIRA_FORMAT, icon: "trending-up-outline" },
           ]}
@@ -106,7 +106,7 @@ export default function DashboardPage() {
               {period === "daily" ? "Per day in the dates you choose." : `Per month in ${year}.`}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <SegmentTabs
               label="Period"
               segments={PERIODS}
@@ -114,15 +114,15 @@ export default function DashboardPage() {
               onChange={(v) => setPeriod(v === "monthly" ? "monthly" : "daily")}
             />
             {period === "daily" ? (
-              <div className="flex items-center gap-2 text-sm text-muted">
-                <TextField type="date" value={startDate} onChange={setStartDate} className="w-40">
+              <div className="flex items-center gap-2.5 text-sm text-muted">
+                <TextField type="date" value={startDate} onChange={setStartDate} className="w-36">
                   <Label className="sr-only">From</Label>
-                  <Input aria-label="From" max={endDate} className="h-9 text-sm" />
+                  <Input aria-label="From" max={endDate} className="h-10 text-sm tabular-nums" />
                 </TextField>
                 <span>to</span>
-                <TextField type="date" value={endDate} onChange={setEndDate} className="w-40">
+                <TextField type="date" value={endDate} onChange={setEndDate} className="w-36">
                   <Label className="sr-only">To</Label>
-                  <Input aria-label="To" min={startDate} className="h-9 text-sm" />
+                  <Input aria-label="To" min={startDate} className="h-10 text-sm tabular-nums" />
                 </TextField>
               </div>
             ) : (

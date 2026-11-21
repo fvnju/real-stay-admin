@@ -8,6 +8,8 @@ import {
   formatDate,
   fullName,
   PageHeader,
+  formatPhone,
+  phoneToCopy,
 } from "@/components/admin";
 import { MyAccess } from "@/components/profile/my-access";
 import { ProfilePhoto } from "@/components/profile/profile-photo";
@@ -60,7 +62,7 @@ export default function Profile() {
           { label: "First name", value: user?.first_name },
           { label: "Last name", value: user?.last_name },
           { label: "Email", value: user?.email, copy: user?.email },
-          { label: "Phone number", value: user?.phone_number, copy: user?.phone_number },
+          { label: "Phone number", value: formatPhone(user?.phone_number), copy: phoneToCopy(user?.phone_number) },
           { label: "Gender", value: <span className="capitalize">{user?.gender ?? "–"}</span> },
           { label: "Joined", value: formatDate(user?.createdAt) },
         ]}

@@ -9,7 +9,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
 import { useGo } from "@/components/dashboard/instant-nav";
 import {
@@ -63,12 +62,13 @@ const DashboardCommandPalette = ({
       <CommandList>
         <CommandEmpty>Nothing matches your search.</CommandEmpty>
         <CommandGroup heading="General">{menuItems.map(navItem)}</CommandGroup>
-        <CommandSeparator />
         <CommandGroup heading="Admin">{adminMenuItems.map(navItem)}</CommandGroup>
-        <CommandSeparator />
         <CommandGroup heading="Account">
           {navItem(profileMenuItem)}
-          <CommandItem onSelect={() => run(() => void logout())}>
+          <CommandItem
+            onSelect={() => run(() => void logout())}
+            data-tone="danger"
+          >
             <Icon name="exit-outline" size={18} className="text-danger" />
             <span className="text-danger">Log out</span>
           </CommandItem>

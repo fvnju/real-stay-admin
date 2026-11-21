@@ -24,7 +24,6 @@ function Brand({ collapsed = false }: { collapsed?: boolean }) {
       href="/dashboard"
       className={clsx(
         "flex items-center gap-3 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-focus",
-        collapsed && "justify-center",
       )}
     >
       <Image
@@ -34,7 +33,12 @@ function Brand({ collapsed = false }: { collapsed?: boolean }) {
         height={32}
         className="rounded-lg"
       />
-      <span className={clsx("min-w-0", collapsed && "sr-only")}>
+      <span
+        className={clsx(
+          "min-w-0 whitespace-nowrap transition-opacity duration-200 ease-out motion-reduce:transition-none",
+          collapsed && "opacity-0",
+        )}
+      >
         <span className="block text-sm font-semibold">RealStay</span>
         <span className="block text-xs text-muted">Admin panel</span>
       </span>
@@ -74,14 +78,16 @@ export function DashboardShell({
     <div className="flex h-dvh overflow-hidden bg-background">
       <aside
         className={clsx(
-          "hidden shrink-0 flex-col border-r border-separator bg-surface md:flex",
+          // The width changes in 200 ms. The logo, the icons and the avatar stay
+          // in place (20 to 26 px from the left in both widths); the text
+          // fades out and is cut off.
+          "hidden shrink-0 flex-col overflow-hidden border-r border-separator bg-surface transition-[width] duration-200 ease-out motion-reduce:transition-none md:flex",
           collapsed ? "w-[72px]" : "w-64",
         )}
       >
         <div
           className={clsx(
-            "flex h-16 items-center border-b border-separator",
-            collapsed ? "justify-center px-2" : "px-5",
+            "flex h-16 items-center border-b border-separator px-5",
           )}
         >
           <Brand collapsed={collapsed} />

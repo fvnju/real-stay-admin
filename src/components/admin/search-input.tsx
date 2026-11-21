@@ -37,8 +37,9 @@ export function SearchInput({
       onChange={setValue}
       className={className}
     >
-      <SearchField.Group>
-        <SearchField.SearchIcon />
+      {/* A search field of one line is a pill (the rounding rules of the app). */}
+      <SearchField.Group className="rounded-full">
+        <SearchField.SearchIcon className="ms-3.5" />
         <SearchField.Input placeholder={placeholder} />
         <SearchField.ClearButton />
       </SearchField.Group>

@@ -15,7 +15,7 @@ export function listingActions(
     {
       id: "status",
       label: active ? "Deactivate" : "Activate",
-      icon: active ? "close-circle" : "checkmark-circle-outline",
+      icon: active ? "close-circle-outline" : "checkmark-circle-outline",
       danger: active,
       onAction: () => void manage({ action: active ? "deactivate" : "activate", id: listing._id }),
     },

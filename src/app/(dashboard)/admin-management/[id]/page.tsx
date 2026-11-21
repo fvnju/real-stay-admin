@@ -12,6 +12,8 @@ import {
   StatusChip,
   UserAvatar,
   useGuardedAction,
+  formatPhone,
+  phoneToCopy,
 } from "@/components/admin";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
 import { ALL_ROLES_ARGS, rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
@@ -97,7 +99,7 @@ export default function AdminDetailsPage() {
           { label: "First name", value: user?.first_name },
           { label: "Last name", value: user?.last_name },
           { label: "Email", value: user?.email, copy: user?.email },
-          { label: "Phone number", value: user?.phone_number, copy: user?.phone_number },
+          { label: "Phone number", value: formatPhone(user?.phone_number), copy: phoneToCopy(user?.phone_number) },
           { label: "Gender", value: <span className="capitalize">{user?.gender ?? "–"}</span> },
           { label: "Joined", value: formatDate(user?.createdAt) },
         ]}

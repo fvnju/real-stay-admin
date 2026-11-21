@@ -70,9 +70,9 @@ export default function UsersPage() {
       <StatCards
         isLoading={isFetchingAnalytics}
         items={[
-          { label: "Total users", value: stats?.total_users, icon: "people" },
+          { label: "Total users", value: stats?.total_users, icon: "people-outline" },
           { label: "Active users", value: stats?.active_users, icon: "checkmark-circle-outline" },
-          { label: "Inactive users", value: stats?.inactive_users, icon: "close-circle" },
+          { label: "Inactive users", value: stats?.inactive_users, icon: "close-circle-outline" },
         ]}
       />
 

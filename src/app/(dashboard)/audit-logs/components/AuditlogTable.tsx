@@ -8,7 +8,7 @@ import type { AuditLog } from "@/app/endpoints/auditlogs/audit-logs-types";
 
 const COLUMNS: Column[] = [
   { key: "time", label: "Time" },
-  { key: "action", label: "Action", isRowHeader: true },
+  { key: "action", label: "Action", isRowHeader: true, skeleton: "chip" },
   { key: "description", label: "Description" },
   { key: "by", label: "Done by" },
 ];

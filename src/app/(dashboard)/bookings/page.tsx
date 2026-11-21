@@ -48,7 +48,7 @@ export default function BookingsPage() {
       <StatCards
         isLoading={isFetchingAnalytics}
         items={[
-          { label: "Bookings", value: stats?.total_booking_count ?? 0, icon: "calendar" },
+          { label: "Bookings", value: stats?.total_booking_count ?? 0, icon: "calendar-outline" },
           { label: "Gross booking value", value: toAmount(stats?.total_gtv), format: NAIRA_FORMAT, icon: "cash-in-outline" },
           { label: "RealStay margin", value: toAmount(stats?.total_margin), format: NAIRA_FORMAT, icon: "trending-up-outline" },
         ]}

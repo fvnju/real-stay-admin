@@ -12,7 +12,66 @@ export type Column = {
   /** Hidden label, for a column of buttons. */
   hideLabel?: boolean;
   className?: string;
+  /**
+   * The shape of the cell while the table loads: "user" (avatar and two
+   * lines), "media" (photo and two lines), "lines" (two lines), "chip",
+   * "icon", or "text" (one line). A column with a hidden label is "icon".
+   */
+  skeleton?: SkeletonShape;
 };
+
+type SkeletonShape = "user" | "media" | "lines" | "chip" | "icon" | "text";
+
+/** Widths of the lines in the loading rows, so that the rows do not look the same. */
+const LINE_WIDTHS = ["w-32", "w-24", "w-40", "w-28", "w-36", "w-20"];
+const SUB_WIDTHS = ["w-40", "w-28", "w-32", "w-44", "w-24", "w-36"];
+
+function SkeletonCell({
+  shape,
+  row,
+  alignEnd,
+}: {
+  shape: SkeletonShape;
+  row: number;
+  alignEnd: boolean;
+}) {
+  const line = LINE_WIDTHS[row % LINE_WIDTHS.length];
+  const sub = SUB_WIDTHS[row % SUB_WIDTHS.length];
+  const lines = (
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <Skeleton className={`h-3.5 ${line} max-w-full rounded-md`} />
+      <Skeleton className={`h-3 ${sub} max-w-full rounded-md`} />
+    </div>
+  );
+  switch (shape) {
+    case "user":
+      return (
+        <div className="flex items-center gap-3">
+          <Skeleton className="size-8 shrink-0 rounded-full" />
+          {lines}
+        </div>
+      );
+    case "media":
+      return (
+        <div className="flex items-center gap-3">
+          <Skeleton className="size-12 shrink-0 rounded-xl" />
+          {lines}
+        </div>
+      );
+    case "lines":
+      return lines;
+    case "chip":
+      return <Skeleton className="h-6 w-16 rounded-full" />;
+    case "icon":
+      return <Skeleton className="ml-auto size-6 rounded-full" />;
+    case "text":
+      return (
+        <Skeleton
+          className={`h-3.5 ${line} max-w-full rounded-md ${alignEnd ? "ml-auto" : ""}`}
+        />
+      );
+  }
+}
 
 /**
  * A list of records in a HeroUI table. A click on a row (or Enter) calls
@@ -85,8 +144,12 @@ export function AdminTable<T>({
               ? Array.from({ length: loadingRows }, (_, row) => (
                   <Table.Row key={`loading-${row}`} id={`loading-${row}`}>
                     {columns.map((column) => (
-                      <Table.Cell key={column.key}>
-                        <Skeleton className="h-4 w-full max-w-40 rounded-md" />
+                      <Table.Cell key={column.key} className={column.className}>
+                        <SkeletonCell
+                          shape={column.skeleton ?? (column.hideLabel ? "icon" : "text")}
+                          row={row}
+                          alignEnd={column.className?.includes("text-right") ?? false}
+                        />
                       </Table.Cell>
                     ))}
                   </Table.Row>

@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import type { FC } from "react";
 import {
   AdminTable,
@@ -14,12 +13,13 @@ import {
 import { Icon } from "@/components/icon";
 import type { Listing } from "@/app/endpoints/properties/properties-types";
 import { listingActions, type ManageListing } from "./listing-actions";
+import { listingPhotoTransition, useOpenListing } from "./open-listing";
 
 const COLUMNS: Column[] = [
-  { key: "listing", label: "Listing", isRowHeader: true },
-  { key: "host", label: "Host" },
+  { key: "listing", label: "Listing", isRowHeader: true, skeleton: "media" },
+  { key: "host", label: "Host", skeleton: "user" },
   { key: "price", label: "Price", className: "text-right" },
-  { key: "status", label: "Status" },
+  { key: "status", label: "Status", skeleton: "chip" },
   { key: "created", label: "Listed" },
   { key: "actions", label: "Actions", hideLabel: true, className: "w-12" },
 ];
@@ -29,8 +29,7 @@ export const PropertiesTable: FC<{
   isFetching: boolean;
   manage: ManageListing;
 }> = ({ listings, isFetching, manage }) => {
-  const router = useRouter();
-  const open = (id: string) => router.push(`/properties/${id}`);
+  const open = useOpenListing(listings);
 
   return (
     <AdminTable
@@ -46,7 +45,10 @@ export const PropertiesTable: FC<{
           case "listing":
             return (
               <div className="flex min-w-0 items-center gap-3">
-                <div className="size-12 shrink-0 overflow-hidden rounded-xl bg-default">
+                <div
+                  className="size-12 shrink-0 overflow-hidden rounded-xl bg-default"
+                  style={listingPhotoTransition(l._id)}
+                >
                   {l.photos?.[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element -- photos come from many hosts
                     <img src={l.photos[0]} alt="" className="size-full object-cover" />

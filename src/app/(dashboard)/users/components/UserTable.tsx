@@ -6,6 +6,8 @@ import {
   AdminTable,
   CopyButton,
   formatDate,
+  formatPhone,
+  phoneToCopy,
   fullName,
   RowActions,
   StatusChip,
@@ -16,10 +18,10 @@ import type { User } from "@/app/endpoints/user/user-types";
 import { UserActionEnum, UserStatusEnum } from "../interfaces/users.types";
 
 const COLUMNS: Column[] = [
-  { key: "user", label: "User", isRowHeader: true },
+  { key: "user", label: "User", isRowHeader: true, skeleton: "user" },
   { key: "phone", label: "Phone number" },
   { key: "role", label: "Role" },
-  { key: "status", label: "Status" },
+  { key: "status", label: "Status", skeleton: "chip" },
   { key: "joined", label: "Joined" },
   { key: "actions", label: "Actions", hideLabel: true, className: "w-12" },
 ];
@@ -48,9 +50,9 @@ export const UserTable: FC<{
             return <UserCell user={u} secondary={u.email} />;
           case "phone":
             return u.phone_number ? (
-              <span className="flex items-center gap-1 tabular-nums">
-                {u.phone_number}
-                <CopyButton text={u.phone_number} label="Copy phone number" />
+              <span className="flex items-center gap-1 whitespace-nowrap tabular-nums">
+                {formatPhone(u.phone_number)}
+                <CopyButton text={phoneToCopy(u.phone_number) ?? u.phone_number} label="Copy phone number" />
               </span>
             ) : (
               <span className="text-muted">–</span>
@@ -76,7 +78,7 @@ export const UserTable: FC<{
                   {
                     id: "status",
                     label: active ? "Deactivate" : "Activate",
-                    icon: active ? "close-circle" : "checkmark-circle-outline",
+                    icon: active ? "close-circle-outline" : "checkmark-circle-outline",
                     danger: active,
                     onAction: () =>
                       void manageUser({

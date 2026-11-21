@@ -12,6 +12,8 @@ import {
   StatusChip,
   UserAvatar,
   totalItems,
+  formatPhone,
+  phoneToCopy,
   useGuardedAction,
 } from "@/components/admin";
 import { Icon } from "@/components/icon";
@@ -77,7 +79,7 @@ export default function UserDetailsPage() {
               isPending={isChanging}
               onPress={guard("users:actions", toggleStatus)}
             >
-              <Icon name={active ? "close-circle" : "checkmark-circle-outline"} size={16} />
+              <Icon name={active ? "close-circle-outline" : "checkmark-circle-outline"} size={16} />
               {active ? "Deactivate" : "Activate"}
             </Button>
           ) : null
@@ -108,7 +110,7 @@ export default function UserDetailsPage() {
           { label: "First name", value: user?.first_name },
           { label: "Last name", value: user?.last_name },
           { label: "Email", value: user?.email, copy: user?.email },
-          { label: "Phone number", value: user?.phone_number, copy: user?.phone_number },
+          { label: "Phone number", value: formatPhone(user?.phone_number), copy: phoneToCopy(user?.phone_number) },
           { label: "Gender", value: <span className="capitalize">{user?.gender ?? "–"}</span> },
           { label: "Joined", value: formatDate(user?.createdAt) },
         ]}

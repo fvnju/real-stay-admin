@@ -27,18 +27,24 @@ export function AccountMenu({ collapsed = false }: { collapsed?: boolean }) {
       <Dropdown.Trigger
         aria-label="Account"
         className={clsx(
-          "flex w-full items-center gap-3 rounded-xl p-2 text-left outline-none transition-colors hover:bg-default/60 focus-visible:ring-2 focus-visible:ring-focus",
-          collapsed && "justify-center",
+          "flex w-full items-center gap-3 overflow-hidden rounded-xl p-2 text-left outline-none transition-colors hover:bg-default/60 focus-visible:ring-2 focus-visible:ring-focus",
         )}
       >
         <UserAvatar user={user ?? { id: sessionUser?.id }} size="sm" />
-        <span className={clsx("min-w-0 flex-1", collapsed && "sr-only")}>
+        <span
+          className={clsx(
+            "min-w-0 flex-1 whitespace-nowrap transition-opacity duration-200 ease-out motion-reduce:transition-none",
+            collapsed && "opacity-0",
+          )}
+        >
           <span className="block truncate text-sm font-medium">{name}</span>
           <span className="block truncate text-xs text-muted">{email}</span>
         </span>
-        {collapsed ? null : (
-          <Icon name="chevron-expand" size={16} className="text-muted" />
-        )}
+        <Icon
+          name="chevron-expand"
+          size={16}
+          className={clsx("shrink-0 text-muted transition-opacity duration-200 ease-out motion-reduce:transition-none", collapsed && "opacity-0")}
+        />
       </Dropdown.Trigger>
       <Dropdown.Popover placement="top start" className="min-w-56">
         <Dropdown.Menu
