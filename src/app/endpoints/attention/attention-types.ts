@@ -1,3 +1,5 @@
+import type { VerificationStatus } from "@/lib/verification-rules";
+
 /** The backend v1 admin lists answer `{ data: { data, total, page, limit } }`. */
 export type AdminQueue<T> = {
   data: T[];
@@ -38,16 +40,23 @@ export type AdminVerification = {
   id: string;
   listingId: string;
   attempt: number;
-  status: "submitted" | "documents_approved" | "verified" | "rejected" | "cancelled" | "revoked";
+  status: VerificationStatus;
   createdAt: string | null;
   updatedAt: string | null;
+  /** Signed links that are valid for 10 minutes. */
+  documents?: { id: string; kind: string; url: string; uploadedAt: string }[];
+  rejection?: { stage: "documents" | "visit"; reason: string; at: string } | null;
+  revocation?: { reason: string; at: string } | null;
+  visit?: { visitedAt: string; notes?: string } | null;
   listing: {
     id: string;
     title: string;
+    type?: string;
     state?: string;
+    address?: string;
     isVerified: boolean;
     deleted: boolean;
     recheck: { reasons: string[]; at: string } | null;
   } | null;
-  host: { id: string; firstName: string; lastName: string; email: string } | null;
+  host: { id: string; firstName: string; lastName: string; phone?: string; email: string } | null;
 };

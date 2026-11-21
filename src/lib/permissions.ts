@@ -107,6 +107,8 @@ export const PAGE_PERMISSIONS = {
   "/transactions/[id]": { permission: "transactions:details", name: "Transaction" },
   "/reports": { permission: "reports:view", name: "Reports" },
   "/reports/[id]": { permission: "reports:details", name: "Report" },
+  "/verifications": { permission: "verifications:view", name: "Verifications" },
+  "/verifications/[id]": { permission: "verifications:details", name: "Verification" },
   "/admin-management": { permission: "admin-management:view", name: "Admins" },
   "/admin-management/[id]": { permission: "admin-management:details", name: "Admin" },
   "/admin-management/roles/new": { permission: "roles:view", name: "New role" },

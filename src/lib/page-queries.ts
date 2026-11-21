@@ -1,6 +1,8 @@
 import dayjs from "dayjs";
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
 import { reportsApi } from "@/app/endpoints/reports/reports-api-slice";
+import { verificationsApi } from "@/app/endpoints/verifications/verifications-api-slice";
+import { verificationQueueArgs } from "@/lib/verification-rules";
 import { auditLogApi } from "@/app/endpoints/auditlogs/audit-logs-api-slice";
 import { bookingsApi } from "@/app/endpoints/bookings/bookings-api-slice";
 import { listingsApi } from "@/app/endpoints/properties/properties-api-slice";
@@ -111,6 +113,13 @@ const first = { page: 1, pageSize: PAGE_SIZE };
 const PREFETCH: Record<string, () => unknown[]> = {
   "/reports": () => [
     reportsApi.util.prefetch("getReports", reportsArgs(first), { ifOlderThan: FRESH_SECONDS }),
+  ],
+  "/verifications": () => [
+    verificationsApi.util.prefetch(
+      "getVerifications",
+      verificationQueueArgs({ queue: "submitted", ...first }),
+      { ifOlderThan: FRESH_SECONDS },
+    ),
   ],
   "/dashboard": () => {
     const { startDate, endDate } = defaultDailyRange();

@@ -2,6 +2,7 @@
 
 import { Button, Chip, Popover, Skeleton } from "@heroui/react";
 import { useRouter } from "next/navigation";
+import { recheckReasonLabel } from "@/lib/verification-rules";
 import { useState, type ReactNode } from "react";
 import { formatDate, statusLabel } from "@/components/admin";
 import { Icon, type IconName } from "@/components/icon";
@@ -53,7 +54,7 @@ function reportItem(r: AdminReport): Item {
 }
 
 function verificationItem(v: AdminVerification, recheck = false): Item {
-  const reasons = v.listing?.recheck?.reasons?.map(statusLabel).join(", ");
+  const reasons = v.listing?.recheck?.reasons?.map(recheckReasonLabel).join(", ");
   const parts = [
     `Host: ${nameOf(v.host)}`,
     v.listing?.state,
@@ -65,7 +66,7 @@ function verificationItem(v: AdminVerification, recheck = false): Item {
     icon: "shield-checkmark-outline",
     title: v.listing?.title || "A listing",
     detail: parts.join(" · "),
-    href: v.listing && !v.listing.deleted ? `/properties/${v.listingId}` : undefined,
+    href: `/verifications/${v.id}`,
   };
 }
 

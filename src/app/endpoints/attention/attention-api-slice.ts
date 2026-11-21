@@ -23,6 +23,8 @@ export const attentionApi = realstayApi.injectEndpoints({
         method: "GET",
         params: recheck ? { ...params, recheck: "true" } : params,
       }),
+      // An action on the Verifications page loads the bell again.
+      providesTags: ["Verification"],
     }),
   }),
 });

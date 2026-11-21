@@ -61,7 +61,7 @@ Upstream keeps the access token and the refresh token in `localStorage`, so an X
 - Admins get no push or in-app notifications. The bell of the header (`src/components/dashboard/attention-center.tsx`) opens a popover under it with the admin queues of the backend: open reports (`GET /v1/admin/reports?status=open`), papers to check (`/v1/admin/listing-verifications?status=submitted`), visits to do (`status=documents_approved`), verified listings to check again (`recheck=true`), open access requests (`/v1/admin/access-requests?status=open`), and admin invites with no answer (`/analytics/admins`).
 - A queue shows only when the role has its permission (`reports:view`, `verifications:view`, `admin-management:actions` for the requests, `admin-management:view` for the invites), and only the queues shown count in the badge. It loads again each minute while the tab is in front, and when the popover opens. Each list shows the 5 oldest items; an item opens its page.
 - The calls are in `src/app/endpoints/attention/`. A v1 list answers `{ data: { data, total, page, limit } }`.
-- The panel has no page to act on a verification yet.
+- A verification item opens `/verifications/[id]`.
 
 ## Roles and permissions
 
@@ -89,6 +89,16 @@ Design: `docs/superpowers/specs/2026-11-21-remove-admins-design.md`. The backend
 - `/reports` (menu "Reports", "g r"): Open / Dismissed / Actioned, a filter by listing or user, the oldest first. `/reports/[id]`: the reason, the text of the reporter, the reported listing or user, the reporter, the other open reports of the target, and for a closed report the outcome and the staff note.
 - "Dismiss" and "Mark as actioned" (`reports:actions`) close a report with a note (1 to 1000 characters; the reporter never sees it). "Mark as actioned" does not do the action: take it first on the page of the target. A report that another admin closed first gives `409`; the page shows the message and loads the report again.
 - The calls are in `src/app/endpoints/reports/`. The reason labels are a copy of the backend reasons (`src/lib/report-reasons.ts`).
+
+## Listing verification
+
+The backend side is in the backend `CLAUDE.md` ("Listing verification"). The app side is in realstay-prod `CLAUDE.md`.
+
+- `/verifications` (menu "Verifications", "g v"): the tabs Papers to check (`submitted`), Visits to do (`documents_approved`), Check again (`recheck=true`), Verified, Rejected, All; the oldest first. `?queue=` keeps the tab.
+- `/verifications/[id]`: the request, the listing (with the private address), the host (phone and email), the papers, and the visit, rejection or badge removal.
+- Actions (`verifications:actions`): "Approve papers" (`submitted`), "Verify listing" with the day of the visit and staff notes (`documents_approved`), "Reject" with a reason (both open states), "Remove badge" with a reason and "Clear recheck flag" (`verified`). The host sees each reason. A request that another admin changed first gives `409 INVALID_STATE`; the page shows the message and loads the request again.
+- Papers are signed links that are valid for 10 minutes. The page loads new links each 9 minutes and with "New links".
+- `src/lib/verification-rules.ts` is a copy of the backend statuses, paper kinds, transitions and text limits; change them together.
 
 ## PostHog (feature flags and analytics)
 

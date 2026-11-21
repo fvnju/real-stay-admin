@@ -17,6 +17,12 @@ export const menuItems = [
   { label: "Bookings", icon: "calendar", path: "/bookings", shortcut: "b" },
   { label: "Reports", icon: "flag-outline", path: "/reports", shortcut: "r" },
   {
+    label: "Verifications",
+    icon: "shield-checkmark-outline",
+    path: "/verifications",
+    shortcut: "v",
+  },
+  {
     label: "Notifications",
     icon: "notifications-outline",
     path: "/notifications",
