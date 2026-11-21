@@ -69,3 +69,53 @@ export function totalItems(
 ) {
   return res?.pagination?.total_items ?? res?.data?.pagination?.total_items ?? 0;
 }
+
+/**
+ * The national number of a Nigerian phone number (10 digits, without the 0
+ * or 234), or null. It reads "2349139220241", "+234 913 922 0241",
+ * "09139220241", "9139220241", and "23409139220241" (a 0 kept after 234).
+ */
+function nigerianNationalNumber(value: string) {
+  const digits = value.replace(/[^\d+]/g, "");
+  const match = /^(?:\+?2340?|0)?([1-9]\d{9})$/.exec(digits);
+  return match ? match[1]! : null;
+}
+
+/**
+ * The digits after 234 of a number that starts with 234 but is not a valid
+ * Nigerian number (a wrong length), or null.
+ */
+function digitsAfter234(value: string) {
+  if (/[^\d+\s().-]/.test(value)) return null;
+  const match = /^\+?234(\d+)$/.exec(value.replace(/[^\d+]/g, ""));
+  return match ? match[1]! : null;
+}
+
+/** "+234" and the digits in groups: 3, 3, then the rest. */
+function group234(rest: string) {
+  return ["+234", rest.slice(0, 3), rest.slice(3, 6), rest.slice(6)].filter(Boolean).join(" ");
+}
+
+/**
+ * A phone number to show: "+234 913 922 0241". A number that starts with
+ * 234 but has the wrong length shows in the same groups ("+234 909 000 009"),
+ * so that the column stays easy to read. Other numbers stay as they are.
+ */
+export function formatPhone(value?: string | null) {
+  const raw = value?.trim();
+  if (!raw) return "–";
+  const national = nigerianNationalNumber(raw);
+  if (national) return group234(national);
+  const rest = digitsAfter234(raw);
+  return rest ? group234(rest) : raw;
+}
+
+/** A phone number to copy, without spaces: "+2349139220241". */
+export function phoneToCopy(value?: string | null) {
+  const raw = value?.trim();
+  if (!raw) return undefined;
+  const national = nigerianNationalNumber(raw);
+  if (national) return `+234${national}`;
+  const rest = digitsAfter234(raw);
+  return rest ? `+234${rest}` : raw;
+}
