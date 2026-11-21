@@ -105,6 +105,7 @@ describe("PAGE_PERMISSIONS", () => {
     expect(pagePermissionOf("/reports/123").permission).toBe("reports:details");
     expect(pagePermissionOf("/admin-management/roles/new").permission).toBe("roles:view");
     expect(pagePermissionOf("/feature-flags").permission).toBe("feature-flags:view");
+    expect(pagePermissionOf("/analytics").permission).toBe("product-analytics:view");
     expect(pagePermissionOf("/feature-flags/new").permission).toBe("feature-flags:actions");
     expect(pagePermissionOf("/feature-flags/370262").permission).toBe("feature-flags:details");
     expect(pagePermissionOf("/profile").permission).toBeNull();

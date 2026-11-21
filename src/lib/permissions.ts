@@ -95,6 +95,7 @@ type PagePermission = { permission: Permission | null; name: string };
 /** The permission of each page (route pattern), and its name for the blocked state. */
 export const PAGE_PERMISSIONS = {
   "/dashboard": { permission: "dashboard:view", name: "Dashboard" },
+  "/analytics": { permission: "product-analytics:view", name: "Analytics" },
   "/users": { permission: "users:view", name: "Users" },
   "/users/[id]": { permission: "users:details", name: "User" },
   "/profile/[id]": { permission: "users:details", name: "User" },

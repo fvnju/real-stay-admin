@@ -11,6 +11,7 @@ export type MenuItem = {
 
 export const menuItems = [
   { label: "Dashboard", icon: "grid", path: "/dashboard", shortcut: "d" },
+  { label: "Analytics", icon: "trending-up-outline", path: "/analytics", shortcut: "y" },
   { label: "Users", icon: "people", path: "/users", shortcut: "u" },
   { label: "Properties", icon: "home", path: "/properties", shortcut: "p" },
   { label: "Bookings", icon: "calendar", path: "/bookings", shortcut: "b" },

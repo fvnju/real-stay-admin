@@ -9,6 +9,7 @@ import { userApi } from "@/app/endpoints/user/user-api-slice";
 import store from "@/app/store/store";
 import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
 import { posthogApi } from "@/app/endpoints/posthog/posthog-api-slice";
+import { ANALYTICS_METRICS, DEFAULT_RANGE } from "@/lib/analytics-metrics";
 import { pagePermissionOf, permissionStateOf } from "@/lib/permissions";
 import { sanitizeFilterQuery } from "@/app/utils/filter-helpers";
 
@@ -147,6 +148,10 @@ const PREFETCH: Record<string, () => unknown[]> = {
       ifOlderThan: FRESH_SECONDS,
     }),
   ],
+  "/analytics": () =>
+    ANALYTICS_METRICS.map((metric) =>
+      posthogApi.util.prefetch("getMetric", { metric, days: DEFAULT_RANGE }, { ifOlderThan: FRESH_SECONDS }),
+    ),
   "/feature-flags": () => [
     posthogApi.util.prefetch("getFlags", flagsArgs(), { ifOlderThan: FRESH_SECONDS }),
   ],
