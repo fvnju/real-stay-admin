@@ -1,6 +1,7 @@
 import { configureStore, createListenerMiddleware, isRejectedWithValue } from "@reduxjs/toolkit";
 import { missingPermissionOf } from "@/lib/permissions";
 import { realstayApi } from "./storeConfigQuery";
+import { posthogApi } from "@/app/endpoints/posthog/posthog-api-slice";
 import layoutSlice from "./modules/layout/layout-slice";
 import authSlice from "./modules/auth/slices/auth-slice";
 
@@ -24,10 +25,12 @@ const  store = configureStore({
     layout: layoutSlice.reducer,
     auth: authSlice.reducer,
     [realstayApi.reducerPath]: realstayApi.reducer,
+    [posthogApi.reducerPath]: posthogApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }).concat(
       realstayApi.middleware,
+      posthogApi.middleware,
       permissionListener.middleware,
     ),
 });
