@@ -58,11 +58,18 @@ describe("permissionStateOf", () => {
   it("is loading while the query loads", () => {
     expect(permissionStateOf({ isLoading: true }, "users:view")).toBe("loading");
   });
-  it("allows everything on an old backend (404)", () => {
+  it("allows everything on an old backend (404, or 400 from GET /rbac/:id)", () => {
     expect(permissionStateOf({ isLoading: false, error: { status: 404 } }, "users:view")).toBe("allowed");
+    expect(permissionStateOf({ isLoading: false, error: { status: 400 } }, "users:view")).toBe("allowed");
   });
-  it("denies on another error", () => {
-    expect(permissionStateOf({ isLoading: false, error: { status: 500 } }, "users:view")).toBe("denied");
+  it("does not block on a failed request without data (502, network error): the backend still checks", () => {
+    expect(permissionStateOf({ isLoading: false, error: { status: 502 } }, "users:view")).toBe("allowed");
+    expect(permissionStateOf({ isLoading: false, error: { data: {} } }, "users:view")).toBe("allowed");
+  });
+  it("keeps the last answer when a reload fails", () => {
+    const q = { isLoading: false, error: { status: 502 }, data: me(["users:view"]) };
+    expect(permissionStateOf(q, "users:view")).toBe("allowed");
+    expect(permissionStateOf(q, "users:actions")).toBe("denied");
   });
   it("allows a super admin", () => {
     expect(permissionStateOf({ isLoading: false, data: me([], true) }, "roles:actions")).toBe("allowed");

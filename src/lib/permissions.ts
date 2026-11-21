@@ -46,16 +46,19 @@ export function withImpliedView(list: string[], changed: string, checked: boolea
 type Query = { data?: MyPermissions; error?: unknown; isLoading: boolean };
 
 /**
- * Can the admin use what needs `permission`? A backend without `/rbac/me`
- * (404) lets everything in, so the panel blocks nothing there.
+ * Can the admin use what needs `permission`? Only a real answer of
+ * `/rbac/me` can deny. A failed request (an old backend without the route,
+ * a 502, a network error) blocks nothing: the backend still checks each
+ * request. A failed reload keeps the last answer.
  */
 export function permissionStateOf(query: Query, permission: Permission | null): PermissionState {
   if (!permission) return "allowed";
-  if (query.isLoading) return "loading";
-  if (query.error) return statusOf(query.error) === 404 ? "allowed" : "denied";
-  if (!query.data) return "loading";
-  if (query.data.isSuperAdmin) return "allowed";
-  return query.data.permissions.includes(permission) ? "allowed" : "denied";
+  if (query.data) {
+    if (query.data.isSuperAdmin) return "allowed";
+    return query.data.permissions.includes(permission) ? "allowed" : "denied";
+  }
+  if (query.error) return "allowed";
+  return "loading";
 }
 
 /**
