@@ -14,6 +14,7 @@ FROM (
             0 AS issues
         FROM events
         WHERE event = '$exception'
+          AND {{test_accounts}}
           AND timestamp >= now() - INTERVAL {{days}} DAY
         GROUP BY issue
         ORDER BY occurrences DESC
@@ -34,6 +35,7 @@ FROM (
             toInt(any(issue_first_seen) >= now() - INTERVAL {{days}} DAY) AS is_new
         FROM events
         WHERE event = '$exception'
+          AND {{test_accounts}}
           AND timestamp >= now() - INTERVAL {{days}} DAY
         GROUP BY issue
     )

@@ -16,6 +16,7 @@ FROM (
         ) AS level
     FROM events
     WHERE timestamp >= now() - INTERVAL {{days}} DAY
+      AND {{test_accounts}}
       AND event IN ('search_performed', 'listing_viewed', 'booking_started', 'booking_requested', 'payment_succeeded')
     GROUP BY person_id
 )

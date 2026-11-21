@@ -5,5 +5,6 @@ SELECT
     count() AS events
 FROM events
 WHERE event IN ('listing_published', 'host_booking_decided')
+  AND {{test_accounts}}
   AND timestamp >= now() - INTERVAL {{days}} DAY
 GROUP BY event, decision

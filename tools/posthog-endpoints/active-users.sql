@@ -10,6 +10,7 @@ FROM (
         uniq(person_id) AS users
     FROM events
     WHERE timestamp >= now() - INTERVAL {{days}} DAY - INTERVAL 1 DAY
+      AND {{test_accounts}}
       AND toDate(toTimeZone(timestamp, 'Africa/Lagos')) > toDate(toTimeZone(now(), 'Africa/Lagos')) - INTERVAL {{days}} DAY
       AND event NOT IN ('$identify', '$exception')
     GROUP BY day, role
@@ -21,16 +22,19 @@ FROM (
         uniqIf(person_id, timestamp >= now() - INTERVAL 1 DAY) AS users
     FROM events
     WHERE timestamp >= now() - INTERVAL 30 DAY
+      AND {{test_accounts}}
       AND event NOT IN ('$identify', '$exception')
     UNION ALL
     SELECT 'total' AS kind, 'wau' AS day, '' AS role, uniqIf(person_id, timestamp >= now() - INTERVAL 7 DAY) AS users
     FROM events
     WHERE timestamp >= now() - INTERVAL 30 DAY
+      AND {{test_accounts}}
       AND event NOT IN ('$identify', '$exception')
     UNION ALL
     SELECT 'total' AS kind, 'mau' AS day, '' AS role, uniq(person_id) AS users
     FROM events
     WHERE timestamp >= now() - INTERVAL 30 DAY
+      AND {{test_accounts}}
       AND event NOT IN ('$identify', '$exception')
 )
 -- The 3 total rows first ('total' > 'daily'), so no limit cuts them off.
