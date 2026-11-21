@@ -44,6 +44,14 @@ export const PERMISSIONS_CONFIG = [
   "roles:details",
   "roles:actions",
 
+  "feature-flags:view",
+  "feature-flags:details",
+  "feature-flags:actions",
+
+  "product-analytics:view",
+  "product-analytics:details",
+  "product-analytics:actions",
+
   "profile:view",
   "profile:details",
   "profile:actions",

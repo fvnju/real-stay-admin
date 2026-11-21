@@ -15,6 +15,8 @@ const AREA_LABELS: Record<string, string> = {
   reports: "Reports",
   verifications: "Listing verification",
   roles: "Roles",
+  "feature-flags": "Feature flags",
+  "product-analytics": "Analytics",
 };
 
 export type PermissionArea = {

@@ -122,3 +122,58 @@ export function refreshTokens(
   });
   return pending;
 }
+
+type CookieReader = { get(name: string): { value: string } | undefined };
+
+export type BackendCall = {
+  response: Response;
+  /** New tokens after a refresh, to write on the response. */
+  newTokens: SessionTokens | null;
+  /** The session has ended: clear the cookies. */
+  ended: boolean;
+};
+
+/**
+ * Sends a backend request with the access token of the cookies. Without an
+ * access cookie it refreshes first; after a 401 it refreshes once and sends
+ * again. The proxy route and the PostHog routes use it.
+ */
+export async function callBackendWithSession(
+  cookies: CookieReader,
+  send: (accessToken: string | undefined) => Promise<Response>
+): Promise<BackendCall> {
+  const accessToken = cookies.get(ACCESS_COOKIE)?.value;
+  const refreshToken = cookies.get(REFRESH_COOKIE)?.value;
+  const user = parseSessionUser(cookies.get(USER_COOKIE)?.value);
+
+  let newTokens: SessionTokens | null = null;
+  let refreshFailed = false;
+  const refresh = async () => {
+    if (!refreshToken || !user) return null;
+    newTokens = await refreshTokens(user.id, refreshToken);
+    refreshFailed = !newTokens;
+    return newTokens;
+  };
+
+  // The access cookie expires with the token (15 minutes). Without it,
+  // refresh first, so that the backend does not answer 401 first.
+  const firstToken = accessToken ?? (await refresh())?.access_token;
+  let response = await send(firstToken);
+  if (response.status === 401 && !newTokens && refreshToken) {
+    const tokens = await refresh();
+    if (tokens) response = await send(tokens.access_token);
+  }
+  const ended = !newTokens && (refreshFailed || (response.status === 401 && !refreshToken));
+  return { response, newTokens, ended };
+}
+
+/** The access token that a later backend request of the same route uses. */
+export function currentAccessToken(cookies: CookieReader, call: BackendCall): string | undefined {
+  return call.newTokens?.access_token ?? cookies.get(ACCESS_COOKIE)?.value;
+}
+
+/** Writes refreshed tokens, or clears an ended session, on a route response. */
+export function applySession(cookies: CookieWriter, call: Pick<BackendCall, "newTokens" | "ended">) {
+  if (call.newTokens) writeTokens(cookies, call.newTokens);
+  else if (call.ended) clearSession(cookies);
+}

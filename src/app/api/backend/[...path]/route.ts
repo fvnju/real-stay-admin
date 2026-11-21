@@ -2,14 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { BASE_URL } from "@/utils/configs/constant";
 import {
-  ACCESS_COOKIE,
-  REFRESH_COOKIE,
-  USER_COOKIE,
-  clearSession,
-  parseSessionUser,
-  refreshTokens,
-  writeTokens,
-  type SessionTokens,
+  applySession,
+  callBackendWithSession,
+  type BackendCall,
 } from "@/server/session";
 
 /**
@@ -62,36 +57,16 @@ async function handle(
     });
   };
 
-  const accessToken = request.cookies.get(ACCESS_COOKIE)?.value;
-  const refreshToken = request.cookies.get(REFRESH_COOKIE)?.value;
-  const user = parseSessionUser(request.cookies.get(USER_COOKIE)?.value);
-
-  let newTokens: SessionTokens | null = null;
-  let refreshFailed = false;
-
-  const refresh = async () => {
-    if (!refreshToken || !user) return null;
-    newTokens = await refreshTokens(user.id, refreshToken);
-    refreshFailed = !newTokens;
-    return newTokens;
-  };
-
-  let backendResponse: Response;
+  let call: BackendCall;
   try {
-    // The access cookie expires with the token (15 minutes). Without it,
-    // refresh first, so that the backend does not answer 401 first.
-    const firstToken = accessToken ?? (await refresh())?.access_token;
-    backendResponse = await send(firstToken);
-    if (backendResponse.status === 401 && !newTokens && refreshToken) {
-      const tokens = await refresh();
-      if (tokens) backendResponse = await send(tokens.access_token);
-    }
+    call = await callBackendWithSession(request.cookies, send);
   } catch {
     return NextResponse.json(
       { data: { message: "Could not reach the RealStay backend" } },
       { status: 502 }
     );
   }
+  const backendResponse = call.response;
 
   const responseHeaders = new Headers();
   for (const name of FORWARDED_RESPONSE_HEADERS) {
@@ -104,12 +79,8 @@ async function handle(
     headers: responseHeaders,
   });
 
-  if (newTokens) {
-    writeTokens(response.cookies, newTokens);
-  } else if (refreshFailed || (backendResponse.status === 401 && !refreshToken)) {
-    // The session has ended. The page sends the admin to the sign-in page.
-    clearSession(response.cookies);
-  }
+  // A session that has ended: the page sends the admin to the sign-in page.
+  applySession(response.cookies, call);
   return response;
 }
 
