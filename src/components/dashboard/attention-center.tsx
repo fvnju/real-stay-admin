@@ -7,6 +7,8 @@ import { formatDate, statusLabel } from "@/components/admin";
 import { Icon, type IconName } from "@/components/icon";
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
 import { attentionApi } from "@/app/endpoints/attention/attention-api-slice";
+import { accessRequestsApi } from "@/app/endpoints/access-requests/access-requests-api-slice";
+import type { AccessRequest } from "@/app/endpoints/access-requests/access-requests-types";
 import { usePermission } from "@/lib/use-permission";
 import type {
   AdminReport,
@@ -64,6 +66,19 @@ function verificationItem(v: AdminVerification, recheck = false): Item {
     title: v.listing?.title || "A listing",
     detail: parts.join(" · "),
     href: v.listing && !v.listing.deleted ? `/properties/${v.listingId}` : undefined,
+  };
+}
+
+function requestItem(r: AccessRequest): Item {
+  const asks = [r.role ? `role ${r.role.name}` : null, r.permissions.length ? `${r.permissions.length} permissions` : null]
+    .filter(Boolean)
+    .join(" and ");
+  return {
+    key: r.id,
+    icon: "shield-checkmark-outline",
+    title: `${nameOf(r.requester)} asks for ${asks}`,
+    detail: `Now ${r.requester?.roleName ?? "no role"} · ${formatDate(r.createdAt)}`,
+    href: `/admin-management?view=requests&request=${r.id}`,
   };
 }
 
@@ -167,18 +182,21 @@ export function AttentionBell() {
   const canReports = usePermission("reports:view") === "allowed";
   const canVerifications = usePermission("verifications:view") === "allowed";
   const canAdmins = usePermission("admin-management:view") === "allowed";
+  const canDecide = usePermission("admin-management:actions") === "allowed";
   const verificationPoll = { ...POLL, skip: !canVerifications };
 
   const reports = attentionApi.useGetAdminReportsQuery({ status: "open", limit: SHOWN }, { ...POLL, skip: !canReports });
   const papers = attentionApi.useGetAdminVerificationsQuery({ status: "submitted", limit: SHOWN }, verificationPoll);
   const visits = attentionApi.useGetAdminVerificationsQuery({ status: "documents_approved", limit: SHOWN }, verificationPoll);
   const rechecks = attentionApi.useGetAdminVerificationsQuery({ recheck: true, limit: SHOWN }, verificationPoll);
+  const requests = accessRequestsApi.useGetRequestsQuery({ status: "open", limit: SHOWN }, { ...POLL, skip: !canDecide });
   const admins = analyticApi.useAdminsAnalyticsQuery({ params: {} }, { skip: !open || !canAdmins });
 
   const totalOf = (q: { data?: { data?: { total?: number } } }) => q.data?.data?.total ?? 0;
   const count =
     (canReports ? totalOf(reports) : 0) +
-    (canVerifications ? totalOf(papers) + totalOf(visits) + totalOf(rechecks) : 0);
+    (canVerifications ? totalOf(papers) + totalOf(visits) + totalOf(rechecks) : 0) +
+    (canDecide ? totalOf(requests) : 0);
   const pendingInvites = admins.data?.data?.userStats?.pending_users ?? 0;
 
   const openPage = (href: string) => {
@@ -200,6 +218,7 @@ export function AttentionBell() {
         if (next) {
           // Fresh lists when the popover opens.
           if (canReports) void reports.refetch();
+          if (canDecide) void requests.refetch();
           if (canVerifications) {
             void papers.refetch();
             void visits.refetch();
@@ -271,6 +290,17 @@ export function AttentionBell() {
                   {...sectionProps(rechecks)}
                 />
               </>
+            ) : null}
+            {canDecide ? (
+              <Section
+                title="Access requests"
+                description="Admins asked for more permissions or a role."
+                total={totalOf(requests)}
+                items={(requests.data?.data?.data ?? []).map(requestItem)}
+                isLoading={requests.isLoading}
+                isError={requests.isError}
+                onOpen={openPage}
+              />
             ) : null}
             {canAdmins && pendingInvites ? (
               <button

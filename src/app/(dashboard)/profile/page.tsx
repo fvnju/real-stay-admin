@@ -9,6 +9,7 @@ import {
   fullName,
   PageHeader,
 } from "@/components/admin";
+import { MyAccess } from "@/components/profile/my-access";
 import { ProfilePhoto } from "@/components/profile/profile-photo";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
@@ -64,6 +65,8 @@ export default function Profile() {
           { label: "Joined", value: formatDate(user?.createdAt) },
         ]}
       />
+
+      <MyAccess />
 
       <Card className="flex-row flex-wrap items-center justify-between gap-4 p-5">
         <div>

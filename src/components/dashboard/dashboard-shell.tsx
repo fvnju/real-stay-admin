@@ -13,7 +13,7 @@ import { AttentionBell } from "./attention-center";
 import { useGoShortcuts } from "./instant-nav";
 import { NavList } from "./nav-list";
 import { SCROLL_ROOT_ID, useScrollToTopOnNewPage } from "@/lib/scroll-restoration";
-import { BlockedState, PagePermissionGate, PermissionGuardProvider } from "@/components/admin";
+import { AskAccessButton, BlockedState, PagePermissionGate, PermissionGuardProvider } from "@/components/admin";
 
 /** The cookie that keeps the sidebar small between visits. */
 const SIDEBAR_COOKIE = "sidebar_shrink";
@@ -146,7 +146,11 @@ export function DashboardShell({
           <PermissionGuardProvider>
             <PagePermissionGate
               blocked={(permission, pageName) => (
-                <BlockedState permission={permission} pageName={pageName} />
+                <BlockedState
+                  permission={permission}
+                  pageName={pageName}
+                  action={<AskAccessButton key={permission} permission={permission} />}
+                />
               )}
             >
               {children}

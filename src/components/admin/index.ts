@@ -17,3 +17,4 @@ export { UserAvatar } from "./user-avatar";
 export { BlockedState } from "./blocked-state";
 export { BlockedIllustration } from "./blocked-illustration";
 export { PagePermissionGate, PermissionGuardProvider, useGuardedAction } from "./permission-guard";
+export { AskAccessButton, AskAccessDialog } from "./ask-access-dialog";

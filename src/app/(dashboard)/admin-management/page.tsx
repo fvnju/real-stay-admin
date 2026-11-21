@@ -23,12 +23,14 @@ import type { Role } from "@/app/endpoints/rbac/rbac-types";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
 import { GetErrorMessage } from "@/app/utils/error-handler";
 import { InviteAdminModal } from "./components/InviteAdminModal";
+import { RequestsTab } from "./components/requests-tab";
 import { UserTable } from "./components/UserTable";
 import { adminsAnalyticsArgs, adminsArgs, PAGE_SIZE, waitsForData } from "@/lib/page-queries";
 
 const VIEWS = [
   { label: "Admins", value: "admins" },
   { label: "Roles", value: "roles" },
+  { label: "Requests", value: "requests" },
 ];
 
 const STATUSES = [
@@ -81,7 +83,8 @@ function RolesTable() {
 
 export default function AdminsPage() {
   const router = useRouter();
-  const [view, setView] = useState(useSearchParams().get("view") === "roles" ? "roles" : "admins");
+  const viewParam = useSearchParams().get("view");
+  const [view, setView] = useState(viewParam === "roles" || viewParam === "requests" ? viewParam : "admins");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
   const [status, setStatus] = useState("");
@@ -147,7 +150,7 @@ export default function AdminsPage() {
                 }}
               />
             </div>
-          ) : (
+          ) : view === "roles" ? (
             <Button
               variant="secondary"
               size="sm"
@@ -156,7 +159,7 @@ export default function AdminsPage() {
               <Icon name="add" size={16} />
               New role
             </Button>
-          )}
+          ) : null}
         </div>
 
         {view === "admins" ? (
@@ -170,8 +173,10 @@ export default function AdminsPage() {
               onPageSizeChange={setPageSize}
             />
           </>
-        ) : (
+        ) : view === "roles" ? (
           <RolesTable />
+        ) : (
+          <RequestsTab />
         )}
       </Card>
 

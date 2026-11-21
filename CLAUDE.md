@@ -57,17 +57,29 @@ Upstream keeps the access token and the refresh token in `localStorage`, so an X
 
 ## The bell (Needs attention)
 
-- Admins get no push or in-app notifications. The bell of the header (`src/components/dashboard/attention-center.tsx`) shows the admin queues of the backend instead: open reports (`GET /v1/admin/reports?status=open`), papers to check (`/v1/admin/listing-verifications?status=submitted`), visits to do (`status=documents_approved`), verified listings to check again (`recheck=true`), and admin invites with no answer (`/analytics/admins`).
-- The badge is the sum of the four queue totals. It loads again each minute while the tab is in front, and when the dialog opens. Each list shows the 5 oldest items; an item opens the listing or the user page.
+- Admins get no push or in-app notifications. The bell of the header (`src/components/dashboard/attention-center.tsx`) opens a popover under it with the admin queues of the backend: open reports (`GET /v1/admin/reports?status=open`), papers to check (`/v1/admin/listing-verifications?status=submitted`), visits to do (`status=documents_approved`), verified listings to check again (`recheck=true`), open access requests (`/v1/admin/access-requests?status=open`), and admin invites with no answer (`/analytics/admins`).
+- A queue shows only when the role has its permission (`reports:view`, `verifications:view`, `admin-management:actions` for the requests, `admin-management:view` for the invites), and only the queues shown count in the badge. It loads again each minute while the tab is in front, and when the popover opens. Each list shows the 5 oldest items; an item opens its page.
 - The calls are in `src/app/endpoints/attention/`. A v1 list answers `{ data: { data, total, page, limit } }`.
-- The panel has no page to resolve a report or to act on a verification yet. Staff do it with the backend routes (backend `CLAUDE.md`, "Reports" and "Listing verification").
+- The panel has no page to act on a verification yet.
 
-## The bell (Needs attention)
+## Roles and permissions
 
-- Admins get no push or in-app notifications. The bell of the header (`src/components/dashboard/attention-center.tsx`) opens a popover under it with the admin queues of the backend: open reports (`GET /v1/admin/reports?status=open`), papers to check (`/v1/admin/listing-verifications?status=submitted`), visits to do (`status=documents_approved`), verified listings to check again (`recheck=true`), and admin invites with no answer (`/analytics/admins`).
-- The badge is the sum of the four queue totals. It loads again each minute while the tab is in front, and when the popover opens. Each list shows the 5 oldest items; an item opens the listing or the user page.
-- The calls are in `src/app/endpoints/attention/`. A v1 list answers `{ data: { data, total, page, limit } }`.
-- The panel has no page to resolve a report or to act on a verification yet.
+Design: `docs/superpowers/specs/2026-11-21-reports-and-roles-design.md`. The backend side is in the backend `CLAUDE.md` ("Roles and permissions").
+
+- A role has permissions `<area>:<level>` (`view` opens the list page, `details` a detail page, `actions` changes things). `src/app/configs/rbac.perms.ts` is a copy of the backend list; change both together. The role `superadmin` has every permission.
+- The permissions of the signed-in admin: `GET /rbac/me` (`rbacApi.useGetMyPermissionsQuery`, `useMyPermissions()`, `usePermission(p)` in `src/lib/use-permission.ts`). The pure rules are in `src/lib/permissions.ts` (`permissionStateOf`, `canGrant`, `withImpliedView`, `missingPermissionOf`, `PAGE_PERMISSIONS`). On a backend without `/rbac/me` (404) nothing is blocked.
+- Do not hide a page or a button for a permission (the owner asked for this). `PagePermissionGate` in the shell shows `BlockedState` (a picture, "You do not have permission", the role and the missing permission, "Ask for access") in place of a page that the role cannot open, from the URL and `PAGE_PERMISSIONS`. A blocked page does not render, so it sends no requests. When you add a page, add it to `PAGE_PERMISSIONS`.
+- An action: wrap its handler with `useGuardedAction()` (`guard("users:actions", handler)`). Without the permission, a click opens the "no permission" dialog; the button stays visible.
+- A request that the backend refuses with `403 MISSING_PERMISSION` loads `/rbac/me` again (a listener in `src/app/store/store.ts`), so a role change shows at once.
+- No admin gives a role above their own role: `RoleSelect` marks such a role "Above your role", and `PermissionGrid` does not let the admin check a permission that they do not have. The backend checks again (`ABOVE_OWN_ROLE`). Error texts: `roleErrorMessage` (`src/lib/role-text.ts`).
+- Roles: the Roles tab of the Admins page, `/admin-management/roles/new` and `/admin-management/roles/[id]` (form `role-form.tsx`, grid `permission-grid.tsx`). An admin cannot edit the role that they have, a role above them, or `superadmin` (read-only grid with the reason). "Change role" is on the admin page (`PATCH /users/:id/role`); an admin cannot change their own role.
+- Access requests: "Ask for access" (blocked state) and "My profile" → "My access" (`src/components/profile/my-access.tsx`) send a request (permissions, a role, or both, and a reason). The Requests tab of the Admins page lists them; the decide dialog approves with a role that has the asked permissions ("Make a role with these permissions" opens the role form and comes back), or declines with a note. Nobody decides their own request.
+
+## Reports
+
+- `/reports` (menu "Reports", "g r"): Open / Dismissed / Actioned, a filter by listing or user, the oldest first. `/reports/[id]`: the reason, the text of the reporter, the reported listing or user, the reporter, the other open reports of the target, and for a closed report the outcome and the staff note.
+- "Dismiss" and "Mark as actioned" (`reports:actions`) close a report with a note (1 to 1000 characters; the reporter never sees it). "Mark as actioned" does not do the action: take it first on the page of the target. A report that another admin closed first gives `409`; the page shows the message and loads the report again.
+- The calls are in `src/app/endpoints/reports/`. The reason labels are a copy of the backend reasons (`src/lib/report-reasons.ts`).
 
 ## Profile photo
 
@@ -81,11 +93,12 @@ Upstream keeps the access token and the refresh token in `localStorage`, so an X
 
 ## Pages
 
-`src/app/(dashboard)/`: `dashboard` (analytics and charts), `users`, `properties` (approve or reject a listing), `bookings`, `transactions`, `admin-management` (invite an admin), `audit-logs`, `profile`, and `notifications` (not built). The menu is `src/lib/dashboardMenu.ts`. The command palette (Cmd+K) is `src/ui/components/command-dashboard.tsx`. In Next 15, `params` of a page is a Promise: a client page reads it with `useParams()`. The upstream pages were ported on 2026-11-20 from upstream `0d76bbc`.
+`src/app/(dashboard)/`: `dashboard` (analytics and charts), `users`, `properties` (approve or reject a listing), `bookings`, `transactions`, `reports`, `admin-management` (admins, roles, access requests), `audit-logs`, `profile`, and `notifications` (not built). The menu is `src/lib/dashboardMenu.ts`. The command palette (Cmd+K) is `src/ui/components/command-dashboard.tsx`. In Next 15, `params` of a page is a Promise: a client page reads it with `useParams()`. The upstream pages were ported on 2026-11-20 from upstream `0d76bbc`.
 
 ## Checks
 
 - `yarn typecheck`: [tsrs](https://github.com/oxc-project/tsrs) (TypeScript 7 in Rust), the same checker as the backend and the app. It takes about 0.5 s. 0 errors on 2026-11-20. tsrs only checks types; `next build` still builds the app with the `typescript` package.
 - TypeScript 7 checks side-effect imports, so `src/types/css.d.ts` declares `*.css`.
+- `yarn test`: Vitest, for the pure rules in `src/**/*.test.ts` (no browser, no React).
 - `npx next build` (it also runs ESLint).
 - Yarn 1: `package.json` has `"packageManager": "yarn@1.22.22"`, so `yarn` in this repo is Yarn 1. The lockfile is a Yarn 1 lockfile. Do not use Yarn 4 here: it changes the format of the lockfile.
