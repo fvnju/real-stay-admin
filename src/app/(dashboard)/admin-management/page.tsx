@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Card } from "@heroui/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import {
@@ -38,6 +39,7 @@ const STATUSES = [
 ];
 
 function RolesTable() {
+  const router = useRouter();
   const listQuery = rbacApi.useGetRolesQuery({ params: { limit: 100 } });
   const { data } = listQuery;
   const isFetching = waitsForData(listQuery);
@@ -53,6 +55,7 @@ function RolesTable() {
       getKey={(r) => r._id}
       isLoading={isFetching}
       emptyText="No roles."
+      onRowAction={(r) => router.push(`/admin-management/roles/${r._id}`)}
       renderCell={(role, key) => {
         switch (key) {
           case "name":
@@ -65,7 +68,11 @@ function RolesTable() {
           case "description":
             return <span className="text-muted">{role.description || "–"}</span>;
           case "permissions":
-            return <span className="tabular-nums">{role.permissions?.length ?? 0}</span>;
+            return (
+              <span className="tabular-nums">
+                {role.slug === "superadmin" ? "All" : (role.permissions?.length ?? 0)}
+              </span>
+            );
         }
       }}
     />
@@ -73,7 +80,8 @@ function RolesTable() {
 }
 
 export default function AdminsPage() {
-  const [view, setView] = useState("admins");
+  const router = useRouter();
+  const [view, setView] = useState(useSearchParams().get("view") === "roles" ? "roles" : "admins");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
   const [status, setStatus] = useState("");
@@ -139,7 +147,16 @@ export default function AdminsPage() {
                 }}
               />
             </div>
-          ) : null}
+          ) : (
+            <Button
+              variant="secondary"
+              size="sm"
+              onPress={guard("roles:actions", () => router.push("/admin-management/roles/new"))}
+            >
+              <Icon name="add" size={16} />
+              New role
+            </Button>
+          )}
         </div>
 
         {view === "admins" ? (
