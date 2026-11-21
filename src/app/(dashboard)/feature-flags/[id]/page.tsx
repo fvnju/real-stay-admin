@@ -3,6 +3,7 @@
 import { Button, Card, Skeleton } from "@heroui/react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import { PageHeader, useGuardedAction } from "@/components/admin";
 import { Icon } from "@/components/icon";
 import { posthogApi } from "@/app/endpoints/posthog/posthog-api-slice";
@@ -12,8 +13,6 @@ import { DeleteFlagDialog } from "../components/delete-flag-dialog";
 import { FlagFormView } from "../components/flag-form";
 import { fieldErrorsOf, toastSaveError, toastSaved } from "../components/flag-save";
 import { PosthogErrorState } from "../components/posthog-error-state";
-
-const POSTHOG_PROJECT_URL = "https://eu.posthog.com/project/339639";
 
 export default function FlagPage() {
   const { id: rawId } = useParams<{ id: string }>();
@@ -48,7 +47,7 @@ export default function FlagPage() {
   }
 
   const reason = readOnlyReason(flag);
-  const editUrl = `${POSTHOG_PROJECT_URL}/feature-flags/${flag.id}`;
+  const editUrl = flag.posthogUrl;
 
   return (
     <div className="flex flex-col gap-6">
@@ -86,9 +85,11 @@ export default function FlagPage() {
       {reason ? (
         <Card className="items-start gap-3 p-5">
           <p className="text-sm">{reason}</p>
-          <a className="text-sm font-medium text-accent underline" href={editUrl} target="_blank" rel="noreferrer">
-            Edit this flag in PostHog
-          </a>
+          {editUrl ? (
+            <a className="text-sm font-medium text-accent underline" href={editUrl} target="_blank" rel="noreferrer">
+              Edit this flag in PostHog
+            </a>
+          ) : null}
         </Card>
       ) : (
         <FlagFormView
@@ -104,6 +105,11 @@ export default function FlagPage() {
               .unwrap()
               .then((res) => {
                 setServerErrors(undefined);
+                if (res.concurrentChange) {
+                  toast.warning("Your change is saved, but another change came at the same time. Check the flag.");
+                  query.refetch();
+                  return;
+                }
                 toastSaved(`Flag ${res.data.key} saved.`, res.auditFailed);
               })
               .catch((err) => {

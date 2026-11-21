@@ -1,14 +1,16 @@
--- Active users of the app: one row per day and role, then DAU, WAU and MAU.
+-- Active users of the app: one row per Lagos day and role, then DAU, WAU and MAU
+-- (the last 24 hours, 7 days and 30 days).
 -- A user is active when the app sent any event for them (not $identify or $exception).
 SELECT kind, day, role, users
 FROM (
     SELECT
         'daily' AS kind,
-        toString(toDate(timestamp)) AS day,
+        toString(toDate(toTimeZone(timestamp, 'Africa/Lagos'))) AS day,
         coalesce(nullIf(toString(person.properties.role), ''), 'unknown') AS role,
         uniq(person_id) AS users
     FROM events
-    WHERE timestamp >= now() - INTERVAL {{days}} DAY
+    WHERE timestamp >= now() - INTERVAL {{days}} DAY - INTERVAL 1 DAY
+      AND toDate(toTimeZone(timestamp, 'Africa/Lagos')) > toDate(toTimeZone(now(), 'Africa/Lagos')) - INTERVAL {{days}} DAY
       AND event NOT IN ('$identify', '$exception')
     GROUP BY day, role
     UNION ALL
@@ -31,5 +33,6 @@ FROM (
     WHERE timestamp >= now() - INTERVAL 30 DAY
       AND event NOT IN ('$identify', '$exception')
 )
-ORDER BY kind, day
+-- The 3 total rows first ('total' > 'daily'), so no limit cuts them off.
+ORDER BY kind DESC, day
 LIMIT 1000

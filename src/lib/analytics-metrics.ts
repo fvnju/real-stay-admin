@@ -55,3 +55,9 @@ export function rowsOf(body: unknown): MetricRow[] {
     return row && typeof row === "object" ? [row as MetricRow] : [];
   });
 }
+
+/**
+ * The body of an endpoint run. A run returns 100 rows by default; the
+ * queries return at most 1000 rows (`LIMIT 1000`).
+ */
+export const ENDPOINT_RUN_BODY = { limit: 1000 } as const;

@@ -8,7 +8,8 @@ import { AxiosInstance } from "@/app/store/httpConfig";
 
 export type FlagListArgs = { search?: string; active?: "true" | "false" };
 export type FlagWrite = { form: FlagForm; updatedAt?: string; version?: number };
-export type FlagWriteResult = { data: PosthogFlag; auditFailed: boolean };
+export type FlagWriteResult = { data: PosthogFlag; auditFailed: boolean; concurrentChange?: boolean };
+export type FlagList = { flags: PosthogFlag[]; truncated: boolean };
 export type Cohort = { id: number; name: string };
 
 /**
@@ -22,9 +23,12 @@ export const posthogApi = createApi({
   keepUnusedDataFor: 300,
   refetchOnMountOrArgChange: 10,
   endpoints: (builder) => ({
-    getFlags: builder.query<PosthogFlag[], FlagListArgs>({
+    getFlags: builder.query<FlagList, FlagListArgs>({
       query: (params) => ({ url: "/flags", method: "GET", params }),
-      transformResponse: (res: { data: PosthogFlag[] }) => res.data,
+      transformResponse: (res: { data: PosthogFlag[]; truncated?: boolean }) => ({
+        flags: res.data,
+        truncated: res.truncated === true,
+      }),
       providesTags: ["Flag"],
     }),
     getFlag: builder.query<PosthogFlag, number>({

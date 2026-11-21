@@ -60,6 +60,14 @@ describe("validateFlagForm", () => {
     });
   });
 
+  it.each([
+    [[50, 49.6], "Use whole numbers from 0 to 100 for each variant"],
+    [[33.3, 33.3, 33.4], "Use whole numbers from 0 to 100 for each variant"],
+  ])("refuses variant rollouts %j", (rollouts, message) => {
+    const variants = rollouts.map((rollout, i) => ({ key: `v${i}`, name: "", rollout }));
+    expect(validateFlagForm(form({ type: "multivariate", variants })).variants).toBe(message);
+  });
+
   it.each([101, -1, Number.NaN])("refuses a rollout of %s", (rollout) => {
     const conditions = [{ conditionId: "c1", filters: [], rollout, variant: null }];
     expect(validateFlagForm(form({ conditions }))).toEqual({ "conditions.0.rollout": "Use 0 to 100" });

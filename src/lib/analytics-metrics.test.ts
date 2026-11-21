@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_RANGE, endpointNameFor, rowsOf, endpointNameOf, parseMetricRequest } from "./analytics-metrics";
+import { DEFAULT_RANGE, ENDPOINT_RUN_BODY, RANGES, endpointNameFor, rowsOf, endpointNameOf, parseMetricRequest } from "./analytics-metrics";
 
 describe("parseMetricRequest", () => {
   it("reads a metric and a range", () => {
@@ -44,5 +44,12 @@ describe("rowsOf", () => {
   });
   it.each([null, "x", {}, { results: "x" }])("gives no rows for %p", (body) => {
     expect(rowsOf(body)).toEqual([]);
+  });
+});
+
+describe("ENDPOINT_RUN_BODY", () => {
+  it("asks for all rows of the largest result (a day and a role per row, then 3 totals)", () => {
+    const largest = Math.max(...RANGES) * 3 + 3;
+    expect(ENDPOINT_RUN_BODY.limit).toBeGreaterThanOrEqual(largest);
   });
 });

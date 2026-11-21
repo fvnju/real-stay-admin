@@ -9,7 +9,8 @@ import {
 } from "@/lib/feature-flag-rules";
 import { writeFlagAudit } from "@/server/flag-audit";
 import { readFlagInput } from "@/server/flag-input";
-import { isStaleEdit, parseFlagId } from "@/server/flag-route-rules";
+import { withFlagLock } from "@/server/flag-lock";
+import { isStaleEdit, parseFlagId, posthogFlagUrl, wasConcurrent } from "@/server/flag-route-rules";
 import { posthogFetch } from "@/server/posthog";
 import { toPosthogError } from "@/server/posthog-errors";
 import { posthogErrorResponse, requirePermission, withSession } from "@/server/require-permission";
@@ -37,7 +38,12 @@ export async function GET(request: NextRequest, { params }: Params) {
   const result = await posthogFetch<PosthogFlag>(`/feature_flags/${id}/`);
   if (!result.ok) return posthogErrorResponse(result.error, check.newTokens);
   if (result.data.deleted) return json({ code: "NOT_FOUND", message: "No such flag." }, 404, check.newTokens);
-  return json({ data: result.data }, 200, check.newTokens);
+  const posthogUrl = posthogFlagUrl(
+    process.env.POSTHOG_HOST || "https://eu.posthog.com",
+    process.env.POSTHOG_PROJECT_ID ?? "",
+    id
+  );
+  return json({ data: { ...result.data, posthogUrl } }, 200, check.newTokens);
 }
 
 /**
@@ -66,25 +72,29 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const read = await readFlagInput(request, check.newTokens);
   if (!read.ok) return read.response;
 
-  const current = await currentFlag(id, check.newTokens);
-  if (!current.ok) return current.response;
-  if (isStaleEdit(read.input, current.flag)) {
-    return posthogErrorResponse(toPosthogError(409, null), check.newTokens);
-  }
+  return withFlagLock(id, async () => {
+    const current = await currentFlag(id, check.newTokens);
+    if (!current.ok) return current.response;
+    if (isStaleEdit(read.input, current.flag)) {
+      return posthogErrorResponse(toPosthogError(409, null), check.newTokens);
+    }
 
-  const result = await posthogFetch<PosthogFlag>(`/feature_flags/${id}/`, {
-    method: "PATCH",
-    body: JSON.stringify({ ...flagBodyFromForm(read.input.form), version: current.flag.version }),
-  });
-  if (!result.ok) return posthogErrorResponse(result.error, check.newTokens);
+    const result = await posthogFetch<PosthogFlag>(`/feature_flags/${id}/`, {
+      method: "PATCH",
+      body: JSON.stringify({ ...flagBodyFromForm(read.input.form), version: current.flag.version }),
+    });
+    if (!result.ok) return posthogErrorResponse(result.error, check.newTokens);
 
-  const audited = await writeFlagAudit(check.accessToken, {
-    action: "updated",
-    flagId: id,
-    key: result.data.key,
-    description: describeFlagChange(formFromFlag(current.flag), read.input.form),
+    const concurrentChange = wasConcurrent(current.flag.version, result.data.version);
+    const audited = await writeFlagAudit(check.accessToken, {
+      action: "updated",
+      flagId: id,
+      key: result.data.key,
+      description: describeFlagChange(formFromFlag(current.flag), read.input.form) +
+        (concurrentChange ? " (another change came at the same time)" : ""),
+    });
+    return json({ data: result.data, auditFailed: !audited, concurrentChange }, 200, check.newTokens);
   });
-  return json({ data: result.data, auditFailed: !audited }, 200, check.newTokens);
 }
 
 /** Deletes a flag (the soft delete of PostHog, which PostHog can undo). */
@@ -94,20 +104,22 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   const id = await flagId(params);
   if (!id) return json({ code: "NOT_FOUND", message: "No such flag." }, 404, check.newTokens);
 
-  const current = await currentFlag(id, check.newTokens);
-  if (!current.ok) return current.response;
+  return withFlagLock(id, async () => {
+    const current = await currentFlag(id, check.newTokens);
+    if (!current.ok) return current.response;
 
-  const result = await posthogFetch<PosthogFlag>(`/feature_flags/${id}/`, {
-    method: "PATCH",
-    body: JSON.stringify({ deleted: true, version: current.flag.version }),
-  });
-  if (!result.ok) return posthogErrorResponse(result.error, check.newTokens);
+    const result = await posthogFetch<PosthogFlag>(`/feature_flags/${id}/`, {
+      method: "PATCH",
+      body: JSON.stringify({ deleted: true, version: current.flag.version }),
+    });
+    if (!result.ok) return posthogErrorResponse(result.error, check.newTokens);
 
-  const audited = await writeFlagAudit(check.accessToken, {
-    action: "deleted",
-    flagId: id,
-    key: current.flag.key,
-    description: describeFlagChange(formFromFlag(current.flag), null),
+    const audited = await writeFlagAudit(check.accessToken, {
+      action: "deleted",
+      flagId: id,
+      key: current.flag.key,
+      description: describeFlagChange(formFromFlag(current.flag), null),
+    });
+    return json({ data: { id }, auditFailed: !audited }, 200, check.newTokens);
   });
-  return json({ data: { id }, auditFailed: !audited }, 200, check.newTokens);
 }

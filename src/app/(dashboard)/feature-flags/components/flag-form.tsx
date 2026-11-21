@@ -17,7 +17,7 @@ import { SegmentTabs } from "@/components/admin";
 import { Icon } from "@/components/icon";
 import type { Cohort } from "@/app/endpoints/posthog/posthog-api-slice";
 import { isAppFlag, validateFlagForm, type FlagForm } from "@/lib/feature-flag-rules";
-import { ConditionEditor } from "./condition-editor";
+import { ConditionEditor, PropertySuggestions } from "./condition-editor";
 import { VariantEditor } from "./variant-editor";
 
 export const EMPTY_FLAG_FORM: FlagForm = {
@@ -147,6 +147,7 @@ export function FlagFormView({
             onRemove={() => set({ conditions: form.conditions.filter((_, j) => j !== i) })}
           />
         ))}
+        <PropertySuggestions />
         <div>
           <Button
             size="sm"

@@ -64,10 +64,13 @@ export default function FeatureFlagsPage() {
             <SearchInput placeholder="Search by key or name" onSearch={setSearch} className="w-full sm:w-72" />
             <FilterMenu label="Status" options={STATES} value={active} onChange={setActive} />
           </div>
+          {query.data?.truncated ? (
+            <p className="text-sm text-muted">This list shows the first 1000 flags. Search to find the others.</p>
+          ) : null}
           <AdminTable<PosthogFlag>
             label="Feature flags"
             columns={COLUMNS}
-            items={query.data ?? []}
+            items={query.data?.flags ?? []}
             getKey={(f) => String(f.id)}
             isLoading={isLoading}
             emptyText={search || active ? "No flags match." : "No flags yet."}

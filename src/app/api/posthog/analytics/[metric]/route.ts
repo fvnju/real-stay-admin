@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { endpointNameFor, parseMetricRequest, rowsOf, type MetricRow } from "@/lib/analytics-metrics";
+import { ENDPOINT_RUN_BODY, endpointNameFor, parseMetricRequest, rowsOf, type MetricRow } from "@/lib/analytics-metrics";
 import { posthogFetch } from "@/server/posthog";
 import { posthogErrorResponse, requirePermission, withSession } from "@/server/require-permission";
 
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest, { params }: Params) {
 
   const result = await posthogFetch<unknown>(`/endpoints/${name}/run/`, {
     method: "POST",
-    body: JSON.stringify({}),
+    body: JSON.stringify(ENDPOINT_RUN_BODY),
     api: "environments",
   });
   if (!result.ok) return posthogErrorResponse(result.error, check.newTokens);

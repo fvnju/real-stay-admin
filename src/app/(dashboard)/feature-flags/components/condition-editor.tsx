@@ -22,6 +22,18 @@ const OPERATORS: { id: FlagOperator; label: string }[] = [
 
 /** Person properties that the app sets, as suggestions. */
 const PROPERTY_SUGGESTIONS = ["role", "email", "$app_version", "$os"];
+export const PROPERTY_SUGGESTIONS_ID = "flag-property-suggestions";
+
+/** The suggestions of the property fields. Render it once per form. */
+export function PropertySuggestions() {
+  return (
+    <datalist id={PROPERTY_SUGGESTIONS_ID}>
+      {PROPERTY_SUGGESTIONS.map((p) => (
+        <option key={p} value={p} />
+      ))}
+    </datalist>
+  );
+}
 
 function OptionSelect<T extends string>({
   label,
@@ -124,7 +136,7 @@ export function ConditionEditor({
                 className="w-44"
               >
                 <Label>Person property</Label>
-                <Input placeholder="role" list="flag-property-suggestions" />
+                <Input placeholder="role" list={PROPERTY_SUGGESTIONS_ID} />
               </TextField>
               <OptionSelect
                 label="Operator"
@@ -167,11 +179,6 @@ export function ConditionEditor({
           )}
         </div>
       ))}
-      <datalist id="flag-property-suggestions">
-        {PROPERTY_SUGGESTIONS.map((p) => (
-          <option key={p} value={p} />
-        ))}
-      </datalist>
 
       <div className="flex flex-wrap gap-2">
         <Button

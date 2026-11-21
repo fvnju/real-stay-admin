@@ -1,11 +1,11 @@
 "use client";
 
-import { Card, Skeleton } from "@heroui/react";
+import { Card, Chip, Skeleton } from "@heroui/react";
 import type { ReactNode } from "react";
 import { NAIRA_FORMAT, StatCards, toAmount } from "@/components/admin";
 import { posthogApi } from "@/app/endpoints/posthog/posthog-api-slice";
 import type { AnalyticsMetric, AnalyticsRange, MetricRow } from "@/lib/analytics-metrics";
-import { activeTotalsOf, dailySeriesOf, funnelOf, hostsOf, paymentsOf } from "@/lib/analytics-views";
+import { activeTotalsOf, dailySeriesOf, errorsOf, funnelOf, hostsOf, paymentsOf } from "@/lib/analytics-views";
 import { waitsForData } from "@/lib/page-queries";
 import { PosthogErrorState } from "../../feature-flags/components/posthog-error-state";
 import { AnalyticsLineChart } from "./analytics-line-chart";
@@ -171,31 +171,44 @@ export function HostsSection({ days }: { days: AnalyticsRange }) {
 
 export function ErrorsSection({ days }: { days: AnalyticsRange }) {
   return (
-    <MetricSection title="Errors" description="The app errors with the most occurrences (PostHog error tracking)." metric="errors" days={days}>
+    <MetricSection title="Errors" description="App errors from PostHog error tracking." metric="errors" days={days}>
       {(rows, loading) => {
-        const total = rows.reduce((s, r) => s + (Number(r.occurrences) || 0), 0);
+        const e = errorsOf(rows);
         return (
-          <Card className="gap-3 p-4">
-            {loading ? (
-              <Skeleton className="h-24 w-full rounded-xl" />
-            ) : rows.length ? (
-              <>
-                <p className="text-sm text-muted">
-                  {total} errors in {rows.length} issues
-                </p>
+          <>
+            <StatCards
+              isLoading={loading}
+              items={[
+                { label: "New issues", value: e.newIssues, icon: "alert-circle-outline" },
+                { label: "Issues", value: e.issues, icon: "document-text" },
+                { label: "Errors", value: e.occurrences, icon: "trending-up-outline" },
+              ]}
+            />
+            <Card className="gap-3 p-4">
+              <h3 className="text-sm font-medium">The issues with the most errors</h3>
+              {loading ? (
+                <Skeleton className="h-24 w-full rounded-xl" />
+              ) : e.top.length ? (
                 <ul className="flex flex-col divide-y divide-separator">
-                  {rows.slice(0, 5).map((r) => (
-                    <li key={String(r.issue)} className="flex items-center justify-between gap-3 py-2 text-sm">
-                      <span className="truncate">{String(r.name || "Error")}</span>
-                      <span className="shrink-0 tabular-nums text-muted">{String(r.occurrences)}</span>
+                  {e.top.map((issue) => (
+                    <li key={issue.issue} className="flex items-center justify-between gap-3 py-2 text-sm">
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span className="truncate">{issue.name}</span>
+                        {issue.isNew ? (
+                          <Chip size="sm" variant="soft" color="warning">
+                            New
+                          </Chip>
+                        ) : null}
+                      </span>
+                      <span className="shrink-0 tabular-nums text-muted">{issue.occurrences}</span>
                     </li>
                   ))}
                 </ul>
-              </>
-            ) : (
-              <p className="text-sm text-muted">No errors in this period.</p>
-            )}
-          </Card>
+              ) : (
+                <p className="text-sm text-muted">No errors in this period.</p>
+              )}
+            </Card>
+          </>
         );
       }}
     </MetricSection>

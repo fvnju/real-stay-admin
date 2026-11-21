@@ -92,6 +92,8 @@ export type PosthogFlag = {
   experiment_set?: unknown[];
   surveys?: unknown[];
   features?: unknown[];
+  /** The page of the flag in PostHog (added by the panel route). */
+  posthogUrl?: string;
 };
 
 export type FlagBody = { key: string; name: string; active: boolean; filters: PosthogFilters };
@@ -256,9 +258,9 @@ export function validateFlagForm(form: FlagForm): Record<string, string> {
       errors.variants = "Use lowercase letters, digits, - and _ in each variant key";
     } else if (new Set(form.variants.map((v) => v.key.trim())).size !== form.variants.length) {
       errors.variants = "Each variant needs a different key";
-    } else if (form.variants.some((v) => !isPercent(v.rollout))) {
-      errors.variants = "Use 0 to 100 for each variant";
-    } else if (Math.round(form.variants.reduce((sum, v) => sum + v.rollout, 0)) !== 100) {
+    } else if (form.variants.some((v) => !isPercent(v.rollout) || !Number.isInteger(v.rollout))) {
+      errors.variants = "Use whole numbers from 0 to 100 for each variant";
+    } else if (form.variants.reduce((sum, v) => sum + v.rollout, 0) !== 100) {
       errors.variants = "The variants must add up to 100%";
     }
   }

@@ -83,10 +83,10 @@ export const reportsArgs = ({
 /** The API takes "YYYY/MM/DD"; a date input gives "YYYY-MM-DD". */
 const toApiDate = (v: string) => (v ? v.replaceAll("-", "/") : undefined);
 
-/** The first range of the daily chart of the dashboard: the last month. */
 /** The first view of the Feature flags page: all flags, no search. */
 export const flagsArgs = (f: { search?: string; active?: "true" | "false" } = {}) => f;
 
+/** The first range of the daily chart of the dashboard: the last month. */
 export const defaultDailyRange = () => ({
   startDate: dayjs().subtract(1, "month").format("YYYY-MM-DD"),
   endDate: dayjs().format("YYYY-MM-DD"),

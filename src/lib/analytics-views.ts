@@ -4,9 +4,20 @@ import type { MetricRow } from "./analytics-metrics";
 
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : Number(v) || 0);
 
-/** The UTC dates (`YYYY-MM-DD`) of the last `days` days, today last. */
+/** The time zone of the day buckets. The queries use the same zone. */
+export const ANALYTICS_TIME_ZONE = "Africa/Lagos";
+
+const lagosDate = new Intl.DateTimeFormat("en-CA", {
+  timeZone: ANALYTICS_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** The Lagos dates (`YYYY-MM-DD`) of the last `days` days, today last. */
 export function lastDays(days: number, now: Date = new Date()): string[] {
-  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const [y, m, d] = lagosDate.format(now).split("-").map(Number);
+  const today = Date.UTC(y, m - 1, d);
   return Array.from({ length: days }, (_, i) =>
     new Date(today - (days - 1 - i) * 86_400_000).toISOString().slice(0, 10),
   );
@@ -79,5 +90,28 @@ export function hostsOf(rows: MetricRow[]) {
     published: sum((r) => r.event === "listing_published"),
     confirmed: sum((r) => r.event === "host_booking_decided" && r.decision === "confirm"),
     declined: sum((r) => r.event === "host_booking_decided" && r.decision === "decline"),
+  };
+}
+
+export type ErrorIssue = { issue: string; name: string; occurrences: number; isNew: boolean };
+
+/**
+ * The errors of the range: all occurrences, the issues, the issues first
+ * seen in the range, and the top issues.
+ */
+export function errorsOf(rows: MetricRow[]): { occurrences: number; issues: number; newIssues: number; top: ErrorIssue[] } {
+  const total = rows.find((r) => r.kind === "total");
+  return {
+    occurrences: num(total?.occurrences),
+    issues: num(total?.issues),
+    newIssues: num(total?.is_new),
+    top: rows
+      .filter((r) => r.kind === "issue")
+      .map((r) => ({
+        issue: String(r.issue),
+        name: String(r.name || "Error"),
+        occurrences: num(r.occurrences),
+        isNew: num(r.is_new) > 0,
+      })),
   };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Input, Label, Modal, Spinner, TextField } from "@heroui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { isAppFlag } from "@/lib/feature-flag-rules";
 
 /** Confirms a delete. For a flag of the app, the admin types the key. */
@@ -21,15 +21,18 @@ export function DeleteFlagDialog({
   const [typed, setTyped] = useState("");
   const appFlag = isAppFlag(flagKey);
   const canDelete = !appFlag || typed.trim() === flagKey;
+  // Each time the dialog closes (Cancel, the close button, or an error of
+  // the delete), it forgets the typed key.
+  useEffect(() => {
+    if (!isOpen) setTyped("");
+  }, [isOpen]);
+  const close = onClose;
 
   return (
     <Modal.Backdrop
       isOpen={isOpen}
       onOpenChange={(open) => {
-        if (!open) {
-          setTyped("");
-          onClose();
-        }
+        if (!open) close();
       }}
     >
       <Modal.Container size="sm">
@@ -53,7 +56,7 @@ export function DeleteFlagDialog({
             ) : null}
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onPress={onClose}>
+            <Button variant="secondary" onPress={close}>
               Cancel
             </Button>
             <Button variant="danger" isDisabled={!canDelete || isDeleting} onPress={onConfirm}>

@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { activeTotalsOf, dailySeriesOf, funnelOf, hostsOf, lastDays, paymentsOf } from "./analytics-views";
+import { activeTotalsOf, dailySeriesOf, errorsOf, funnelOf, hostsOf, lastDays, paymentsOf } from "./analytics-views";
 
 describe("lastDays", () => {
-  it("lists the UTC dates of the range, the oldest first, today last", () => {
+  it("lists the Lagos dates of the range, the oldest first, today last", () => {
     expect(lastDays(3, new Date("2026-11-21T10:00:00Z"))).toEqual(["2026-11-19", "2026-11-20", "2026-11-21"]);
+  });
+  it("uses the Lagos date after midnight in Lagos (23:30 UTC)", () => {
+    expect(lastDays(2, new Date("2026-11-21T23:30:00Z"))).toEqual(["2026-11-21", "2026-11-22"]);
   });
 });
 
@@ -73,5 +76,28 @@ describe("hostsOf", () => {
         { event: "host_booking_decided", decision: "decline", events: 1 },
       ]),
     ).toEqual({ published: 2, confirmed: 5, declined: 1 });
+  });
+});
+
+describe("errorsOf", () => {
+  it("reads the totals and the top issues", () => {
+    expect(
+      errorsOf([
+        { kind: "issue", issue: "a", name: "AxiosError", occurrences: 6, is_new: 0 },
+        { kind: "issue", issue: "b", name: "Error", occurrences: 2, is_new: 1 },
+        { kind: "total", issue: "", name: "", occurrences: 40, is_new: 3, issues: 12 },
+      ]),
+    ).toEqual({
+      occurrences: 40,
+      issues: 12,
+      newIssues: 3,
+      top: [
+        { issue: "a", name: "AxiosError", occurrences: 6, isNew: false },
+        { issue: "b", name: "Error", occurrences: 2, isNew: true },
+      ],
+    });
+  });
+  it("gives zeros without data", () => {
+    expect(errorsOf([])).toEqual({ occurrences: 0, issues: 0, newIssues: 0, top: [] });
   });
 });
