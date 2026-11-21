@@ -1,5 +1,6 @@
 "use client";
 
+import { isRemovedAdmin } from "@/lib/admin-removal";
 import { Button, Card, Modal, Skeleton, Spinner } from "@heroui/react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
@@ -89,7 +90,7 @@ export default function AdminDetailsPage() {
         />
       ) : null}
 
-      {user && userId && user.user_type === "admin" ? <AdminAccessSection admin={user} adminId={userId} /> : null}
+      {user && userId && (user.user_type === "admin" || isRemovedAdmin(user)) ? <AdminAccessSection admin={user} adminId={userId} /> : null}
 
       <DetailSection
         title="Account"

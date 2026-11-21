@@ -23,5 +23,6 @@ export function removalRefusalOf(me: RemovalMe | null, target: RemovalTarget): R
 }
 
 export function isRemovedAdmin(user?: { user_type?: string; admin_removed_at?: string | null } | null): boolean {
-  return user?.user_type === "admin" && user.admin_removed_at != null;
+  // A removal changes the type to host, so the mark alone tells.
+  return user?.admin_removed_at != null;
 }

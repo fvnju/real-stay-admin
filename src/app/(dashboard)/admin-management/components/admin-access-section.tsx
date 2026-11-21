@@ -84,7 +84,7 @@ export function AdminAccessSection({ admin, adminId }: { admin: User; adminId: s
                       ? admin.status === "pending" || !admin.status
                         ? "They get their access back. If they never accepted the invite, send a new invite."
                         : "They get their access back and sign in with their old password."
-                      : "They can no longer sign in, and their open session stops now. The account stays, and you can restore it."}
+                      : "They lose access to the panel, and their open session stops now. They can still use the app as a host. You can restore them."}
                   </p>
                 </Modal.Body>
                 <Modal.Footer>

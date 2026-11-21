@@ -34,7 +34,7 @@ describe("isRemovedAdmin", () => {
     [{ user_type: "admin", admin_removed_at: "2026-11-21T10:00:00Z" }, true],
     [{ user_type: "admin", admin_removed_at: null }, false],
     [{ user_type: "admin" }, false],
-    [{ user_type: "guest", admin_removed_at: "2026-11-21T10:00:00Z" }, false],
+    [{ user_type: "host", admin_removed_at: "2026-11-21T10:00:00Z" }, true],
     [undefined, false],
   ])("%j → %s", (user, removed) => {
     expect(isRemovedAdmin(user)).toBe(removed);
