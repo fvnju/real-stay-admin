@@ -83,6 +83,16 @@ export const userApi = realstayApi.injectEndpoints({
       }),
       invalidatesTags: ["User", "MyPermissions"],
     }),
+    /** `POST /users/:id/remove-admin`: only a Super Admin; a Super Admin only by the owner. */
+    removeAdmin: builder.mutation<ApiResponse<User>, string>({
+      query: (id) => ({ url: `/users/${id}/remove-admin`, method: "POST" }),
+      invalidatesTags: ["User"],
+    }),
+    /** `POST /users/:id/restore-admin`: the same rules. */
+    restoreAdmin: builder.mutation<ApiResponse<User>, string>({
+      query: (id) => ({ url: `/users/${id}/restore-admin`, method: "POST" }),
+      invalidatesTags: ["User"],
+    }),
     manageUsers: builder.mutation<ApiResponse<UsersResponse>, ApiRequest>({
       query: ({ path }) => {
         return {

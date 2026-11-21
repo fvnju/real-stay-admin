@@ -30,6 +30,7 @@ const STATUS_COLORS: Record<string, ChipColor> = {
   cancelled: "danger",
   canceled: "danger",
   expired: "danger",
+  removed: "danger",
   debit: "danger",
   refund: "danger",
   wallet_outflow: "danger",

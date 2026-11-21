@@ -48,7 +48,14 @@ export const listingsArgs = (f: ListFilters) => ({ params: listParams(f) });
 
 export const bookingsArgs = (f: ListFilters) => ({ params: listParams(f) });
 
-export const adminsArgs = (f: ListFilters) => ({ params: listParams(f) });
+/**
+ * The Admins list. The filter "removed" is not a status: it sends
+ * `removed=true` (the backend list of removed admins).
+ */
+export const adminsArgs = (f: ListFilters) =>
+  f.status === "removed"
+    ? { params: { ...listParams({ ...f, status: "" }), removed: "true" } }
+    : { params: listParams(f) };
 
 export const adminsAnalyticsArgs = { params: {} };
 

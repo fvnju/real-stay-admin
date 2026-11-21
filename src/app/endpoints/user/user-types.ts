@@ -13,6 +13,8 @@ export interface User {
   /** An admin: the id and the name of the role. */
   role_id?: string | null;
   role_name?: string;
+  /** A removed admin (see `src/lib/admin-removal.ts`); null or missing: not removed. */
+  admin_removed_at?: string | null;
 }
 export interface UserResponse {
   user: User;

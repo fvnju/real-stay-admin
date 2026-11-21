@@ -1,5 +1,6 @@
 "use client";
 
+import { isRemovedAdmin } from "@/lib/admin-removal";
 import { useRouter } from "next/navigation";
 import type { FC } from "react";
 import {
@@ -41,7 +42,7 @@ export const UserTable: FC<{ users: User[]; isFetching: boolean }> = ({
           case "phone":
             return <span className="tabular-nums">{u.phone_number ?? "–"}</span>;
           case "status":
-            return <StatusChip status={u.status} />;
+            return isRemovedAdmin(u) ? <StatusChip status="removed" /> : <StatusChip status={u.status} />;
           case "joined":
             return formatDate(u.createdAt);
         }

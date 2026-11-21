@@ -19,6 +19,7 @@ import { useSessionUser } from "@/app/providers/session-user";
 import { roleErrorMessage } from "@/lib/role-text";
 import { useMyPermissions } from "@/lib/use-permission";
 import { RoleSelect } from "../components/role-select";
+import { AdminAccessSection } from "../components/admin-access-section";
 
 /** One admin account. Also used by `/audit-logs/[id]` (the admin of a log). */
 export default function AdminDetailsPage() {
@@ -85,6 +86,8 @@ export default function AdminDetailsPage() {
           currentRoleId={user.role_id ?? ""}
         />
       ) : null}
+
+      {user && userId && user.user_type === "admin" ? <AdminAccessSection admin={user} adminId={userId} /> : null}
 
       <DetailSection
         title="Account"

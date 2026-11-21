@@ -76,6 +76,14 @@ Design: `docs/superpowers/specs/2026-11-21-reports-and-roles-design.md`. The bac
 - Roles: the Roles tab of the Admins page, `/admin-management/roles/new` and `/admin-management/roles/[id]` (form `role-form.tsx`, grid `permission-grid.tsx`). An admin cannot edit the role that they have, a role above them, or `superadmin` (read-only grid with the reason). "Change role" is on the admin page (`PATCH /users/:id/role`); an admin cannot change their own role.
 - Access requests: "Ask for access" (blocked state) and "My profile" → "My access" (`src/components/profile/my-access.tsx`) send a request (permissions, a role, or both, and a reason). The Requests tab of the Admins page lists them; the decide dialog approves with a role that has the asked permissions ("Make a role with the current and the asked permissions" opens the role form and comes back; an approval replaces the role, so the dialog shows the permissions that the admin loses), or declines with a note. Nobody decides their own request.
 
+## Remove admins
+
+Design: `docs/superpowers/specs/2026-11-21-remove-admins-design.md`. The backend side is in the backend `CLAUDE.md` ("Roles and permissions").
+
+- The admin page has "Panel access" (`admin-management/components/admin-access-section.tsx`) with "Remove admin" or "Restore admin" (`POST /users/:id/remove-admin`, `/restore-admin`). Only a Super Admin; a Super Admin only by `info@edgetechino.com`; not the own account.
+- `src/lib/admin-removal.ts` is a copy of the backend rules (`admin-removal-rules.ts`); change both together. The button always shows; when the rules refuse, a dialog says why and no request goes out.
+- A removed admin keeps the record and shows "Removed" in the Admins list (`isRemovedAdmin`, `admin_removed_at`). The status filter "Removed" sends `removed=true` (`adminsArgs`). The texts of the error codes are in `roleErrorMessage`.
+
 ## Reports
 
 - `/reports` (menu "Reports", "g r"): Open / Dismissed / Actioned, a filter by listing or user, the oldest first. `/reports/[id]`: the reason, the text of the reporter, the reported listing or user, the reporter, the other open reports of the target, and for a closed report the outcome and the staff note.

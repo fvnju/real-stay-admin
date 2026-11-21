@@ -55,6 +55,20 @@ export function roleErrorMessage(error: unknown): string {
       return "You cannot change your own role.";
     case "REQUEST_OPEN":
       return "You already have an open request.";
+    case "SUPER_ADMIN_ONLY":
+      return "Only a Super Admin can remove or restore an admin.";
+    case "OWNER_ONLY":
+      return "Only info@edgetechino.com can remove or restore a Super Admin.";
+    case "OWN_ACCOUNT":
+      return "You cannot remove or restore your own account.";
+    case "ALREADY_REMOVED":
+      return "This admin is already removed.";
+    case "NOT_REMOVED":
+      return "This admin is not removed.";
+    case "ADMIN_REMOVED":
+      return "This admin was removed. Restore them on their admin page.";
+    case "USE_ADMIN_REMOVAL":
+      return 'Use "Remove admin" on the admin page.';
     default:
       return GetErrorMessage(error);
   }

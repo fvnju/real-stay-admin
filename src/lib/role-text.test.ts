@@ -25,6 +25,18 @@ describe("roleErrorMessage", () => {
   });
 
   it.each([
+    ["SUPER_ADMIN_ONLY", "Only a Super Admin can remove or restore an admin."],
+    ["OWNER_ONLY", "Only info@edgetechino.com can remove or restore a Super Admin."],
+    ["OWN_ACCOUNT", "You cannot remove or restore your own account."],
+    ["ALREADY_REMOVED", "This admin is already removed."],
+    ["NOT_REMOVED", "This admin is not removed."],
+    ["ADMIN_REMOVED", "This admin was removed. Restore them on their admin page."],
+    ["USE_ADMIN_REMOVAL", "Use \"Remove admin\" on the admin page."],
+  ])("gives the text of %s", (code, text) => {
+    expect(roleErrorMessage(old(code))).toBe(text);
+  });
+
+  it.each([
     [old("ROLE_IN_USE", { count: 3 }), "3 admins have this role. Give them another role first."],
     [old("ROLE_IN_USE", { count: 1 }), "1 admin has this role. Give them another role first."],
     [old("ABOVE_OWN_ROLE"), "This role has permissions that you do not have."],
