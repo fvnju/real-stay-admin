@@ -1,6 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import type { AxiosStatic } from "axios";
 
+import type { AnalyticsMetric, AnalyticsRange, MetricRow } from "@/lib/analytics-metrics";
 import type { FlagForm, PosthogFlag } from "@/lib/feature-flag-rules";
 import axiosBaseQuery from "@/app/store/axiosBaseQuery";
 import { AxiosInstance } from "@/app/store/httpConfig";
@@ -42,6 +43,11 @@ export const posthogApi = createApi({
     deleteFlag: builder.mutation<{ data: { id: number }; auditFailed: boolean }, number>({
       query: (id) => ({ url: `/flags/${id}`, method: "DELETE" }),
       invalidatesTags: ["Flag"],
+    }),
+    getMetric: builder.query<MetricRow[], { metric: AnalyticsMetric; days: AnalyticsRange }>({
+      query: ({ metric, days }) => ({ url: `/analytics/${metric}`, method: "GET", params: { days } }),
+      transformResponse: (res: { data: MetricRow[] }) => res.data,
+      providesTags: ["Analytics"],
     }),
     getCohorts: builder.query<Cohort[], void>({
       query: () => ({ url: "/cohorts", method: "GET" }),

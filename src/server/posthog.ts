@@ -19,28 +19,22 @@ function config() {
   return { key, host: host.replace(/\/$/, ""), projectId };
 }
 
-/** The PostHog project page of a path, for "Edit in PostHog" links. */
-export function posthogAppUrl(path: string): string {
-  const c = config();
-  const host = c?.host ?? "https://eu.posthog.com";
-  return `${host}/project/${c?.projectId ?? process.env.POSTHOG_PROJECT_ID ?? ""}${path}`;
-}
-
 /**
- * `path` is relative to `/api/projects/<project id>`, for example
+ * `path` is relative to `/api/projects/<project id>` (or
+ * `/api/environments/<project id>` with `api: "environments"`), for example
  * `/feature_flags/`. `revalidate` keeps a GET result in the Next.js cache.
  */
 export async function posthogFetch<T>(
   path: string,
-  init: RequestInit & { revalidate?: number } = {}
+  init: RequestInit & { revalidate?: number; api?: "projects" | "environments" } = {}
 ): Promise<PosthogResult<T>> {
   const c = config();
   if (!c) return { ok: false, error: NOT_CONFIGURED };
 
-  const { revalidate, headers, ...rest } = init;
+  const { revalidate, headers, api = "projects", ...rest } = init;
   let res: Response;
   try {
-    res = await fetch(`${c.host}/api/projects/${c.projectId}${path}`, {
+    res = await fetch(`${c.host}/api/${api}/${c.projectId}${path}`, {
       ...rest,
       headers: {
         ...headers,
