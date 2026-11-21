@@ -1,3 +1,4 @@
+/** The permissions of a role. A copy of real-stay-backend `src/constants/rbac.perms.ts`: change both together. */
 export const PERMISSIONS_CONFIG = [
   "dashboard:view",
   "dashboard:details",
@@ -31,7 +32,21 @@ export const PERMISSIONS_CONFIG = [
   "audit-logs:details",
   "audit-logs:actions",
 
+  "reports:view",
+  "reports:details",
+  "reports:actions",
+
+  "verifications:view",
+  "verifications:details",
+  "verifications:actions",
+
+  "roles:view",
+  "roles:details",
+  "roles:actions",
+
   "profile:view",
   "profile:details",
   "profile:actions",
-];
+] as const;
+
+export type Permission = (typeof PERMISSIONS_CONFIG)[number];

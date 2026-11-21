@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsrs --noEmit -p tsconfig.json"
+    "typecheck": "tsrs --noEmit -p tsconfig.json",
+    "test": "vitest run"
   },
   "dependencies": {
     "@heroui/react": "3.2.7",
@@ -53,7 +54,8 @@
     "postcss": "^8",
     "tailwindcss": "4.3.5",
     "tsrs": "^0.22.0-ts7.1.0-beta",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "3.2.4"
   },
   "packageManager": "yarn@1.22.22"
 }
