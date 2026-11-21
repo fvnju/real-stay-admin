@@ -32,12 +32,12 @@ const TARGETS = [
 ];
 
 const COLUMNS: Column[] = [
-  { key: "target", label: "Reported", isRowHeader: true, skeleton: "lines" },
-  { key: "reason", label: "Reason", skeleton: "text" },
-  { key: "reporter", label: "Reporter", skeleton: "text" },
-  { key: "open", label: "Open reports of it", skeleton: "text" },
-  { key: "status", label: "Status", skeleton: "chip" },
-  { key: "date", label: "Sent", skeleton: "text" },
+  { key: "target", label: "Reported", isRowHeader: true },
+  { key: "reason", label: "Reason" },
+  { key: "reporter", label: "Reporter" },
+  { key: "open", label: "Open reports of it" },
+  { key: "status", label: "Status" },
+  { key: "date", label: "Sent" },
 ];
 
 export default function ReportsPage() {

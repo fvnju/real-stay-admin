@@ -61,10 +61,10 @@ function RequestsList() {
       <AdminTable<AccessRequest>
         label="Access requests"
         columns={[
-          { key: "admin", label: "Admin", isRowHeader: true, skeleton: "lines" },
-          { key: "asks", label: "Asks for", skeleton: "text" },
-          { key: "status", label: "Status", skeleton: "chip" },
-          { key: "date", label: "Sent", skeleton: "text" },
+          { key: "admin", label: "Admin", isRowHeader: true },
+          { key: "asks", label: "Asks for" },
+          { key: "status", label: "Status" },
+          { key: "date", label: "Sent" },
         ]}
         items={items}
         getKey={(r) => r.id}

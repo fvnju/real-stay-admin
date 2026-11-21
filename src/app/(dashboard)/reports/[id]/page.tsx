@@ -55,7 +55,7 @@ export default function ReportDetailsPage() {
           isOpen ? (
             <div className="flex flex-wrap gap-2">
               <Button variant="secondary" size="sm" onPress={guard("reports:actions", () => setOutcome("dismissed"))}>
-                <Icon name="close-circle-outline" size={16} />
+                <Icon name="close" size={16} />
                 Dismiss
               </Button>
               <Button variant="primary" size="sm" onPress={guard("reports:actions", () => setOutcome("actioned"))}>
