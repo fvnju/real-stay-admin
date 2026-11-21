@@ -7,7 +7,7 @@ import axiosBaseQuery from './axiosBaseQuery';
 
 export const realstayApi = createApi({
     reducerPath: 'real_stay',
-    tagTypes: ["User"],
+    tagTypes: ["User", "MyPermissions", "Role", "Report", "AccessRequest"],
     baseQuery: axiosBaseQuery({}, AxiosInstance as AxiosStatic),
     endpoints: () => ({}),
     // Keep the data of a page for 5 minutes after it closes, so that it

@@ -13,6 +13,7 @@ import { AttentionBell } from "./attention-center";
 import { useGoShortcuts } from "./instant-nav";
 import { NavList } from "./nav-list";
 import { SCROLL_ROOT_ID, useScrollToTopOnNewPage } from "@/lib/scroll-restoration";
+import { BlockedState, PagePermissionGate, PermissionGuardProvider } from "@/components/admin";
 
 /** The cookie that keeps the sidebar small between visits. */
 const SIDEBAR_COOKIE = "sidebar_shrink";
@@ -142,7 +143,15 @@ export function DashboardShell({
         </header>
 
         <main id={SCROLL_ROOT_ID} className="flex flex-1 flex-col overflow-y-auto overflow-x-clip p-4 sm:p-6">
-          {children}
+          <PermissionGuardProvider>
+            <PagePermissionGate
+              blocked={(permission, pageName) => (
+                <BlockedState permission={permission} pageName={pageName} />
+              )}
+            >
+              {children}
+            </PagePermissionGate>
+          </PermissionGuardProvider>
         </main>
       </div>
 

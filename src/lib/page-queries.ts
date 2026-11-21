@@ -6,6 +6,8 @@ import { listingsApi } from "@/app/endpoints/properties/properties-api-slice";
 import { transactionApi } from "@/app/endpoints/transactions/transactions-api-slice";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
 import store from "@/app/store/store";
+import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
+import { pagePermissionOf, permissionStateOf } from "@/lib/permissions";
 import { sanitizeFilterQuery } from "@/app/utils/filter-helpers";
 
 /**
@@ -136,6 +138,10 @@ const PREFETCH: Record<string, () => unknown[]> = {
  * pointer goes over its link. Does nothing for other paths.
  */
 export function prefetchPage(path: string) {
+  // No prefetch of a page that the role cannot open: the backend refuses it.
+  const mine = rbacApi.endpoints.getMyPermissions.select()(store.getState());
+  const { permission } = pagePermissionOf(path);
+  if (permissionStateOf({ ...mine, isLoading: mine.isLoading ?? false }, permission) === "denied") return;
   const thunks = PREFETCH[path]?.();
   if (!thunks) return;
   for (const thunk of thunks) {

@@ -12,6 +12,7 @@ import {
   StatusChip,
   UserAvatar,
   totalItems,
+  useGuardedAction,
 } from "@/components/admin";
 import { Icon } from "@/components/icon";
 import { kycApi } from "@/app/endpoints/kyc/kyc-api-slice";
@@ -44,6 +45,7 @@ export default function UserDetailsPage() {
     userApi.useManageUsersMutation();
   const active = user?.status === UserStatusEnum.ACTIVE;
 
+  const guard = useGuardedAction();
   const toggleStatus = async () => {
     if (!userId) return;
     const action = active ? UserActionEnum.DEACTIVATE : UserActionEnum.ACTIVATE;
@@ -72,7 +74,7 @@ export default function UserDetailsPage() {
               variant={active ? "danger-soft" : "primary"}
               size="sm"
               isPending={isChanging}
-              onPress={() => void toggleStatus()}
+              onPress={guard("users:actions", toggleStatus)}
             >
               <Icon name={active ? "close-circle" : "checkmark-circle-outline"} size={16} />
               {active ? "Deactivate" : "Activate"}

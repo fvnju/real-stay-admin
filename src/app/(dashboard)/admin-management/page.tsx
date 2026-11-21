@@ -12,6 +12,7 @@ import {
   StatCards,
   TablePagination,
   totalItems,
+  useGuardedAction,
 } from "@/components/admin";
 import { Icon } from "@/components/icon";
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
@@ -91,6 +92,7 @@ export default function AdminsPage() {
   const stats = analytics?.data?.userStats;
 
   const [inviteAdmin, { isLoading: isInviting }] = authApi.useInviteAdminMutation();
+  const guard = useGuardedAction();
 
   return (
     <div className="flex flex-col gap-6">
@@ -98,7 +100,7 @@ export default function AdminsPage() {
         title="Admins"
         description="Staff who can use this panel, and their roles."
         actions={
-          <Button variant="primary" size="sm" onPress={() => setInviteOpen(true)}>
+          <Button variant="primary" size="sm" onPress={guard("admin-management:actions", () => setInviteOpen(true))}>
             <Icon name="add" size={16} />
             Invite admin
           </Button>

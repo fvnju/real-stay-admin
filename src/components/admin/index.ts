@@ -14,3 +14,6 @@ export { ReviewList } from "./review-list";
 export { PhotoGallery } from "./photo-gallery";
 export { listingFields } from "./listing-fields";
 export { UserAvatar } from "./user-avatar";
+export { BlockedState } from "./blocked-state";
+export { BlockedIllustration } from "./blocked-illustration";
+export { PagePermissionGate, PermissionGuardProvider, useGuardedAction } from "./permission-guard";

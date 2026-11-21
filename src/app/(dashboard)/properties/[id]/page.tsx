@@ -13,6 +13,7 @@ import {
   ReviewList,
   StatusChip,
   totalItems,
+  useGuardedAction,
 } from "@/components/admin";
 import { Icon } from "@/components/icon";
 import { listingsApi } from "@/app/endpoints/properties/properties-api-slice";
@@ -37,6 +38,7 @@ export default function PropertyDetailsPage() {
   const [manageListing, { isLoading: isChanging }] = listingsApi.useManageListingMutation();
   const active = listing?.status === "active";
 
+  const guard = useGuardedAction();
   const toggleStatus = async () => {
     if (!listing) return;
     const action = active ? "deactivate" : "activate";
@@ -75,7 +77,7 @@ export default function PropertyDetailsPage() {
               size="sm"
               variant={active ? "danger-soft" : "primary"}
               isPending={isChanging}
-              onPress={() => void toggleStatus()}
+              onPress={guard("properties:actions", toggleStatus)}
             >
               <Icon name={active ? "close-circle" : "checkmark-circle-outline"} size={16} />
               {active ? "Deactivate" : "Activate"}

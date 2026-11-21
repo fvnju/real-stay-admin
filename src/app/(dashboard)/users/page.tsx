@@ -11,6 +11,7 @@ import {
   StatCards,
   TablePagination,
   totalItems,
+  useGuardedAction,
 } from "@/components/admin";
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
@@ -46,6 +47,7 @@ export default function UsersPage() {
 
   const [manageUserMutation, { isLoading }] = userApi.useManageUsersMutation();
 
+  const guard = useGuardedAction();
   const manageUser = async ({ action, id }: { action: string; id: string }) => {
     await manageUserMutation({ path: { id, action } })
       .unwrap()
@@ -109,7 +111,7 @@ export default function UsersPage() {
         <UserTable
           isFetching={isFetching || isLoading}
           users={data?.data?.users || []}
-          manageUser={manageUser}
+          manageUser={async (a) => guard("users:actions", manageUser)(a)}
         />
         <TablePagination
           total={totalItems(data)}

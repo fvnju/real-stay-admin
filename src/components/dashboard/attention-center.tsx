@@ -7,6 +7,7 @@ import { formatDate, statusLabel } from "@/components/admin";
 import { Icon, type IconName } from "@/components/icon";
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
 import { attentionApi } from "@/app/endpoints/attention/attention-api-slice";
+import { usePermission } from "@/lib/use-permission";
 import type {
   AdminReport,
   AdminVerification,
@@ -161,14 +162,23 @@ export function AttentionBell() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
-  const reports = attentionApi.useGetAdminReportsQuery({ status: "open", limit: SHOWN }, POLL);
-  const papers = attentionApi.useGetAdminVerificationsQuery({ status: "submitted", limit: SHOWN }, POLL);
-  const visits = attentionApi.useGetAdminVerificationsQuery({ status: "documents_approved", limit: SHOWN }, POLL);
-  const rechecks = attentionApi.useGetAdminVerificationsQuery({ recheck: true, limit: SHOWN }, POLL);
-  const admins = analyticApi.useAdminsAnalyticsQuery({ params: {} }, { skip: !open });
+  // Each queue shows only with its permission, and only it counts in the
+  // badge: work that the admin cannot do is noise here.
+  const canReports = usePermission("reports:view") === "allowed";
+  const canVerifications = usePermission("verifications:view") === "allowed";
+  const canAdmins = usePermission("admin-management:view") === "allowed";
+  const verificationPoll = { ...POLL, skip: !canVerifications };
+
+  const reports = attentionApi.useGetAdminReportsQuery({ status: "open", limit: SHOWN }, { ...POLL, skip: !canReports });
+  const papers = attentionApi.useGetAdminVerificationsQuery({ status: "submitted", limit: SHOWN }, verificationPoll);
+  const visits = attentionApi.useGetAdminVerificationsQuery({ status: "documents_approved", limit: SHOWN }, verificationPoll);
+  const rechecks = attentionApi.useGetAdminVerificationsQuery({ recheck: true, limit: SHOWN }, verificationPoll);
+  const admins = analyticApi.useAdminsAnalyticsQuery({ params: {} }, { skip: !open || !canAdmins });
 
   const totalOf = (q: { data?: { data?: { total?: number } } }) => q.data?.data?.total ?? 0;
-  const count = totalOf(reports) + totalOf(papers) + totalOf(visits) + totalOf(rechecks);
+  const count =
+    (canReports ? totalOf(reports) : 0) +
+    (canVerifications ? totalOf(papers) + totalOf(visits) + totalOf(rechecks) : 0);
   const pendingInvites = admins.data?.data?.userStats?.pending_users ?? 0;
 
   const openPage = (href: string) => {
@@ -189,10 +199,12 @@ export function AttentionBell() {
         setOpen(next);
         if (next) {
           // Fresh lists when the popover opens.
-          void reports.refetch();
-          void papers.refetch();
-          void visits.refetch();
-          void rechecks.refetch();
+          if (canReports) void reports.refetch();
+          if (canVerifications) {
+            void papers.refetch();
+            void visits.refetch();
+            void rechecks.refetch();
+          }
         }
       }}
     >
@@ -226,35 +238,41 @@ export function AttentionBell() {
             </p>
           </div>
           <div className="flex flex-col gap-5 overflow-y-auto px-4 py-4">
-            <Section
-              title="Reports"
-              description="Users reported these listings and people."
-              total={totalOf(reports)}
-              items={(reports.data?.data?.data ?? []).map(reportItem)}
-              {...sectionProps(reports)}
-            />
-            <Section
-              title="Papers to check"
-              description="Hosts asked to verify these listings."
-              total={totalOf(papers)}
-              items={(papers.data?.data?.data ?? []).map((v) => verificationItem(v))}
-              {...sectionProps(papers)}
-            />
-            <Section
-              title="Visits to do"
-              description="The papers are good. Visit the place to verify it."
-              total={totalOf(visits)}
-              items={(visits.data?.data?.data ?? []).map((v) => verificationItem(v))}
-              {...sectionProps(visits)}
-            />
-            <Section
-              title="Verified listings to check again"
-              description="The host changed the address or the photos."
-              total={totalOf(rechecks)}
-              items={(rechecks.data?.data?.data ?? []).map((v) => verificationItem(v, true))}
-              {...sectionProps(rechecks)}
-            />
-            {pendingInvites ? (
+            {canReports ? (
+              <Section
+                title="Reports"
+                description="Users reported these listings and people."
+                total={totalOf(reports)}
+                items={(reports.data?.data?.data ?? []).map(reportItem)}
+                {...sectionProps(reports)}
+              />
+            ) : null}
+            {canVerifications ? (
+              <>
+                <Section
+                  title="Papers to check"
+                  description="Hosts asked to verify these listings."
+                  total={totalOf(papers)}
+                  items={(papers.data?.data?.data ?? []).map((v) => verificationItem(v))}
+                  {...sectionProps(papers)}
+                />
+                <Section
+                  title="Visits to do"
+                  description="The papers are good. Visit the place to verify it."
+                  total={totalOf(visits)}
+                  items={(visits.data?.data?.data ?? []).map((v) => verificationItem(v))}
+                  {...sectionProps(visits)}
+                />
+                <Section
+                  title="Verified listings to check again"
+                  description="The host changed the address or the photos."
+                  total={totalOf(rechecks)}
+                  items={(rechecks.data?.data?.data ?? []).map((v) => verificationItem(v, true))}
+                  {...sectionProps(rechecks)}
+                />
+              </>
+            ) : null}
+            {canAdmins && pendingInvites ? (
               <button
                 type="button"
                 onClick={() => openPage("/admin-management")}

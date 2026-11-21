@@ -10,6 +10,7 @@ import {
   StatCards,
   TablePagination,
   totalItems,
+  useGuardedAction,
 } from "@/components/admin";
 import { Icon } from "@/components/icon";
 import { SegmentedControl } from "@/components/segmented-control";
@@ -98,7 +99,8 @@ export default function PropertiesPage() {
   const isFetching = waitsForData(listQuery);
 
   const [manageListing, { isLoading }] = listingsApi.useManageListingMutation();
-  const manage: ManageListing = async ({ action, id }) => {
+  const guard = useGuardedAction();
+  const manageUnguarded: ManageListing = async ({ action, id }) => {
     await manageListing({ path: { id, action } })
       .unwrap()
       .then(() => {
@@ -107,6 +109,8 @@ export default function PropertiesPage() {
       })
       .catch((err) => toast.error(GetErrorMessage(err)));
   };
+
+  const manage: ManageListing = async (a) => guard("properties:actions", manageUnguarded)(a);
 
   const listings = data?.data?.listings || [];
   const loading = isFetching || isLoading;
