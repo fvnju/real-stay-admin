@@ -139,7 +139,7 @@ export function PaymentsSection({ days }: { days: AnalyticsRange }) {
               { label: "Paid", value: p.succeeded, icon: "checkmark-circle-outline" },
               { label: "Revenue", value: toAmount(p.revenue), format: NAIRA_FORMAT, icon: "wallet-outline" },
               { label: "Started", value: p.started, icon: "card-outline" },
-              { label: "Failed", value: p.failed, icon: "close-circle-outline" },
+              { label: "Failed", value: p.failed, icon: "alert-circle-outline" },
               { label: "Cancelled", value: p.cancelled, icon: "close" },
             ]}
           />
@@ -160,7 +160,7 @@ export function HostsSection({ days }: { days: AnalyticsRange }) {
             items={[
               { label: "Listings published", value: h.published, icon: "home" },
               { label: "Bookings confirmed", value: h.confirmed, icon: "checkmark-circle-outline" },
-              { label: "Bookings declined", value: h.declined, icon: "close-circle-outline" },
+              { label: "Bookings declined", value: h.declined, icon: "alert-circle-outline" },
             ]}
           />
         );

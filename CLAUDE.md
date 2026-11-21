@@ -81,6 +81,19 @@ Design: `docs/superpowers/specs/2026-11-21-reports-and-roles-design.md`. The bac
 - "Dismiss" and "Mark as actioned" (`reports:actions`) close a report with a note (1 to 1000 characters; the reporter never sees it). "Mark as actioned" does not do the action: take it first on the page of the target. A report that another admin closed first gives `409`; the page shows the message and loads the report again.
 - The calls are in `src/app/endpoints/reports/`. The reason labels are a copy of the backend reasons (`src/lib/report-reasons.ts`).
 
+## PostHog (feature flags and analytics)
+
+Design: `docs/superpowers/specs/2026-11-21-posthog-flags-and-analytics-design.md`. Plan: `docs/superpowers/plans/2026-11-21-posthog-flags-and-analytics.md`.
+
+- The panel calls PostHog (project "Realstay", 339639, EU Cloud) from its server routes under `src/app/api/posthog/`, with a personal API key. Env (server only, never `NEXT_PUBLIC_`): `POSTHOG_PERSONAL_API_KEY`, `POSTHOG_HOST`, `POSTHOG_PROJECT_ID` (`.env.example` lists the scopes). Without the key the routes answer `503 POSTHOG_NOT_CONFIGURED` and the pages say "PostHog is not set up".
+- `src/server/posthog.ts` (`posthogFetch`) adds the key and maps errors (`posthog-errors.ts`); a response never has the key or a raw PostHog body. `src/server/require-permission.ts` checks the permission with backend `GET /rbac/me` (a 404 allows, other failures do not) and the `Origin` of a write. The proxy and these routes share `callBackendWithSession` (`src/server/session.ts`).
+- Permissions: `feature-flags:view|details|actions` and `product-analytics:view|details|actions` (also in the backend list).
+- Feature flags (`/feature-flags`, "g f"): the form rules are in `src/lib/feature-flag-rules.ts`. The form edits person and cohort filters, variants, payloads and rollouts, and keeps the `condition_id` of each condition. A flag with other rules (an experiment, a survey, group targeting, a flag dependency, date or version operators, rules version 2) is read-only, with a link to PostHog. A write refuses a flag that changed after the admin opened it (`409 FLAG_CHANGED`, from `updated_at` and `version`). Delete is the soft delete of PostHog.
+- Each flag write sends `POST /audit-logs/feature-flag` to the backend with the text of the change (`describeFlagChange`). If it fails, the change stays and the page warns.
+- `src/lib/app-flags.ts` (`APP_FLAG_KEYS`) is a copy of the keys of `FEATURE_FLAGS` in realstay-prod `src/features/analytics/feature-flags.ts`. Change both together. A delete or key change of such a flag asks for a confirm.
+- Analytics (`/analytics`, "g y"): one PostHog endpoint per metric and range, `admin-<metric>-<7|30|90>`, from the HogQL files in `tools/posthog-endpoints/`. After a change of a query, run `node tools/posthog-endpoints.mjs` with the key (scope `endpoint:write`). The route `GET /api/posthog/analytics/:metric?days=` keeps rows 5 minutes per server process. The row conversions are in `src/lib/analytics-views.ts`.
+- Deploy order: the backend (permissions and the audit route), then the endpoints script, then the Vercel env and the panel.
+
 ## Profile photo
 
 - `UserAvatar` (`src/components/admin`) draws every avatar with the rule of the mobile app (`src/lib/avatar-url.ts`, a copy of realstay-prod `src/features/profile/avatar-url.ts`; change them together): the photo from Cloudinary at the size of the avatar, cropped to the face; else the DiceBear "line-face" of the user id; else the initials.
