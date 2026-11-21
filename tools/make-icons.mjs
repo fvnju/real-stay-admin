@@ -16,6 +16,7 @@ const ADMIN_ICONS = {
   "sunny-outline": "sun-line",
   "moon-outline": "moon-line",
   "copy-outline": "copy-2-line",
+  "flag-outline": "flag-1-line",
 };
 
 const require = createRequire(import.meta.url);

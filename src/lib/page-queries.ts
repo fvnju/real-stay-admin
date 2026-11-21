@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
+import { reportsApi } from "@/app/endpoints/reports/reports-api-slice";
 import { auditLogApi } from "@/app/endpoints/auditlogs/audit-logs-api-slice";
 import { bookingsApi } from "@/app/endpoints/bookings/bookings-api-slice";
 import { listingsApi } from "@/app/endpoints/properties/properties-api-slice";
@@ -64,6 +65,19 @@ export const auditLogsArgs = ({ page, pageSize, search = "" }: ListFilters) => (
   params: { search: sanitizeFilterQuery(search), page, page_size: pageSize },
 });
 
+/** The list of the Reports page. The backend sends the oldest first. */
+export const reportsArgs = ({
+  page,
+  pageSize,
+  status = "open",
+  targetType = "",
+}: { page: number; pageSize: number; status?: string; targetType?: string }) => ({
+  page,
+  limit: pageSize,
+  status,
+  ...(targetType ? { targetType } : {}),
+});
+
 /** The API takes "YYYY/MM/DD"; a date input gives "YYYY-MM-DD". */
 const toApiDate = (v: string) => (v ? v.replaceAll("-", "/") : undefined);
 
@@ -83,6 +97,9 @@ const FRESH_SECONDS = 30;
 const first = { page: 1, pageSize: PAGE_SIZE };
 
 const PREFETCH: Record<string, () => unknown[]> = {
+  "/reports": () => [
+    reportsApi.util.prefetch("getReports", reportsArgs(first), { ifOlderThan: FRESH_SECONDS }),
+  ],
   "/dashboard": () => {
     const { startDate, endDate } = defaultDailyRange();
     return [

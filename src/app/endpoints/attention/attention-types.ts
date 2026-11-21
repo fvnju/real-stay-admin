@@ -29,6 +29,8 @@ export type AdminReport = {
   targetUser: PersonSummary | null;
   listing: { id: string; title: string; status: string; deleted: boolean } | null;
   openReportsOfTarget: number;
+  /** A closed report: the staff note, when, and the id of the admin. */
+  resolution?: { note: string | null; at: string; by: string } | null;
 };
 
 /** `GET /v1/admin/listing-verifications` (backend `src/features/listing-verification`). */

@@ -14,6 +14,7 @@ export const menuItems = [
   { label: "Users", icon: "people", path: "/users", shortcut: "u" },
   { label: "Properties", icon: "home", path: "/properties", shortcut: "p" },
   { label: "Bookings", icon: "calendar", path: "/bookings", shortcut: "b" },
+  { label: "Reports", icon: "flag-outline", path: "/reports", shortcut: "r" },
   {
     label: "Notifications",
     icon: "notifications-outline",

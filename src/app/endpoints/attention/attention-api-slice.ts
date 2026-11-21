@@ -11,6 +11,8 @@ export const attentionApi = realstayApi.injectEndpoints({
       { status?: string; limit?: number }
     >({
       query: (params) => ({ url: "/v1/admin/reports", method: "GET", params }),
+      // A resolve on the Reports page loads the bell again.
+      providesTags: ["Report"],
     }),
     getAdminVerifications: builder.query<
       ApiResponse<AdminQueue<AdminVerification>>,
