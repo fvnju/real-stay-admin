@@ -65,12 +65,12 @@ The owner picked A. The owner picked **full control** of the flags (make, edit a
   - `POST flags`, `PATCH flags/[id]`, `DELETE flags/[id]` (`feature-flags:actions`). Delete is the soft delete of PostHog (`deleted: true`), so the owner can restore it in PostHog.
   - `GET cohorts` (`feature-flags:details`): id and name, for the condition form.
   - `GET analytics/[metric]` (`product-analytics:view`): runs one PostHog endpoint with the date range. The route only accepts metric names from a fixed list.
-- After each flag write that succeeds, the route sends `POST /audit-logs/feature-flag` to the backend with the token of the staff member: the action (`created`, `updated`, `deleted`), the flag id and key, and the flag before and after (the `filters`, `active`, `key`, `name`). If the audit write fails, the change stays and the response has `auditFailed: true`; the page shows a warning toast "The change is saved, but the audit log has no record of it."
+- After each flag write that succeeds, the route sends `POST /audit-logs/feature-flag` to the backend with the token of the staff member: the action (`created`, `updated`, `deleted`), the flag id and key, and a text that describes the change ("Turned on hotel-rooms; rollout 20% → 50%"). The audit log schema has no field for the full flag, so the text is the record. If the audit write fails, the change stays and the response has `auditFailed: true`; the page shows a warning toast "The change is saved, but the audit log has no record of it."
 
 ### Backend change (real-stay-backend)
 
 - Add to `src/constants/rbac.perms.ts`: `feature-flags:view|details|actions` and `product-analytics:view|details|actions`. Copy the list to the panel.
-- Add `POST /audit-logs/feature-flag`, guarded by `feature-flags:actions`. It writes one audit log with the user from the token. The body is checked (`action` in the three values, `flagId` a number, `key` a string, `before`/`after` objects of 50 KB or less).
+- Add `POST /audit-logs/feature-flag`, guarded by `feature-flags:actions`. It writes one audit log with the user from the token: `action` `feature_flag.<action>`, the `description` from the body, and `tags` `[flagId, key]`. The body is checked (`action` in the three values, `flagId` a positive number, `key` 1 to 400 characters, `description` 1 to 2000 characters).
 - Add a test of the guard to `admin-user.guard.spec.ts`, and the routes to the backend `CLAUDE.md`.
 - Deploy the backend before the panel. On an old backend the audit write fails, and the page shows the warning above.
 
