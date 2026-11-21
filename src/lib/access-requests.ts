@@ -16,3 +16,12 @@ export function missingFromRole(asked: string[], role: { slug: string; permissio
   const gives = new Set(role.permissions ?? []);
   return asked.filter((p) => !gives.has(p));
 }
+
+/**
+ * The permissions of a role made for an approval: the ones that the
+ * requester has now, then the asked ones. An approval replaces the role, so
+ * a role with only the asked permissions takes the others away.
+ */
+export function permissionsForApproval(current: string[], asked: string[]): string[] {
+  return [...new Set([...current, ...asked])];
+}

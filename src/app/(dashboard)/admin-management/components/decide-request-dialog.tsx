@@ -8,7 +8,7 @@ import { formatDateTime } from "@/components/admin";
 import { accessRequestsApi } from "@/app/endpoints/access-requests/access-requests-api-slice";
 import type { AccessRequest } from "@/app/endpoints/access-requests/access-requests-types";
 import { rbacApi } from "@/app/endpoints/rbac/rbac-api-slice";
-import { MAX_REASON_LENGTH, missingFromRole } from "@/lib/access-requests";
+import { MAX_REASON_LENGTH, missingFromRole, permissionsForApproval } from "@/lib/access-requests";
 import { roleErrorMessage } from "@/lib/role-text";
 import { useMyPermissions } from "@/lib/use-permission";
 import { RoleSelect } from "./role-select";
@@ -46,6 +46,9 @@ export function DecideRequestDialog({
   const roleList = roles.data?.data?.roles ?? [];
   const chosen = roleList.find((r) => r._id === roleId);
   const missing = chosen ? missingFromRole(request.permissions, chosen) : [];
+  // An approval replaces the role: these are the permissions that the admin loses.
+  const current = request.requester?.permissions ?? [];
+  const lost = chosen ? missingFromRole(current, chosen) : [];
   const noteError = !note.trim()
     ? "Write a note for the admin."
     : note.trim().length > MAX_REASON_LENGTH
@@ -109,16 +112,22 @@ export function DecideRequestDialog({
                 {missing.length ? (
                   <p className="text-danger">This role does not have: {missing.join(", ")}</p>
                 ) : null}
+                {lost.length ? (
+                  <p className="text-warning">The admin loses: {lost.join(", ")}</p>
+                ) : null}
                 <Button
                   variant="ghost"
                   size="sm"
                   className="self-start"
                   onPress={() => {
-                    const q = new URLSearchParams({ permissions: request.permissions.join(","), request: request.id });
+                    const q = new URLSearchParams({
+                      permissions: permissionsForApproval(current, request.permissions).join(","),
+                      request: request.id,
+                    });
                     router.push(`/admin-management/roles/new?${q}`);
                   }}
                 >
-                  Make a role with these permissions
+                  Make a role with the current and the asked permissions
                 </Button>
               </div>
             )}

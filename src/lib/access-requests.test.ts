@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_REASON_LENGTH, accessRequestError, missingFromRole } from "./access-requests";
+import { MAX_REASON_LENGTH, accessRequestError, missingFromRole, permissionsForApproval } from "./access-requests";
 
 describe("accessRequestError", () => {
   it("needs permissions or a role", () => {
@@ -26,5 +26,15 @@ describe("missingFromRole", () => {
   });
   it("is empty for the super admin role", () => {
     expect(missingFromRole(["transactions:view"], { slug: "superadmin", permissions: [] })).toEqual([]);
+  });
+});
+
+describe("permissionsForApproval", () => {
+  it("keeps the current permissions and adds the asked ones", () => {
+    expect(permissionsForApproval(["users:view", "bookings:view"], ["reports:actions", "users:view"])).toEqual([
+      "users:view",
+      "bookings:view",
+      "reports:actions",
+    ]);
   });
 });
