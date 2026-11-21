@@ -67,6 +67,10 @@ export function roleErrorMessage(error: unknown): string {
       return "This admin is not removed.";
     case "ADMIN_REMOVED":
       return "This admin was removed. Restore them on their admin page.";
+    case "ACCOUNT_EXISTS":
+      return "This email already has a RealStay account. Ask the person for another email.";
+    case "PHONE_IN_USE":
+      return "Another RealStay account has this phone number. Ask the person for another number.";
     case "USE_ADMIN_REMOVAL":
       return 'Use "Remove admin" on the admin page.';
     default:

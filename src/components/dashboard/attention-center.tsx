@@ -10,6 +10,8 @@ import { analyticApi } from "@/app/endpoints/analytics/analytics-api-slice";
 import { attentionApi } from "@/app/endpoints/attention/attention-api-slice";
 import { accessRequestsApi } from "@/app/endpoints/access-requests/access-requests-api-slice";
 import type { AccessRequest } from "@/app/endpoints/access-requests/access-requests-types";
+import { joinRequestsApi } from "@/app/endpoints/join-requests/join-requests-api-slice";
+import type { JoinRequest } from "@/app/endpoints/join-requests/join-requests-types";
 import { usePermission } from "@/lib/use-permission";
 import type {
   AdminReport,
@@ -80,6 +82,16 @@ function requestItem(r: AccessRequest): Item {
     title: `${nameOf(r.requester)} asks for ${asks}`,
     detail: `Now ${r.requester?.roleName ?? "no role"} · ${formatDate(r.createdAt)}`,
     href: `/admin-management?view=requests&request=${r.id}`,
+  };
+}
+
+function joinItem(r: JoinRequest): Item {
+  return {
+    key: r.id,
+    icon: "person-outline",
+    title: `${[r.firstName, r.lastName].filter(Boolean).join(" ") || r.email} asks to join`,
+    detail: `${r.email} · ${formatDate(r.createdAt)}`,
+    href: `/admin-management?view=join&request=${r.id}`,
   };
 }
 
@@ -191,13 +203,14 @@ export function AttentionBell() {
   const visits = attentionApi.useGetAdminVerificationsQuery({ status: "documents_approved", limit: SHOWN }, verificationPoll);
   const rechecks = attentionApi.useGetAdminVerificationsQuery({ recheck: true, limit: SHOWN }, verificationPoll);
   const requests = accessRequestsApi.useGetRequestsQuery({ status: "open", limit: SHOWN }, { ...POLL, skip: !canDecide });
+  const joins = joinRequestsApi.useGetJoinRequestsQuery({ status: "open", limit: SHOWN }, { ...POLL, skip: !canDecide });
   const admins = analyticApi.useAdminsAnalyticsQuery({ params: {} }, { skip: !open || !canAdmins });
 
   const totalOf = (q: { data?: { data?: { total?: number } } }) => q.data?.data?.total ?? 0;
   const count =
     (canReports ? totalOf(reports) : 0) +
     (canVerifications ? totalOf(papers) + totalOf(visits) + totalOf(rechecks) : 0) +
-    (canDecide ? totalOf(requests) : 0);
+    (canDecide ? totalOf(requests) + totalOf(joins) : 0);
   const pendingInvites = admins.data?.data?.userStats?.pending_users ?? 0;
 
   const openPage = (href: string) => {
@@ -219,7 +232,10 @@ export function AttentionBell() {
         if (next) {
           // Fresh lists when the popover opens.
           if (canReports) void reports.refetch();
-          if (canDecide) void requests.refetch();
+          if (canDecide) {
+            void requests.refetch();
+            void joins.refetch();
+          }
           if (canVerifications) {
             void papers.refetch();
             void visits.refetch();
@@ -300,6 +316,17 @@ export function AttentionBell() {
                 items={(requests.data?.data?.data ?? []).map(requestItem)}
                 isLoading={requests.isLoading}
                 isError={requests.isError}
+                onOpen={openPage}
+              />
+            ) : null}
+            {canDecide ? (
+              <Section
+                title="Join requests"
+                description="People without an admin account asked for access."
+                total={totalOf(joins)}
+                items={(joins.data?.data?.data ?? []).map(joinItem)}
+                isLoading={joins.isLoading}
+                isError={joins.isError}
                 onOpen={openPage}
               />
             ) : null}

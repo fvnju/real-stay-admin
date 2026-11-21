@@ -77,6 +77,17 @@ export default function SignInPage() {
     <AuthCard
       title="Sign in"
       description="Use your RealStay admin account."
+      footer={
+        <>
+          No admin account?{" "}
+          <NextLink
+            href="/request-access"
+            className="rounded-md text-accent hover:underline focus-visible:outline-2 focus-visible:outline-focus"
+          >
+            Request access
+          </NextLink>
+        </>
+      }
     >
       <Form
         className="flex flex-col gap-5"

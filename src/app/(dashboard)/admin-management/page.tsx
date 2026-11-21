@@ -23,6 +23,7 @@ import type { Role } from "@/app/endpoints/rbac/rbac-types";
 import { userApi } from "@/app/endpoints/user/user-api-slice";
 import { GetErrorMessage } from "@/app/utils/error-handler";
 import { InviteAdminModal } from "./components/InviteAdminModal";
+import { JoinRequestsTab } from "./components/join-requests-tab";
 import { RequestsTab } from "./components/requests-tab";
 import { UserTable } from "./components/UserTable";
 import { adminsAnalyticsArgs, adminsArgs, PAGE_SIZE, waitsForData } from "@/lib/page-queries";
@@ -31,6 +32,7 @@ const VIEWS = [
   { label: "Admins", value: "admins" },
   { label: "Roles", value: "roles" },
   { label: "Requests", value: "requests" },
+  { label: "Join requests", value: "join" },
 ];
 
 const STATUSES = [
@@ -85,7 +87,9 @@ function RolesTable() {
 export default function AdminsPage() {
   const router = useRouter();
   const viewParam = useSearchParams().get("view");
-  const [view, setView] = useState(viewParam === "roles" || viewParam === "requests" ? viewParam : "admins");
+  const [view, setView] = useState(
+    viewParam === "roles" || viewParam === "requests" || viewParam === "join" ? viewParam : "admins",
+  );
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
   const [status, setStatus] = useState("");
@@ -176,8 +180,10 @@ export default function AdminsPage() {
           </>
         ) : view === "roles" ? (
           <RolesTable />
-        ) : (
+        ) : view === "requests" ? (
           <RequestsTab />
+        ) : (
+          <JoinRequestsTab />
         )}
       </Card>
 

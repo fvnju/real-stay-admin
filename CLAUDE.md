@@ -24,7 +24,7 @@ Upstream keeps the access token and the refresh token in `localStorage`, so an X
 - Cookies: `access_token` (15 minutes, as the backend token), `refresh_token` (7 days), `user` (`{ id, email, user_type }`). All are httpOnly, `SameSite=Lax`, and `Secure` in production.
 - `access_expires` (not httpOnly) holds only the time when the access token expires (from its `exp`). When the token may have expired, the axios client sends one request first and the others after its answer (`src/app/store/refresh-gate.ts`), so only one server refreshes the rotating refresh token. The middleware writes the cookie for a session that does not have it.
 - `POST /api/auth/login` and `POST /api/auth/accept-invite` call the backend and write the cookies. The login refuses a user whose `user_type` is not `admin`. `POST /api/auth/logout` clears the cookies.
-- `src/middleware.ts`: a page needs the `refresh_token` cookie, else it goes to `/sign-in`. The public pages are `/`, `/sign-in`, `/forgot-password`, and `/accept-invite`. `/logout` clears the cookies.
+- `src/middleware.ts`: a page needs the `refresh_token` cookie, else it goes to `/sign-in`. The public pages are `/`, `/sign-in`, `/forgot-password`, `/accept-invite`, and `/request-access`. `/logout` clears the cookies.
 - The dashboard layout (a server component) reads the `user` cookie and gives it to the pages with `useSessionUser()` (`src/app/providers/session-user.tsx`).
 
 ## Backend calls
@@ -58,8 +58,8 @@ Upstream keeps the access token and the refresh token in `localStorage`, so an X
 
 ## The bell (Needs attention)
 
-- Admins get no push or in-app notifications. The bell of the header (`src/components/dashboard/attention-center.tsx`) opens a popover under it with the admin queues of the backend: open reports (`GET /v1/admin/reports?status=open`), papers to check (`/v1/admin/listing-verifications?status=submitted`), visits to do (`status=documents_approved`), verified listings to check again (`recheck=true`), open access requests (`/v1/admin/access-requests?status=open`), and admin invites with no answer (`/analytics/admins`).
-- A queue shows only when the role has its permission (`reports:view`, `verifications:view`, `admin-management:actions` for the requests, `admin-management:view` for the invites), and only the queues shown count in the badge. It loads again each minute while the tab is in front, and when the popover opens. Each list shows the 5 oldest items; an item opens its page.
+- Admins get no push or in-app notifications. The bell of the header (`src/components/dashboard/attention-center.tsx`) opens a popover under it with the admin queues of the backend: open reports (`GET /v1/admin/reports?status=open`), papers to check (`/v1/admin/listing-verifications?status=submitted`), visits to do (`status=documents_approved`), verified listings to check again (`recheck=true`), open access requests (`/v1/admin/access-requests?status=open`), open join requests (`/v1/admin/join-requests?status=open`), and admin invites with no answer (`/analytics/admins`).
+- A queue shows only when the role has its permission (`reports:view`, `verifications:view`, `admin-management:actions` for the access and join requests, `admin-management:view` for the invites), and only the queues shown count in the badge. It loads again each minute while the tab is in front, and when the popover opens. Each list shows the 5 oldest items; an item opens its page.
 - The calls are in `src/app/endpoints/attention/`. A v1 list answers `{ data: { data, total, page, limit } }`.
 - A verification item opens `/verifications/[id]`.
 
@@ -75,6 +75,13 @@ Design: `docs/superpowers/specs/2026-11-21-reports-and-roles-design.md`. The bac
 - No admin gives a role above their own role: `RoleSelect` marks such a role "Above your role", and `PermissionGrid` does not let the admin check a permission that they do not have. The backend checks again (`ABOVE_OWN_ROLE`). Error texts: `roleErrorMessage` (`src/lib/role-text.ts`).
 - Roles: the Roles tab of the Admins page, `/admin-management/roles/new` and `/admin-management/roles/[id]` (form `role-form.tsx`, grid `permission-grid.tsx`). An admin cannot edit the role that they have, a role above them, or `superadmin` (read-only grid with the reason). "Change role" is on the admin page (`PATCH /users/:id/role`); an admin cannot change their own role.
 - Access requests: "Ask for access" (blocked state) and "My profile" → "My access" (`src/components/profile/my-access.tsx`) send a request (permissions, a role, or both, and a reason). The Requests tab of the Admins page lists them; the decide dialog approves with a role that has the asked permissions ("Make a role with the current and the asked permissions" opens the role form and comes back; an approval replaces the role, so the dialog shows the permissions that the admin loses), or declines with a note. Nobody decides their own request.
+
+## Join requests
+
+The backend side is in the backend `CLAUDE.md` ("Roles and permissions", "Join requests").
+
+- A person without an admin account asks for access on `/request-access` (public; the sign-in page links to it with "Request access"). The form has the name, the email, the phone and a reason (rules `src/lib/join-requests.ts`, a copy of the backend limits). The page calls the backend from the browser (`POST <NEXT_PUBLIC_BASE_URL>/v1/admin-join-requests`, no cookies), so the backend limit of 5 an hour counts the IP address of the person, not of the panel server. The backend answers the same for each email, so the page always shows "Request sent".
+- The "Join requests" tab of the Admins page (`?view=join`, `join-requests-tab.tsx`, `admin-management:actions`) lists them. The dialog (`decide-join-dialog.tsx`) approves with a role, which sends the normal admin invite, or declines with a note that the person does not see. The calls are in `src/app/endpoints/join-requests/`. The bell has the open join requests.
 
 ## Remove admins
 

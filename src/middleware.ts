@@ -6,7 +6,7 @@ import { ENVIRONMENT } from "@/utils/configs/constant";
 // The same names as in `src/server/session.ts`.
 const SESSION_COOKIES = ["access_token", "refresh_token", "user", ACCESS_EXPIRES_COOKIE];
 
-const PUBLIC_PATHS = ["/", "/sign-in", "/forgot-password", "/accept-invite"];
+const PUBLIC_PATHS = ["/", "/sign-in", "/forgot-password", "/accept-invite", "/request-access"];
 
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
