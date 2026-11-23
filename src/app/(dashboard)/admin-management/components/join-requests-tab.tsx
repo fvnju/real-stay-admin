@@ -65,29 +65,42 @@ function JoinRequestsList() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <SegmentTabs
-          label="Request status"
-          segments={STATUSES}
-          value={status}
-          onChange={(v) => {
-            setStatus(v);
-            setPage(1);
-          }}
-        />
+      <div className="rounded-2xl border bg-default/40 px-4 py-3 transition-colors hover:bg-default/60">
         <Switch
+          className="w-full"
           isSelected={allowExisting}
           isDisabled={settingsQuery.isLoading || isSavingSettings}
           onChange={toggleAllowExisting}
         >
-          <Switch.Control>
-            <Switch.Thumb />
-          </Switch.Control>
-          <Switch.Content>
-            <Label className="text-sm">Allow existing RealStay accounts</Label>
+          <Switch.Content className="flex w-full items-center justify-between gap-4">
+            <div className="min-w-0">
+              <Label className="block text-sm font-medium text-foreground">
+                Allow existing RealStay accounts
+              </Label>
+              <p className="text-xs font-normal text-muted">
+                Grant admin access directly when a request matches an active guest or host account.
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2.5">
+              <span className="text-xs font-medium text-muted">
+                {allowExisting ? "On" : "Off"}
+              </span>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </div>
           </Switch.Content>
         </Switch>
       </div>
+      <SegmentTabs
+        label="Request status"
+        segments={STATUSES}
+        value={status}
+        onChange={(v) => {
+          setStatus(v);
+          setPage(1);
+        }}
+      />
       <AdminTable<JoinRequest>
         label="Join requests"
         columns={[
