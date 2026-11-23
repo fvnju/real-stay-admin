@@ -52,7 +52,7 @@ export default function UsersPage() {
     await manageUserMutation({ path: { id, action } })
       .unwrap()
       .then(() => {
-        toast.success(action === "activate" ? "User activated." : "User deactivated.");
+        toast.success(action === "activate" ? "User activated." : "User deactivated. They are signed out and cannot sign in.");
         refetch();
       })
       .catch((err) => toast.error(GetErrorMessage(err)));
