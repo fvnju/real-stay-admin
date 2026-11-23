@@ -23,12 +23,13 @@ import { BASE_URL } from "@/utils/configs/constant";
  */
 export const dynamic = "force-dynamic";
 
-async function revokeUpstreamSession(token: string) {
+async function revokeUpstreamSession(token: string, origin: string) {
   await fetch(`${BASE_URL}/api/auth/sign-out`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
+      Origin: origin,
     },
     body: "{}",
     cache: "no-store",
@@ -64,9 +65,11 @@ async function handle(
     return NextResponse.json(null, { status: 200 });
   }
 
+  const origin = request.headers.get("origin") || request.nextUrl.origin;
+
   if (path === "sign-out") {
     if (baToken) {
-      await revokeUpstreamSession(baToken);
+      await revokeUpstreamSession(baToken, origin);
     }
     const response = NextResponse.json({ success: true }, { status: 200 });
     clearSession(response.cookies);
@@ -75,6 +78,10 @@ async function handle(
 
   const target = `${BASE_URL}/api/auth/${path}${request.nextUrl.search}`;
   const headers = new Headers();
+  // Node/Undici fetch on Vercel adds `Sec-Fetch-Mode: cors` on outbound
+  // requests, which triggers Better Auth's CSRF origin check. Forward the
+  // verified panel origin so Better Auth validates it against `trustedOrigins`.
+  headers.set("origin", origin);
   const contentType = request.headers.get("content-type");
   if (contentType) headers.set("content-type", contentType);
   const accept = request.headers.get("accept");
@@ -119,7 +126,7 @@ async function handle(
     // The panel is for RealStay staff only. If a non-admin signs in, revoke
     // the just-created Better Auth session immediately and refuse access.
     if (!isAdminBetterAuthUser(json)) {
-      if (token) await revokeUpstreamSession(token);
+      if (token) await revokeUpstreamSession(token, origin);
       return NextResponse.json(
         {
           code: "NOT_ADMIN",

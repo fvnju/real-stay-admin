@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${baToken}`,
+        Origin: request.headers.get("origin") || request.nextUrl.origin,
       },
       body: "{}",
       cache: "no-store",
