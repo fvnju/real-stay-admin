@@ -9,6 +9,7 @@ export type ReportsArgs = {
   status?: string;
   targetType?: string;
   targetId?: string;
+  userId?: string;
 };
 
 /** `/v1/admin/reports` (backend `src/features/reports`). A v1 body is `{ data }`. */

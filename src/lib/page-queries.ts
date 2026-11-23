@@ -39,12 +39,20 @@ const listParams = ({ page, pageSize, search = "", status = "" }: ListFilters) =
   page_size: pageSize,
 });
 
-export const usersArgs = (f: ListFilters & { userType?: string }) => ({
-  params: {
-    ...listParams(f),
-    user_type: sanitizeFilterQuery(f.userType ?? ""),
-  },
-});
+export const usersArgs = (
+  f: ListFilters & { userType?: string; kyc?: string; flagged?: string },
+) => {
+  const isDeleted = f.status === "deleted";
+  return {
+    params: {
+      ...listParams({ ...f, status: isDeleted ? "" : f.status }),
+      ...(isDeleted ? { deleted: "true" } : {}),
+      user_type: sanitizeFilterQuery(f.userType ?? ""),
+      kyc: sanitizeFilterQuery(f.kyc ?? ""),
+      flagged: sanitizeFilterQuery(f.flagged ?? ""),
+    },
+  };
+};
 
 export const listingsArgs = (f: ListFilters) => ({ params: listParams(f) });
 

@@ -1,7 +1,31 @@
 import { AxiosInstance } from "@/app/store/httpConfig";
 import { realstayApi } from "@/app/store/storeConfigQuery";
 import { ApiRequest, ApiResponse } from "../api";
-import { User, UserResponse, UsersResponse } from "./user-types";
+import {
+  CreateHostResponse,
+  DeleteUserResponse,
+  User,
+  UserNote,
+  UserNotesResponse,
+  UserResponse,
+  UsersResponse,
+} from "./user-types";
+
+export interface CreateHostInput {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  gender?: string;
+}
+
+export interface UpdateUserInput {
+  first_name?: string;
+  last_name?: string;
+  phone_number?: string;
+  gender?: string;
+  user_type?: "guest" | "host";
+}
 
 export const userApi = realstayApi.injectEndpoints({
   overrideExisting: true,
@@ -63,6 +87,85 @@ export const userApi = realstayApi.injectEndpoints({
           params,
         };
       },
+      providesTags: ["User"],
+    }),
+    /** `POST /users`: admin creates a host account (`active`, `is_password_set: false`). */
+    createHost: builder.mutation<ApiResponse<CreateHostResponse>, CreateHostInput>({
+      query: (data) => ({
+        url: "/users",
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    /** `PATCH /users/:id`: admin edits profile fields of a guest or host. */
+    updateUser: builder.mutation<ApiResponse<User>, { id: string; data: UpdateUserInput }>({
+      query: ({ id, data }) => ({
+        url: `/users/${id}`,
+        method: "PATCH",
+        data,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [{ type: "User", id }, "User"],
+    }),
+    /** `POST /users/:id/delete`: soft-deletes a guest or host account. */
+    deleteUser: builder.mutation<ApiResponse<DeleteUserResponse>, { id: string; reason?: string }>({
+      query: ({ id, reason }) => ({
+        url: `/users/${id}/delete`,
+        method: "POST",
+        data: reason ? { reason } : {},
+      }),
+      invalidatesTags: (_result, _error, { id }) => [{ type: "User", id }, "User"],
+    }),
+    /** `POST /users/:id/restore`: restores a soft-deleted guest or host account. */
+    restoreUser: builder.mutation<ApiResponse<User>, string>({
+      query: (id) => ({
+        url: `/users/${id}/restore`,
+        method: "POST",
+      }),
+      invalidatesTags: (_result, _error, id) => [{ type: "User", id }, "User"],
+    }),
+    /** `POST /users/:id/flag`: flags or escalates a guest/host account. */
+    flagUser: builder.mutation<ApiResponse<User>, { id: string; reason: string; escalate?: boolean }>({
+      query: ({ id, reason, escalate }) => ({
+        url: `/users/${id}/flag`,
+        method: "POST",
+        data: { reason, escalate: !!escalate },
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "User", id },
+        "User",
+        { type: "UserNotes", id },
+      ],
+    }),
+    /** `POST /users/:id/unflag`: clears a flag/escalation with a closing note. */
+    unflagUser: builder.mutation<ApiResponse<User>, { id: string; note: string }>({
+      query: ({ id, note }) => ({
+        url: `/users/${id}/unflag`,
+        method: "POST",
+        data: { note },
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "User", id },
+        "User",
+        { type: "UserNotes", id },
+      ],
+    }),
+    /** `GET /users/:id/notes`: internal compliance notes & flag history. */
+    getUserNotes: builder.query<ApiResponse<UserNotesResponse>, string>({
+      query: (id) => ({
+        url: `/users/${id}/notes`,
+        method: "GET",
+      }),
+      providesTags: (_result, _error, id) => [{ type: "UserNotes", id }],
+    }),
+    /** `POST /users/:id/notes`: appends an internal compliance note. */
+    addUserNote: builder.mutation<ApiResponse<UserNote>, { id: string; body: string }>({
+      query: ({ id, body }) => ({
+        url: `/users/${id}/notes`,
+        method: "POST",
+        data: { body },
+      }),
+      invalidatesTags: (_result, _error, { id }) => [{ type: "UserNotes", id }],
     }),
     getAdmins: builder.query<ApiResponse<UsersResponse>, ApiRequest>({
       query: ({ params }) => {

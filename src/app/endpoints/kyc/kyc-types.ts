@@ -31,6 +31,7 @@ export interface IdentityData {
   middle_name?: string;
   date_of_birth?: string;
   gender?: string;
+  image?: string | null;
   phone_number?: string;
   selfie_verification: SelfieVerification;
   [key: string]: unknown; // allows provider-specific extra fields
