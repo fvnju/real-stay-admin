@@ -31,6 +31,8 @@ describe("roleErrorMessage", () => {
     ["ALREADY_REMOVED", "This admin is already removed."],
     ["NOT_REMOVED", "This admin is not removed."],
     ["ADMIN_REMOVED", "This admin was removed. Restore them on their admin page."],
+    ["ALREADY_ADMIN", "This email already has an admin account."],
+    ["ACCOUNT_DEACTIVATED", "This RealStay account is deactivated. Activate it on the Users page first."],
     ["USE_ADMIN_REMOVAL", "Use \"Remove admin\" on the admin page."],
   ])("gives the text of %s", (code, text) => {
     expect(roleErrorMessage(old(code))).toBe(text);

@@ -82,7 +82,7 @@ Design: `docs/superpowers/specs/2026-11-21-reports-and-roles-design.md`. The bac
 The backend side is in the backend `CLAUDE.md` ("Roles and permissions", "Join requests").
 
 - A person without an admin account asks for access on `/request-access` (public; the sign-in page links to it with "Request access"). The form has the name, the email, the phone and a reason (rules `src/lib/join-requests.ts`, a copy of the backend limits). The page calls the backend from the browser (`POST <NEXT_PUBLIC_BASE_URL>/v1/admin-join-requests`, no cookies), so the backend limit of 5 an hour counts the IP address of the person, not of the panel server. The backend answers the same for each email, so the page always shows "Request sent".
-- The "Join requests" tab of the Admins page (`?view=join`, `join-requests-tab.tsx`, `admin-management:actions`) lists them. The dialog (`decide-join-dialog.tsx`) approves with a role, which sends the normal admin invite, or declines with a note that the person does not see. The calls are in `src/app/endpoints/join-requests/`. The bell has the open join requests.
+- The "Join requests" tab of the Admins page (`?view=join`, `join-requests-tab.tsx`, `admin-management:actions`) lists them. The dialog (`decide-join-dialog.tsx`) approves with a role — granting admin access directly if the email already has an active RealStay guest/host account, or sending the normal admin invite otherwise — or declines with a note that the person does not see. The calls are in `src/app/endpoints/join-requests/`. The bell has the open join requests.
 
 ## Remove admins
 

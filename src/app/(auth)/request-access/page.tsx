@@ -77,7 +77,7 @@ export default function RequestAccessPage() {
       <AuthCard title="Request sent" description="The RealStay team reads each request." footer={backLink}>
         <p className="text-sm">
           If the team approves it, you get an email at <span className="font-medium">{joinRequestBody(form).email}</span>{" "}
-          with a link to set your password. The link is valid for 30 minutes.
+          with next steps to sign in (or a link to set your password if you do not have a RealStay account yet).
         </p>
       </AuthCard>
     );

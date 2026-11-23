@@ -73,7 +73,12 @@ function JoinRequestsList() {
               return (
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{joinNameOf(r)}</p>
-                  <p className="truncate text-xs text-muted">{r.email}</p>
+                  <p className="truncate text-xs text-muted">
+                    {r.email}
+                    {r.status === "open" && r.existingAccount && !r.existingAccount.isRemovedAdmin && r.existingAccount.userType !== "admin"
+                      ? ` · Existing ${r.existingAccount.userType}`
+                      : ""}
+                  </p>
                 </div>
               );
             case "reason":

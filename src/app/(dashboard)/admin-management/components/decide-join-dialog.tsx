@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, FieldError, Label, Modal, Spinner, TextArea, TextField } from "@heroui/react";
+import NextLink from "next/link";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { CopyButton, formatDateTime } from "@/components/admin";
@@ -15,8 +16,9 @@ import { RoleSelect } from "./role-select";
 export const joinNameOf = (r: JoinRequest) => [r.firstName, r.lastName].filter(Boolean).join(" ") || r.email;
 
 /**
- * Approve a join request (send the admin invite with a role) or decline it
- * with a note. The person gets no email for a decline.
+ * Approve a join request (grant admin access to an existing RealStay account,
+ * or send the admin invite with a role) or decline it with a note. The person
+ * gets no email for a decline.
  */
 export function DecideJoinDialog({ request, onClose }: { request: JoinRequest; onClose: () => void }) {
   const { data: me } = useMyPermissions();
@@ -35,6 +37,12 @@ export function DecideJoinDialog({ request, onClose }: { request: JoinRequest; o
       ? `Write ${MAX_JOIN_REASON} characters or less.`
       : null;
   const isOpen = request.status === "open";
+  const existing = isOpen ? (request.existingAccount ?? null) : null;
+  const isRemovedAdmin = !!existing?.isRemovedAdmin;
+  const isDeactivated = !!existing?.isDeactivated;
+  const isAlreadyAdmin = !!existing && !isRemovedAdmin && existing.userType === "admin" && existing.status === "active";
+  const isExistingUser = !!existing && !isRemovedAdmin && !isDeactivated && existing.userType !== "admin";
+  const approvalBlocked = isRemovedAdmin || isDeactivated || isAlreadyAdmin;
 
   const done = (text: string) => {
     toast.success(text);
@@ -67,7 +75,7 @@ export function DecideJoinDialog({ request, onClose }: { request: JoinRequest; o
             {!isOpen ? (
               <p>
                 {request.status === "approved"
-                  ? `Approved: invited as ${request.decision?.role?.name ?? "an admin"}.`
+                  ? `Approved as ${request.decision?.role?.name ?? "an admin"}.`
                   : `Declined: ${request.decision?.note ?? ""}`}
               </p>
             ) : declining ? (
@@ -76,10 +84,43 @@ export function DecideJoinDialog({ request, onClose }: { request: JoinRequest; o
                 <TextArea rows={3} placeholder="Why not. The person does not see this note." />
                 <FieldError>{noteError}</FieldError>
               </TextField>
+            ) : isRemovedAdmin && existing ? (
+              <p className="rounded-2xl bg-default p-3 text-warning">
+                This email belongs to a removed admin.{" "}
+                <NextLink href={`/admin-management/${existing.id}`} onClick={onClose} className="underline">
+                  Restore them on their admin page
+                </NextLink>{" "}
+                instead.
+              </p>
+            ) : isDeactivated && existing ? (
+              <p className="rounded-2xl bg-default p-3 text-warning">
+                This RealStay account is deactivated.{" "}
+                <NextLink href={`/users/${existing.id}`} onClick={onClose} className="underline">
+                  Activate it on the Users page
+                </NextLink>{" "}
+                before approving.
+              </p>
+            ) : isAlreadyAdmin && existing ? (
+              <p className="rounded-2xl bg-default p-3 text-muted">
+                This email already has an active admin account.{" "}
+                <NextLink href={`/admin-management/${existing.id}`} onClick={onClose} className="text-accent underline">
+                  Open admin page
+                </NextLink>
+                .
+              </p>
             ) : (
               <div className="flex flex-col gap-2">
+                {isExistingUser && existing ? (
+                  <p className="rounded-2xl bg-default p-3 text-xs text-muted">
+                    This email already has a RealStay {existing.userType} account (
+                    <NextLink href={`/users/${existing.id}`} onClick={onClose} className="text-accent underline">
+                      view account
+                    </NextLink>
+                    ). Approving grants admin access to that account and keeps their existing profile and password.
+                  </p>
+                ) : null}
                 <RoleSelect
-                  label="Invite with the role"
+                  label={isExistingUser ? "Grant the role" : "Invite with the role"}
                   roles={roleList}
                   me={me}
                   value={roleId}
@@ -87,8 +128,9 @@ export function DecideJoinDialog({ request, onClose }: { request: JoinRequest; o
                   isLoading={roles.isLoading}
                 />
                 <p className="text-xs text-muted">
-                  The person gets the admin invite by email. The link is valid for 30 minutes; you can send it
-                  again from the admin page.
+                  {isExistingUser
+                    ? "The person gets an email letting them know they can sign in with their existing RealStay email and password."
+                    : "The person gets the admin invite by email. The link is valid for 30 minutes; you can send it again from the admin page."}
                 </p>
               </div>
             )}
@@ -121,16 +163,22 @@ export function DecideJoinDialog({ request, onClose }: { request: JoinRequest; o
                   </Button>
                   <Button
                     variant="primary"
-                    isDisabled={isApproving || !roleId}
+                    isDisabled={isApproving || !roleId || approvalBlocked}
                     onPress={() =>
                       approve({ id: request.id, roleId })
                         .unwrap()
-                        .then(() => done(`Invite sent to ${request.email} with the role ${chosen?.name ?? ""}.`))
+                        .then((res) =>
+                          done(
+                            res.data.promoted || isExistingUser
+                              ? `Admin access granted to ${request.email} with the role ${chosen?.name ?? ""}.`
+                              : `Invite sent to ${request.email} with the role ${chosen?.name ?? ""}.`,
+                          ),
+                        )
                         .catch((err) => toast.error(roleErrorMessage(err)))
                     }
                   >
                     {isApproving ? <Spinner size="sm" color="current" /> : null}
-                    Approve and invite
+                    {isExistingUser ? "Approve and grant access" : "Approve and invite"}
                   </Button>
                 </>
               )}
