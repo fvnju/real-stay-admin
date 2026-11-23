@@ -10,13 +10,16 @@ import { BASE_URL, ENVIRONMENT } from "@/utils/configs/constant";
  * scripts (and an XSS attack) cannot read the tokens. Only the server
  * routes of this app read them: `/api/auth/*` and `/api/backend/*`.
  */
+export const BA_SESSION_COOKIE = "ba_session_token";
 export const ACCESS_COOKIE = "access_token";
 export const REFRESH_COOKIE = "refresh_token";
 export const USER_COOKIE = "user";
 
-/** The backend access token is valid for 15 minutes. */
+/** Better Auth sessions are valid for 7 days by default. */
+export const BA_SESSION_MAX_AGE = 7 * 24 * 60 * 60;
+/** The legacy backend access token is valid for 15 minutes. */
 const ACCESS_MAX_AGE = 15 * 60;
-/** The backend refresh token is valid for 7 days. */
+/** The legacy backend refresh token is valid for 7 days. */
 const REFRESH_MAX_AGE = 7 * 24 * 60 * 60;
 
 export const ADMIN_USER_TYPE = "admin";
@@ -74,8 +77,40 @@ export function writeSession(
   );
 }
 
+export function writeBetterAuthSession(
+  cookies: CookieWriter,
+  sessionToken: string,
+  user: SessionUser,
+) {
+  cookies.set(BA_SESSION_COOKIE, sessionToken, cookieOptions(BA_SESSION_MAX_AGE));
+  // Better Auth sessions do not need a 15-minute access refresh; write a
+  // future expiry so `refresh-gate.ts` lets parallel requests run immediately.
+  cookies.set(
+    ACCESS_EXPIRES_COOKIE,
+    String(Date.now() + BA_SESSION_MAX_AGE * 1000),
+    {
+      ...cookieOptions(BA_SESSION_MAX_AGE),
+      httpOnly: false,
+    },
+  );
+  cookies.set(
+    USER_COOKIE,
+    JSON.stringify({ id: user.id, email: user.email, user_type: user.user_type }),
+    cookieOptions(BA_SESSION_MAX_AGE),
+  );
+  for (const legacy of [ACCESS_COOKIE, REFRESH_COOKIE]) {
+    cookies.set(legacy, "", { ...cookieOptions(0), expires: new Date(0) });
+  }
+}
+
 export function clearSession(cookies: CookieWriter) {
-  for (const name of [ACCESS_COOKIE, REFRESH_COOKIE, USER_COOKIE, ACCESS_EXPIRES_COOKIE]) {
+  for (const name of [
+    BA_SESSION_COOKIE,
+    ACCESS_COOKIE,
+    REFRESH_COOKIE,
+    USER_COOKIE,
+    ACCESS_EXPIRES_COOKIE,
+  ]) {
     cookies.set(name, "", { ...cookieOptions(0), expires: new Date(0) });
   }
 }
@@ -150,6 +185,18 @@ export async function callBackendWithSession(
   cookies: CookieReader,
   send: (accessToken: string | undefined) => Promise<Response>
 ): Promise<BackendCall> {
+  // Prefer the Better Auth session token when present. It is an opaque 7-day
+  // Bearer token verified directly in Postgres, with no rotating refresh dance.
+  const baToken = cookies.get(BA_SESSION_COOKIE)?.value;
+  if (baToken) {
+    const response = await send(baToken);
+    return {
+      response,
+      newTokens: null,
+      ended: response.status === 401,
+    };
+  }
+
   const accessToken = cookies.get(ACCESS_COOKIE)?.value;
   const refreshToken = cookies.get(REFRESH_COOKIE)?.value;
   const user = parseSessionUser(cookies.get(USER_COOKIE)?.value);
@@ -177,7 +224,11 @@ export async function callBackendWithSession(
 
 /** The access token that a later backend request of the same route uses. */
 export function currentAccessToken(cookies: CookieReader, call: BackendCall): string | undefined {
-  return call.newTokens?.access_token ?? cookies.get(ACCESS_COOKIE)?.value;
+  return (
+    cookies.get(BA_SESSION_COOKIE)?.value ??
+    call.newTokens?.access_token ??
+    cookies.get(ACCESS_COOKIE)?.value
+  );
 }
 
 /** Writes refreshed tokens, or clears an ended session, on a route response. */

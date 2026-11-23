@@ -20,12 +20,13 @@ Upstream keeps the access token and the refresh token in `localStorage`, so an X
 
 ## Session
 
-- `src/server/session.ts` (server only) has the cookie names, writes and clears the cookies, and refreshes the tokens.
-- Cookies: `access_token` (15 minutes, as the backend token), `refresh_token` (7 days), `user` (`{ id, email, user_type }`). All are httpOnly, `SameSite=Lax`, and `Secure` in production.
-- `access_expires` (not httpOnly) holds only the time when the access token expires (from its `exp`). When the token may have expired, the axios client sends one request first and the others after its answer (`src/app/store/refresh-gate.ts`), so only one server refreshes the rotating refresh token. The middleware writes the cookie for a session that does not have it.
-- `POST /api/auth/login` and `POST /api/auth/accept-invite` call the backend and write the cookies. The login refuses a user whose `user_type` is not `admin`. `POST /api/auth/logout` clears the cookies.
-- `src/middleware.ts`: a page needs the `refresh_token` cookie, else it goes to `/sign-in`. The public pages are `/`, `/sign-in`, `/forgot-password`, `/accept-invite`, and `/request-access`. `/logout` clears the cookies.
+- Better Auth client SDK (`src/lib/auth-client.ts`, `createAuthClient` from `better-auth/react` with `emailOTPClient` and `inferAdditionalFields`) points to this app's same-origin proxy at `/api/auth/*` (`src/app/api/auth/[...all]/route.ts`, allowlist & helpers in `src/server/better-auth-proxy.ts`).
+- `src/server/session.ts` (server only) manages the httpOnly cookies (`ba_session_token` 7 days for Better Auth sessions, `user` `{ id, email, user_type }`, plus legacy `access_token` / `refresh_token` fallback for existing sessions and `/api/auth/accept-invite`). All session cookies are httpOnly, `SameSite=Lax`, and `Secure` in production. The proxy strips `token` / `session.token` and never forwards `set-auth-token` to the browser.
+- Sign-in (`/sign-in`) calls `authClient.signIn.email`; the proxy checks `userType === "admin"` (non-admins have their session revoked immediately and receive 403). Sign-out (`logout()` in `src/lib/dashboardMenu.ts`) calls `authClient.signOut()`, revoking the Postgres session and clearing all cookies.
+- `access_expires` (not httpOnly) holds only a timestamp so `src/app/store/refresh-gate.ts` serializes parallel requests only when a legacy 15-minute access token may have expired (for Better Auth sessions it is set 7 days ahead so parallel requests never wait).
+- `src/middleware.ts`: a page needs `ba_session_token` or `refresh_token`, else it goes to `/sign-in`. The public pages are `/`, `/sign-in`, `/forgot-password`, `/accept-invite`, and `/request-access`. `/logout` clears the cookies.
 - The dashboard layout (a server component) reads the `user` cookie and gives it to the pages with `useSessionUser()` (`src/app/providers/session-user.tsx`).
+- Deploy order: deploy `real-stay-backend` with Better Auth (`/api/auth/*`) before deploying this panel.
 
 ## Backend calls
 
@@ -131,7 +132,7 @@ Design: `docs/superpowers/specs/2026-11-21-posthog-flags-and-analytics-design.md
 
 ## Password reset
 
-`/forgot-password` has three steps: the email, the 5-digit code, and the new password. The page calls `POST /api/auth/password-reset` with `step` `request`, `verify` or `change`. The route sends only the fields of the step to the backend (`/auth/forgot-password`, `/auth/forgot-password/verify`, `PATCH /auth/change-password`), with no cookies, and checks the `Origin`. The new password must pass the backend rule; `src/lib/password-rules.ts` has a copy (change both together). The backend lets one email ask for a code every 30 seconds.
+`/forgot-password` has three steps: the email, the 6-digit code, and the new password. The page uses Better Auth's `emailOtp` client plugin (`authClient.emailOtp.requestPasswordReset`, `checkVerificationOtp`, `resetPassword`) through `/api/auth/[...all]/route.ts`, with `Origin` checking and no session cookies. The new password must pass the backend rule; `src/lib/password-rules.ts` has a copy (change both together). Resetting the password revokes all active Better Auth sessions and syncs the legacy password column on the backend.
 
 ## Pages
 

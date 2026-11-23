@@ -15,31 +15,16 @@ import Link from "next/link";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { toast } from "react-toastify";
 import { string } from "yup";
+import { authClient, authErrorMessage } from "@/lib/auth-client";
 import { PASSWORD_HINT, passwordError } from "@/lib/password-rules";
 import { AuthCard } from "../components/auth-card";
 import { PasswordField } from "../components/password-field";
 
-const CODE_LENGTH = 5;
-/** The backend lets one email ask for a code each 30 seconds. */
+const CODE_LENGTH = 6;
+/** Wait before allowing another OTP request. */
 const RESEND_SECONDS = 30;
 
 type Step = "email" | "code" | "password" | "done";
-
-/** Calls one step of `src/app/api/auth/password-reset/route.ts`. */
-async function resetStep(
-  step: "request" | "verify" | "change",
-  body: Record<string, string>,
-): Promise<{ reset_token?: string }> {
-  const res = await fetch("/api/auth/password-reset", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ step, ...body }),
-  }).catch(() => null);
-  if (!res) throw new Error("Could not reach the server. Check your connection.");
-  const json = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(json?.error || "Something went wrong. Try again.");
-  return json ?? {};
-}
 
 function SubmitButton({
   isPending,
@@ -66,7 +51,7 @@ export default function ForgotPasswordPage() {
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
-  const [resetToken, setResetToken] = useState("");
+  const [verifiedOtp, setVerifiedOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
@@ -92,7 +77,14 @@ export default function ForgotPasswordPage() {
 
   const sendCode = () =>
     run(async () => {
-      await resetStep("request", { email: email.trim() });
+      const { error } = await authClient.emailOtp.requestPasswordReset({
+        email: email.trim(),
+      });
+      if (error) {
+        throw new Error(
+          authErrorMessage(error, "Could not send a reset code. Try again."),
+        );
+      }
       setCode("");
       setStep("code");
       setResendIn(RESEND_SECONDS);
@@ -115,12 +107,15 @@ export default function ForgotPasswordPage() {
     }
     void run(async () => {
       try {
-        const { reset_token } = await resetStep("verify", {
+        const { error } = await authClient.emailOtp.checkVerificationOtp({
           email: email.trim(),
+          type: "forget-password",
           otp: code,
         });
-        if (!reset_token) throw new Error("Could not check the code. Try again.");
-        setResetToken(reset_token);
+        if (error) {
+          throw new Error(authErrorMessage(error, "The code is wrong."));
+        }
+        setVerifiedOtp(code);
         setStep("password");
       } catch (err) {
         // Show the message under the code, and empty the boxes for a new try.
@@ -140,11 +135,16 @@ export default function ForgotPasswordPage() {
     setErrors(next);
     if (next.password || next.confirm) return;
     void run(async () => {
-      await resetStep("change", {
+      const { error } = await authClient.emailOtp.resetPassword({
         email: email.trim(),
+        otp: verifiedOtp,
         password,
-        reset_token: resetToken,
       });
+      if (error) {
+        throw new Error(
+          authErrorMessage(error, "Could not change your password. Try again."),
+        );
+      }
       setStep("done");
     });
   }

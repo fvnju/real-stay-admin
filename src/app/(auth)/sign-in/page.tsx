@@ -14,9 +14,7 @@ import NextLink from "next/link";
 import { useState, type FormEvent } from "react";
 import { toast } from "react-toastify";
 import { string } from "yup";
-import type { InnerResponseType } from "@/app/api/auth/types";
-import type { POST } from "@/app/api/auth/login/route";
-import { safeReturn } from "@/utils/errorHandler";
+import { authClient, authErrorMessage } from "@/lib/auth-client";
 import { AuthCard } from "../components/auth-card";
 import { PasswordField } from "../components/password-field";
 
@@ -44,29 +42,21 @@ export default function SignInPage() {
     if (nextErrors.email || nextErrors.password) return;
 
     setIsLoading(true);
-    const { data: res, error: resError } = await safeReturn(
-      fetch("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
-    if (resError !== null) {
+    let result: Awaited<ReturnType<typeof authClient.signIn.email>>;
+    try {
+      result = await authClient.signIn.email({
+        email: email.trim(),
+        password,
+      });
+    } catch {
       setIsLoading(false);
       toast.error("Could not reach the server. Check your connection.");
       return;
     }
 
-    if (!res.ok) {
+    if (result.error) {
       setIsLoading(false);
-      const resData = (await res
-        .json()
-        .catch(() => ({}))) as InnerResponseType<typeof POST>;
-      const message =
-        typeof resData.error === "string"
-          ? resData.error
-          : resData.error?.data?.message;
-      toast.error(message || "Could not sign in.");
+      toast.error(authErrorMessage(result.error, "Could not sign in."));
       return;
     }
 

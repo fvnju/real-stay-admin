@@ -4,7 +4,13 @@ import { ACCESS_EXPIRES_COOKIE, jwtExpiryMs } from "@/app/store/refresh-gate";
 import { ENVIRONMENT } from "@/utils/configs/constant";
 
 // The same names as in `src/server/session.ts`.
-const SESSION_COOKIES = ["access_token", "refresh_token", "user", ACCESS_EXPIRES_COOKIE];
+const SESSION_COOKIES = [
+  "ba_session_token",
+  "access_token",
+  "refresh_token",
+  "user",
+  ACCESS_EXPIRES_COOKIE,
+];
 
 const PUBLIC_PATHS = ["/", "/sign-in", "/forgot-password", "/accept-invite", "/request-access"];
 
@@ -19,10 +25,10 @@ export function middleware(request: NextRequest) {
 
   const isPublicPath = PUBLIC_PATHS.includes(path);
 
-  // The access token lives 15 minutes, the refresh token 7 days. The
-  // session exists while the refresh token exists: `/api/backend` gets a
-  // new access token when it needs one.
-  const hasSession = !!request.cookies.get("refresh_token")?.value;
+  // Better Auth sessions live 7 days in `ba_session_token`. Legacy sessions
+  // stay valid while `refresh_token` exists (`/api/backend` refreshes them).
+  const baSession = request.cookies.get("ba_session_token")?.value;
+  const hasSession = !!baSession || !!request.cookies.get("refresh_token")?.value;
 
   if (!isPublicPath && !hasSession) {
     return NextResponse.redirect(new URL("/sign-in", request.nextUrl));
@@ -33,8 +39,19 @@ export function middleware(request: NextRequest) {
   }
 
   const response = NextResponse.next();
-  // A session from before `access_expires` existed: write it from the token,
-  // so that the requests of the page do not wait one by one.
+  // Ensure `access_expires` is populated so `refresh-gate.ts` does not serialize
+  // parallel page requests.
+  if (baSession && !request.cookies.get(ACCESS_EXPIRES_COOKIE)?.value) {
+    const maxAge = 7 * 24 * 60 * 60;
+    response.cookies.set(ACCESS_EXPIRES_COOKIE, String(Date.now() + maxAge * 1000), {
+      httpOnly: false,
+      secure: ENVIRONMENT === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge,
+    });
+    return response;
+  }
   const accessToken = request.cookies.get("access_token")?.value;
   if (accessToken && !request.cookies.get(ACCESS_EXPIRES_COOKIE)?.value) {
     const expiry = jwtExpiryMs(accessToken);

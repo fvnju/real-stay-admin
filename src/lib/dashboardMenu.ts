@@ -1,4 +1,5 @@
 import type { IconName } from "@/components/icon";
+import { authClient } from "@/lib/auth-client";
 
 export type MenuItem = {
   label: string;
@@ -50,12 +51,13 @@ export function isMenuPathActive(pathname: string, itemPath: string) {
 }
 
 /**
- * Ends the session. The server route clears the httpOnly cookies; the
- * page has no token of its own to remove.
+ * Ends the session via Better Auth (`/api/auth/sign-out`). The server proxy
+ * revokes the Postgres session and clears all httpOnly cookies; the page has
+ * no token of its own to remove.
  */
 export async function logout() {
   try {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await authClient.signOut();
   } finally {
     window.location.href = "/sign-in";
   }
