@@ -72,7 +72,7 @@ export function roleErrorMessage(error: unknown): string {
     case "ACCOUNT_DEACTIVATED":
       return "This RealStay account is deactivated. Activate it on the Users page first.";
     case "ACCOUNT_EXISTS":
-      return "This email already has a RealStay account.";
+      return "This email already has a RealStay account. Turn on existing-account approval or ask for another email.";
     case "PHONE_IN_USE":
       return "Another RealStay account has this phone number. Ask the person for another number.";
     case "USE_ADMIN_REMOVAL":

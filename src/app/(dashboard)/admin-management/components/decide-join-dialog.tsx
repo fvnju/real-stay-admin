@@ -20,7 +20,15 @@ export const joinNameOf = (r: JoinRequest) => [r.firstName, r.lastName].filter(B
  * or send the admin invite with a role) or decline it with a note. The person
  * gets no email for a decline.
  */
-export function DecideJoinDialog({ request, onClose }: { request: JoinRequest; onClose: () => void }) {
+export function DecideJoinDialog({
+  request,
+  allowExistingAccountApproval = true,
+  onClose,
+}: {
+  request: JoinRequest;
+  allowExistingAccountApproval?: boolean;
+  onClose: () => void;
+}) {
   const { data: me } = useMyPermissions();
   const roles = rbacApi.useGetRolesQuery(ALL_ROLES_ARGS);
   const [roleId, setRoleId] = useState("");
@@ -42,7 +50,8 @@ export function DecideJoinDialog({ request, onClose }: { request: JoinRequest; o
   const isDeactivated = !!existing?.isDeactivated;
   const isAlreadyAdmin = !!existing && !isRemovedAdmin && existing.userType === "admin" && existing.status === "active";
   const isExistingUser = !!existing && !isRemovedAdmin && !isDeactivated && existing.userType !== "admin";
-  const approvalBlocked = isRemovedAdmin || isDeactivated || isAlreadyAdmin;
+  const isExistingBlocked = isExistingUser && !allowExistingAccountApproval;
+  const approvalBlocked = isRemovedAdmin || isDeactivated || isAlreadyAdmin || isExistingBlocked;
 
   const done = (text: string) => {
     toast.success(text);
@@ -107,6 +116,15 @@ export function DecideJoinDialog({ request, onClose }: { request: JoinRequest; o
                   Open admin page
                 </NextLink>
                 .
+              </p>
+            ) : isExistingBlocked && existing ? (
+              <p className="rounded-2xl bg-default p-3 text-warning">
+                This email already has a RealStay {existing.userType} account (
+                <NextLink href={`/users/${existing.id}`} onClick={onClose} className="underline">
+                  view account
+                </NextLink>
+                ). Turn on &ldquo;Allow existing RealStay accounts&rdquo; in Join requests to approve it, or ask the
+                person for another email.
               </p>
             ) : (
               <div className="flex flex-col gap-2">

@@ -1,11 +1,14 @@
 "use client";
 
+import { Label, Switch } from "@heroui/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import { AdminTable, BlockedState, SegmentTabs, StatusChip, TablePagination, formatDate } from "@/components/admin";
 import { joinRequestsApi } from "@/app/endpoints/join-requests/join-requests-api-slice";
 import type { JoinRequest } from "@/app/endpoints/join-requests/join-requests-types";
 import { PAGE_SIZE, waitsForData } from "@/lib/page-queries";
+import { roleErrorMessage } from "@/lib/role-text";
 import { usePermission } from "@/lib/use-permission";
 import { DecideJoinDialog, joinNameOf } from "./decide-join-dialog";
 
@@ -34,6 +37,10 @@ function JoinRequestsList() {
   const [openId, setOpenId] = useState<string | null>(params.get("request"));
 
   const query = joinRequestsApi.useGetJoinRequestsQuery({ status, page, limit: pageSize });
+  const settingsQuery = joinRequestsApi.useGetJoinRequestSettingsQuery();
+  const [updateSettings, { isLoading: isSavingSettings }] = joinRequestsApi.useUpdateJoinRequestSettingsMutation();
+  const allowExisting = settingsQuery.data?.data?.allowExistingAccountApproval ?? true;
+
   const queue = query.data?.data;
   const items = queue?.data ?? [];
   const opened = items.find((r) => r.id === openId) ?? null;
@@ -43,17 +50,44 @@ function JoinRequestsList() {
     if (params.get("request")) router.replace("/admin-management?view=join");
   };
 
+  const toggleAllowExisting = (next: boolean) => {
+    updateSettings({ allowExistingAccountApproval: next })
+      .unwrap()
+      .then(() =>
+        toast.success(
+          next
+            ? "Existing RealStay accounts can now be approved."
+            : "Existing RealStay accounts can no longer be approved.",
+        ),
+      )
+      .catch((err) => toast.error(roleErrorMessage(err)));
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      <SegmentTabs
-        label="Request status"
-        segments={STATUSES}
-        value={status}
-        onChange={(v) => {
-          setStatus(v);
-          setPage(1);
-        }}
-      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SegmentTabs
+          label="Request status"
+          segments={STATUSES}
+          value={status}
+          onChange={(v) => {
+            setStatus(v);
+            setPage(1);
+          }}
+        />
+        <Switch
+          isSelected={allowExisting}
+          isDisabled={settingsQuery.isLoading || isSavingSettings}
+          onChange={toggleAllowExisting}
+        >
+          <Switch.Control>
+            <Switch.Thumb />
+          </Switch.Control>
+          <Switch.Content>
+            <Label className="text-sm">Allow existing RealStay accounts</Label>
+          </Switch.Content>
+        </Switch>
+      </div>
       <AdminTable<JoinRequest>
         label="Join requests"
         columns={[
@@ -99,7 +133,14 @@ function JoinRequestsList() {
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
       />
-      {opened ? <DecideJoinDialog key={opened.id} request={opened} onClose={close} /> : null}
+      {opened ? (
+        <DecideJoinDialog
+          key={opened.id}
+          request={opened}
+          allowExistingAccountApproval={allowExisting}
+          onClose={close}
+        />
+      ) : null}
     </div>
   );
 }

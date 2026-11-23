@@ -10,6 +10,11 @@ export type JoinRequestExistingAccount = {
   isDeactivated: boolean;
 };
 
+/** Settings for join-request approval (`GET`/`PATCH /v1/admin/join-requests/settings`). */
+export type JoinRequestSettings = {
+  allowExistingAccountApproval: boolean;
+};
+
 /** A request of a person without an admin account (backend `src/features/join-requests`). */
 export type JoinRequest = {
   id: string;
