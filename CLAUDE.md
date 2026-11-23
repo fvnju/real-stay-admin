@@ -60,6 +60,7 @@ Upstream keeps the access token and the refresh token in `localStorage`, so an X
 
 - Admins get no push or in-app notifications. The bell of the header (`src/components/dashboard/attention-center.tsx`) opens a popover under it with the admin queues of the backend: open reports (`GET /v1/admin/reports?status=open`), papers to check (`/v1/admin/listing-verifications?status=submitted`), visits to do (`status=documents_approved`), verified listings to check again (`recheck=true`), open access requests (`/v1/admin/access-requests?status=open`), open join requests (`/v1/admin/join-requests?status=open`), and admin invites with no answer (`/analytics/admins`).
 - A queue shows only when the role has its permission (`reports:view`, `verifications:view`, `admin-management:actions` for the access and join requests, `admin-management:view` for the invites), and only the queues shown count in the badge. It loads again each minute while the tab is in front, and when the popover opens. Each list shows the 5 oldest items; an item opens its page.
+- The bell polls each minute only while the tab is visible (`skipPollingIfUnfocused`), and loads the counts at once when the tab shows again (`refetchOnFocus`). Both need `setupListeners(store.dispatch)` in `src/app/store/store.ts`.
 - The calls are in `src/app/endpoints/attention/`. A v1 list answers `{ data: { data, total, page, limit } }`.
 - A verification item opens `/verifications/[id]`.
 

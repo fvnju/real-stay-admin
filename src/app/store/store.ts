@@ -1,4 +1,5 @@
 import { configureStore, createListenerMiddleware, isRejectedWithValue } from "@reduxjs/toolkit";
+import { setupListeners } from "@reduxjs/toolkit/query";
 import { missingPermissionOf } from "@/lib/permissions";
 import { realstayApi } from "./storeConfigQuery";
 import { posthogApi } from "@/app/endpoints/posthog/posthog-api-slice";
@@ -34,6 +35,13 @@ const  store = configureStore({
       permissionListener.middleware,
     ),
 });
+
+/**
+ * Tell RTK Query when the tab is hidden or shown (`visibilitychange`, `focus`).
+ * Without it, `skipPollingIfUnfocused` has no effect: the bell polled the
+ * backend each minute also in a background tab. It does nothing on the server.
+ */
+setupListeners(store.dispatch);
 
 export type AppDispatch = typeof store.dispatch;
 export type RootState = ReturnType<typeof store.getState>;

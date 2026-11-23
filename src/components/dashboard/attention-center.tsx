@@ -21,8 +21,12 @@ import type {
 
 /** How many items each section shows. The count shows all of them. */
 const SHOWN = 5;
-/** The badge loads the counts again each minute, while the tab is in front. */
-const POLL = { pollingInterval: 60_000, skipPollingIfUnfocused: true } as const;
+/**
+ * The badge loads the counts again each minute while the tab is visible. In a
+ * hidden tab it does not poll. When the tab shows again, it loads them at once.
+ * This needs `setupListeners` in the store (`src/app/store/store.ts`).
+ */
+const POLL = { pollingInterval: 60_000, skipPollingIfUnfocused: true, refetchOnFocus: true } as const;
 
 const nameOf = (p?: { firstName?: string; lastName?: string } | null) =>
   [p?.firstName, p?.lastName].filter(Boolean).join(" ") || "Unknown user";
